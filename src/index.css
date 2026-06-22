@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  /* parallax offsets driven by GSAP (mouse) — unitless, px applied via calc() */
+  /* parallax offsets driven by GSAP (mouse) — unitless, px via calc() */
   --mx: 0;
   --my: 0;
   --mx2: 0;
   --my2: 0;
-  --halftone: 14px;
+  --halftone: 7px;
 }
 
 html,
@@ -19,163 +19,102 @@ body,
 }
 
 body {
-  @apply font-body antialiased;
-  color: #f4ecff;
+  @apply font-body text-ink antialiased;
   overflow-x: hidden;
-  background: #160a27;
+  background: #efe9f2;
   cursor: default;
 }
 
 /* ------------------------------------------------------------------ *
- * 1. PURE-CODE ACID MESH GRADIENT BASE  (no images)
- *    Rich, trippy 3D-lit mesh: overlapping neon radial lobes that
- *    slowly churn — neon purple, vivid pink, acid cyan, pastel blue.
+ * 1. SOFT IRIDESCENT MACARON GRADIENT  (pure code, matches Figma)
+ *    Dreamy low-saturation blend: periwinkle · pink · peach · sky.
  * ------------------------------------------------------------------ */
 .macaron-base {
   position: fixed;
-  inset: -18%;
+  inset: -14%;
   z-index: 0;
   background:
-    radial-gradient(46% 50% at 18% 24%, rgba(255, 45, 149, 0.95) 0%, rgba(255, 45, 149, 0) 58%),
-    radial-gradient(48% 52% at 82% 22%, rgba(0, 229, 255, 0.9) 0%, rgba(0, 229, 255, 0) 60%),
-    radial-gradient(55% 58% at 72% 80%, rgba(157, 0, 255, 0.92) 0%, rgba(157, 0, 255, 0) 60%),
-    radial-gradient(50% 55% at 22% 82%, rgba(125, 180, 255, 0.85) 0%, rgba(125, 180, 255, 0) 60%),
-    radial-gradient(40% 40% at 50% 50%, rgba(255, 95, 210, 0.6) 0%, rgba(255, 95, 210, 0) 55%),
-    conic-gradient(from 210deg at 50% 50%, #2a1247, #3a1a5e, #102a4a, #2a1247);
-  background-size: 200% 200%, 200% 200%, 200% 200%, 200% 200%, 180% 180%, 100% 100%;
-  filter: saturate(1.25) contrast(1.08);
-  transform: translate3d(calc(var(--mx) * 1px), calc(var(--my) * 1px), 0) scale(1.12);
-  transition: transform 0.18s ease-out;
-  animation: meshDrift 22s ease-in-out infinite;
-  will-change: transform, background-position;
-}
-
-@keyframes meshDrift {
-  0%,
-  100% {
-    background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%, 0 0;
-  }
-  33% {
-    background-position: 30% 20%, 70% 30%, 60% 80%, 20% 70%, 40% 60%, 0 0;
-  }
-  66% {
-    background-position: 60% 40%, 40% 10%, 80% 50%, 10% 90%, 60% 40%, 0 0;
-  }
-}
-
-/* ------------------------------------------------------------------ *
- * 2. HALFTONE DOT GRID  (retro print texture)
- * ------------------------------------------------------------------ */
-.halftone {
-  position: fixed;
-  inset: -12%;
-  z-index: 1;
-  pointer-events: none;
-  /* sharper, higher-contrast print dots — hard edge, near-black ink */
-  background-image:
-    radial-gradient(rgba(15, 10, 25, 0.55) 1.7px, transparent 1.9px),
-    radial-gradient(rgba(15, 10, 25, 0.3) 1.2px, transparent 1.4px);
-  background-size: var(--halftone) var(--halftone),
-    calc(var(--halftone) * 1.5) calc(var(--halftone) * 1.5);
-  background-position: 0 0, calc(var(--halftone) / 2) calc(var(--halftone) / 2);
-  mix-blend-mode: multiply;
-  opacity: 0.85;
-  transform: translate3d(calc(var(--mx2) * 1px), calc(var(--my2) * 1px), 0);
-  transition: transform 0.12s ease-out;
+    radial-gradient(50% 55% at 20% 22%, rgba(174, 185, 236, 0.95) 0%, rgba(174, 185, 236, 0) 60%),
+    radial-gradient(48% 50% at 82% 30%, rgba(246, 211, 178, 0.85) 0%, rgba(246, 211, 178, 0) 62%),
+    radial-gradient(55% 55% at 60% 78%, rgba(242, 182, 212, 0.9) 0%, rgba(242, 182, 212, 0) 62%),
+    radial-gradient(50% 55% at 18% 82%, rgba(188, 210, 239, 0.85) 0%, rgba(188, 210, 239, 0) 60%),
+    radial-gradient(60% 60% at 88% 86%, rgba(247, 207, 224, 0.7) 0%, rgba(247, 207, 224, 0) 60%),
+    linear-gradient(125deg, #cfd6f0 0%, #f0d8e6 42%, #f7e6d6 72%, #cdddf1 100%);
+  background-size: 150% 150%;
+  filter: saturate(1.02);
+  transform: translate3d(calc(var(--mx) * 1px), calc(var(--my) * 1px), 0) scale(1.08);
+  transition: transform 0.25s ease-out;
   will-change: transform;
 }
 
 /* ------------------------------------------------------------------ *
- * 3. GRAIN  (SVG feTurbulence overlay)
+ * 2. HALFTONE  (very faint retro print dots, like the Figma overlay)
+ * ------------------------------------------------------------------ */
+.halftone {
+  position: fixed;
+  inset: -14%;
+  z-index: 1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(40, 30, 60, 0.16) 0.9px, transparent 1px);
+  background-size: var(--halftone) var(--halftone);
+  mix-blend-mode: multiply;
+  opacity: 0.28;
+  transform: translate3d(calc(var(--mx2) * 1px), calc(var(--my2) * 1px), 0);
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. GRAIN  (subtle tactile paper noise)
  * ------------------------------------------------------------------ */
 .grain {
   position: fixed;
   inset: -50%;
   z-index: 2;
   pointer-events: none;
-  /* tactile vintage-paper grain: higher opacity, overlay blend for ink bite */
-  opacity: 0.22;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   @apply animate-grain;
   will-change: transform;
 }
 
 /* ------------------------------------------------------------------ *
- * Neon Retro typography
+ * Typography — retro display nav + editorial serif
  * ------------------------------------------------------------------ */
-.neon-hover {
-  position: relative;
-  font-weight: 900;
-  letter-spacing: 0.32em;
-  color: #f4ecff;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-.neon-hover:hover {
-  color: #eaffd4;
-  transform: translateY(-1px) scale(1.04);
-  @apply animate-flicker;
-}
-
-/* heavy Retro Americana display fill with hard offset shadow + neon edge */
-.retro-stroke {
-  -webkit-text-stroke: 2px rgba(10, 5, 20, 0.85);
+.nav-label {
+  font-family: 'Gravitas One', Georgia, serif;
+  color: #b6ff00;
+  font-size: clamp(15px, 1.4vw, 22px);
+  letter-spacing: 0.02em;
   text-shadow:
-    3px 3px 0 #ff2d95,
-    6px 6px 0 #9d00ff,
-    0 0 22px rgba(0, 255, 0, 0.35);
+    1px 1px 0 rgba(60, 90, 0, 0.45),
+    0 0 1px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+.nav-label:hover {
+  filter: drop-shadow(0 0 6px rgba(182, 255, 0, 0.8)) brightness(1.05);
+  transform: translateY(-1px) scale(1.04);
 }
 
-/* chrome acid sparkle for star nodes */
-.chrome-star {
-  background: conic-gradient(
-    from 0deg,
-    #fff 0%,
-    #c4a7e7 18%,
-    #a9c4e8 38%,
-    #8fb98f 55%,
-    #e9a6c9 72%,
-    #fff 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 1px 2px rgba(42, 37, 53, 0.35));
+/* scattered black asterisk star */
+.star-asterisk {
+  font-family: 'Gravitas One', Georgia, serif;
+  color: #14101f;
+  line-height: 0;
+  user-select: none;
 }
 
-/* slow drifting float for the resting shards (isolated from FLIP transform) */
-.shard-float {
-  animation: shardDrift 8s ease-in-out infinite;
-  will-change: transform;
-}
-@keyframes shardDrift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  25% {
-    transform: translate3d(6px, -14px, 0) rotate(1.5deg);
-  }
-  50% {
-    transform: translate3d(-4px, -22px, 0) rotate(-1deg);
-  }
-  75% {
-    transform: translate3d(-8px, -10px, 0) rotate(1deg);
-  }
-}
-
-/* full-bleed shard overlay (FLIP target) */
-.shard-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shard-float,
-  .macaron-base {
-    animation: none !important;
-  }
+/* the 1440x900 art-directed stage, scaled to fit any viewport */
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  width: 1440px;
+  height: 900px;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform-origin: center center;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,107 +1,103 @@
-// Mock portfolio data — the "Gachapon" pool for the star nodes,
-// and the narrative shard array mapped to green_piece_1..4.png.
+// Mock portfolio data.
+// `projects` = the random "Gachapon" pool for the black star (*) nodes.
+// `shards`   = the 4 green polygon shards, positioned to match the Figma
+//              demo (1440x900 stage) and each opening an editorial detail.
 
 export const projects = [
   {
-    id: 'aurora-field',
-    title: 'AURORA FIELD',
-    field: 'Immersive Installation',
+    id: 'andromeda-freckles',
+    number: 1,
+    title: 'andromeda freckles',
+    field: 'Immersive Portrait',
     year: '2025',
-    color: '#e9a6c9',
-    blurb:
-      'A 360° responsive light garden where visitor footsteps bloom volumetric aurora ribbons across a 24-projector dome.',
+    image: '/assets/work_1.jpg',
+    body: [
+      'In Cosmos, Carl Sagan said the nitrogen in our DNA, the calcium in our bones, the iron in our blood, the carbon in our apple pies — all these atoms were forged inside ancient stars. We are a way for the universe to know itself.',
+      'And mapped across her face is Andromeda, born 10 billion years ago. Read her closely and you can read the countless secrets of the cosmos — countless stars that lived, and died. Everyone’s freckles are galaxies; everyone‘s own constellation of moles makes them who they are, and no one else.',
+    ],
   },
   {
     id: 'tide-machine',
-    title: 'TIDE MACHINE',
+    number: 2,
+    title: 'tide machine',
     field: 'Kinetic Sculpture',
     year: '2024',
-    color: '#a9c4e8',
-    blurb:
-      'Seven hundred suspended mirrors choreographed to a generative tide model — the room breathes like an ocean at dusk.',
+    image: '/assets/work_2.jpg',
+    body: [
+      'Seven hundred suspended mirrors choreographed to a generative tide model. The room breathes like an ocean at dusk, and the audience drifts beneath a sky they are quietly rewriting.',
+      'We borrow the moon’s arithmetic and hand it to strangers. The pull you feel is real; gravity is just love at a distance, doing the math.',
+    ],
   },
   {
     id: 'sugar-circuit',
-    title: 'SUGAR CIRCUIT',
+    number: 3,
+    title: 'sugar circuit',
     field: 'Theme Park Dark Ride',
     year: '2025',
-    color: '#c4a7e7',
-    blurb:
-      'A narrative dark ride through a candy-coded utopia — riders rewrite the story by collecting light during the journey.',
-  },
-  {
-    id: 'bloom-protocol',
-    title: 'BLOOM PROTOCOL',
-    field: 'Real-time WebGL',
-    year: '2023',
-    color: '#b7d36a',
-    blurb:
-      'A browser-native particle ecosystem of 1.2M agents that gardens itself based on the collective cursor weather of its visitors.',
-  },
-  {
-    id: 'paper-moon',
-    title: 'PAPER MOON',
-    field: 'Projection Mapping',
-    year: '2024',
-    color: '#f3c7dc',
-    blurb:
-      'Architectural projection that folds a civic facade into a slow-motion origami moonrise, scored for 40 hidden speakers.',
+    image: '/assets/work_3.jpg',
+    body: [
+      'A narrative dark ride through a candy-coded utopia. Riders collect light through the journey and, without noticing, author the ending they arrive at.',
+      'Every child leaves convinced the ride remembered them. It did. Somewhere in the machine, their constellation is still glowing.',
+    ],
   },
   {
     id: 'echo-orchard',
-    title: 'ECHO ORCHARD',
+    number: 4,
+    title: 'echo orchard',
     field: 'Spatial Audio',
     year: '2025',
-    color: '#8fb98f',
-    blurb:
-      'An orchard of acoustic trees — shake a branch of light and harvest a melody seeded from a stranger who visited before you.',
+    image: '/assets/work_4.jpg',
+    body: [
+      'An orchard of acoustic trees. Shake a branch of light and harvest a melody seeded by a stranger who visited before you — a small, bearable piece of the vastness.',
+      'For small creatures such as we, the vastness is bearable only through love. So we planted a place to leave songs for people we will never meet.',
+    ],
   },
 ]
 
-// Shard array — one narrative card per polygonal layout shard.
-// Loop sequentially via `green_piece_${id}.png`.
+// Green polygon shards — coordinates lifted from the Figma demo (1440x900).
 export const shards = [
   {
     id: 1,
-    name: 'ROLLERCOASTER',
-    nav: 'works',
-    accent: '#ff2d95',
-    quote:
-      '“We are made of star-stuff. We are a way for the cosmos to know itself.”',
-    cite: 'Carl Sagan',
-    copy: 'Selected immersive works — the rides I have built across domes, facades and the open web.',
+    nav: 'contact',
+    projectId: 'andromeda-freckles',
+    piece: { left: 114.89, top: 135.25, w: 141.56, rot: -3.19 },
+    label: { left: 124.41, top: 265.18 },
   },
   {
     id: 2,
-    name: 'COFFEE CUPS',
-    nav: 'about',
-    accent: '#00e5ff',
-    quote:
-      '“Somewhere, something incredible is waiting to be known.”',
-    cite: 'Carl Sagan',
-    copy: 'A creative technologist orbiting immersive media, narrative theme parks and acid-bright play.',
+    nav: 'works',
+    projectId: 'tide-machine',
+    piece: { left: 1139.73, top: 98.72, w: 128.73, rot: 7.35 },
+    label: { left: 1140.41, top: 223.18 },
   },
   {
     id: 3,
-    name: 'SWINGS',
-    nav: 'tools',
-    accent: '#ff5fd2',
-    quote:
-      '“Imagination will often carry us to worlds that never were. But without it we go nowhere.”',
-    cite: 'Carl Sagan',
-    copy: 'WebGL · Three.js · GSAP · TouchDesigner · Blender · Houdini · spatial audio rigs.',
+    nav: 'about',
+    projectId: 'sugar-circuit',
+    piece: { left: 876.49, top: 333.75, w: 132.89, rot: 18.79 },
+    label: { left: 906.41, top: 456.18 },
   },
   {
     id: 4,
-    name: 'FERRIS WHEEL',
-    nav: 'contact',
-    accent: '#9d00ff',
-    quote:
-      '“For small creatures such as we, the vastness is bearable only through love.”',
-    cite: 'Carl Sagan',
-    copy: 'Let us build a playground together. Reach out for installations, rides and collaborations.',
+    nav: 'tools',
+    projectId: 'echo-orchard',
+    piece: { left: 1185.41, top: 676.18, w: 147.79, rot: 1.23 },
+    label: { left: 1214.41, top: 799.18 },
   },
 ]
+
+// Scattered black asterisks (positions from the Figma demo, 1440x900).
+export const stars = [
+  { left: 299.41, top: 158.18, size: 34 },
+  { left: 150.41, top: 422.18, size: 33 },
+  { left: 241.41, top: 336.18, size: 31 },
+  { left: 419.41, top: 361.18, size: 33 },
+  { left: 405.41, top: 640.18, size: 34 },
+  { left: 1217.41, top: 281.18, size: 31 },
+  { left: 1116.41, top: 676.18, size: 30 },
+]
+
+export const projectById = (id) => projects.find((p) => p.id === id)
 
 export const pickRandomProject = () =>
   projects[Math.floor(Math.random() * projects.length)]
