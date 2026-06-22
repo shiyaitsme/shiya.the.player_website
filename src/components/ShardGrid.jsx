@@ -40,7 +40,6 @@ export default function ShardGrid() {
           <motion.button
             key={shard.id}
             type="button"
-            layoutId={`shard-${shard.id}`}
             onClick={() => setActive(shard.id)}
             className="pointer-events-auto absolute z-30 flex flex-col items-center gap-2"
             style={{ ...slot }}
@@ -58,7 +57,7 @@ export default function ShardGrid() {
                 layoutId={`shard-img-${shard.id}`}
                 src={`/assets/green_piece_${shard.id}.png`}
                 alt={shard.name}
-                className="w-[clamp(140px,16vw,240px)]"
+                className="w-[clamp(128px,14vw,200px)]"
                 style={{ filter: tintIn }}
                 draggable={false}
               />
@@ -70,41 +69,42 @@ export default function ShardGrid() {
         )
       })}
 
-      {/* expanded full-bleed shard (FLIP target) */}
+      {/* expanded shard (FLIP target) — backdrop fills the viewport while the
+          small-source shard grows to a crisp centered hero (no pixel-stretch) */}
       <AnimatePresence>
         {activeShard && (
           <motion.div
-            className="shard-overlay flex items-end justify-center overflow-hidden"
+            className="shard-overlay flex flex-col items-center justify-center overflow-hidden px-6"
             onClick={() => setActive(null)}
           >
-            {/* dim scrim */}
+            {/* acid-gradient backdrop derived from the shard accent */}
             <motion.div
-              className="absolute inset-0 bg-ink/40"
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(60% 60% at 50% 38%, ${activeShard.accent}cc 0%, rgba(22,10,39,0.96) 72%)`,
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
+            <div className="grain" />
 
-            <motion.div
-              layoutId={`shard-${activeShard.id}`}
-              className="absolute inset-0"
-            >
-              <motion.img
-                layoutId={`shard-img-${activeShard.id}`}
-                src={`/assets/green_piece_${activeShard.id}.png`}
-                alt={activeShard.name}
-                className="h-full w-full object-cover"
-                initial={{ filter: tintIn }}
-                animate={{ filter: tintOut }}
-                exit={{ filter: tintIn }}
-                transition={{ duration: 0.7, ease: 'easeInOut' }}
-                draggable={false}
-              />
-            </motion.div>
+            {/* the shard itself, grown to a contained hero size, crisp native art */}
+            <motion.img
+              layoutId={`shard-img-${activeShard.id}`}
+              src={`/assets/green_piece_${activeShard.id}.png`}
+              alt={activeShard.name}
+              className="relative z-10 max-h-[46vh] w-auto max-w-[80vw] object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+              initial={{ filter: tintIn }}
+              animate={{ filter: tintOut }}
+              exit={{ filter: tintIn }}
+              transition={{ duration: 0.7, ease: 'easeInOut' }}
+              draggable={false}
+            />
 
             {/* narrative copy drifts up on a soft spring */}
             <motion.div
-              className="relative z-10 mb-[8vh] max-w-2xl px-8 text-center text-macaron-cream"
+              className="relative z-10 mt-8 max-w-2xl px-8 text-center text-macaron-cream"
               initial={{ y: 120, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 80, opacity: 0 }}

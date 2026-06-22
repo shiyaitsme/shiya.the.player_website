@@ -65,6 +65,7 @@ export const shards = [
     id: 1,
     name: 'ROLLERCOASTER',
     nav: 'works',
+    accent: '#ff2d95',
     quote:
       '“We are made of star-stuff. We are a way for the cosmos to know itself.”',
     cite: 'Carl Sagan',
@@ -74,6 +75,7 @@ export const shards = [
     id: 2,
     name: 'COFFEE CUPS',
     nav: 'about',
+    accent: '#00e5ff',
     quote:
       '“Somewhere, something incredible is waiting to be known.”',
     cite: 'Carl Sagan',
@@ -83,6 +85,7 @@ export const shards = [
     id: 3,
     name: 'SWINGS',
     nav: 'tools',
+    accent: '#ff5fd2',
     quote:
       '“Imagination will often carry us to worlds that never were. But without it we go nowhere.”',
     cite: 'Carl Sagan',
@@ -92,6 +95,7 @@ export const shards = [
     id: 4,
     name: 'FERRIS WHEEL',
     nav: 'contact',
+    accent: '#9d00ff',
     quote:
       '“For small creatures such as we, the vastness is bearable only through love.”',
     cite: 'Carl Sagan',
