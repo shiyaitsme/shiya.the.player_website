@@ -1,15 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { stars, pickRandomProject } from '../data/projects'
 
 /**
- * Feature A — scattered black asterisk (*) "Gachapon" nodes.
- * Plain Gravitas One asterisks at the Figma positions (1440x900 stage).
- * Click → Math.random() pulls a work → a soft light-bloom pulls the camera
- * in, then hands off to the editorial detail page (onSelect).
+ * Feature A — scattered black star "Gachapon" nodes at the Figma coordinates.
+ * Prefers the user's exported star art (/assets/star.svg). If it isn't there
+ * yet, falls back to a Gravitas asterisk. Click → random work + soft bloom.
  */
 export default function StarField({ onSelect }) {
-  const [bloom, setBloom] = useState(null) // {x,y}
+  const [bloom, setBloom] = useState(null)
+  const [starOk, setStarOk] = useState(false)
+
+  useEffect(() => {
+    let live = true
+    const img = new Image()
+    img.onload = () => live && setStarOk(true)
+    img.onerror = () => live && setStarOk(false)
+    img.src = '/assets/star.svg'
+    return () => {
+      live = false
+    }
+  }, [])
 
   const fire = (e) => {
     const project = pickRandomProject()
@@ -29,19 +40,22 @@ export default function StarField({ onSelect }) {
           type="button"
           aria-label="Open a random work"
           onClick={fire}
-          className="star-asterisk pointer-events-auto absolute z-30"
-          style={{ left: s.left, top: s.top, fontSize: s.size }}
+          className="star-asterisk pointer-events-auto absolute z-30 grid place-items-center"
+          style={{ left: s.left, top: s.top, width: s.size, height: s.size, fontSize: s.size }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5 + i * 0.07, type: 'spring', stiffness: 220, damping: 14 }}
           whileHover={{ scale: 1.35, rotate: 90 }}
           whileTap={{ scale: 1.9 }}
         >
-          *
+          {starOk ? (
+            <img src="/assets/star.svg" alt="" className="h-full w-full object-contain" draggable={false} />
+          ) : (
+            '*'
+          )}
         </motion.button>
       ))}
 
-      {/* soft cinematic light-bloom zoom */}
       <AnimatePresence>
         {bloom && (
           <motion.div
