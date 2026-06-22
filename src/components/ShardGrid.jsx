@@ -17,7 +17,9 @@ export default function ShardGrid({ onOpen }) {
             {/* polygon shard */}
             <motion.button
               type="button"
-              onClick={() => onOpen(shard.projectId)}
+              onClick={(e) =>
+                onOpen(shard.projectId, shard.id, e.currentTarget.getBoundingClientRect())
+              }
               aria-label={`Open ${shard.nav}`}
               className="pointer-events-auto absolute z-30"
               style={{ left: piece.left, top: piece.top, width: piece.w }}
@@ -47,7 +49,9 @@ export default function ShardGrid({ onOpen }) {
             {/* lime Gravitas One nav label */}
             <motion.button
               type="button"
-              onClick={() => onOpen(shard.projectId)}
+              onClick={(e) =>
+                onOpen(shard.projectId, shard.id, e.currentTarget.getBoundingClientRect())
+              }
               className="nav-label pointer-events-auto absolute z-30 lowercase"
               style={{ left: label.left, top: label.top }}
               initial={{ opacity: 0, y: 8 }}

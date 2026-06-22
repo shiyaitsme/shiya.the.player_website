@@ -7,6 +7,7 @@ import MapLines from './components/MapLines'
 import HeroCarousel from './components/HeroCarousel'
 import StarField from './components/StarField'
 import ShardGrid from './components/ShardGrid'
+import ShardZoom from './components/ShardZoom'
 import ProjectDetail from './components/ProjectDetail'
 import { projectById } from './data/projects'
 
@@ -21,8 +22,13 @@ export default function App() {
   const stageRef = useRef(null)
   useStageScale(stageRef)
 
-  const [project, setProject] = useState(null)
-  const openProject = (id) => setProject(projectById(id))
+  const [detail, setDetail] = useState(null) // the mounted detail page
+  const [zoom, setZoom] = useState(null) // active shard clip-transition
+
+  // shard click → run the zoom-in / hold / zoom-out clip transition
+  const openProject = (id, shardId, rect) => {
+    setZoom({ project: projectById(id), shardId, rect })
+  }
 
   return (
     <main className="relative h-screen w-screen overflow-hidden">
@@ -46,7 +52,7 @@ export default function App() {
         />
 
         {/* Feature A — random work Gachapon */}
-        <StarField onSelect={setProject} />
+        <StarField onSelect={setDetail} />
 
         {/* Feature B — green shards + lime nav */}
         <ShardGrid onOpen={openProject} />
@@ -54,8 +60,27 @@ export default function App() {
 
       {/* Frame 2 — editorial work detail */}
       <AnimatePresence>
-        {project && (
-          <ProjectDetail project={project} onClose={() => setProject(null)} />
+        {detail && (
+          <ProjectDetail
+            project={detail}
+            onClose={() => {
+              setDetail(null)
+              setZoom(null)
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* shard clip transition (zoom in → hold → zoom out into the detail) */}
+      <AnimatePresence>
+        {zoom && (
+          <ShardZoom
+            project={zoom.project}
+            shardId={zoom.shardId}
+            originRect={zoom.rect}
+            onReveal={() => setDetail(zoom.project)}
+            onComplete={() => setZoom(null)}
+          />
         )}
       </AnimatePresence>
     </main>
