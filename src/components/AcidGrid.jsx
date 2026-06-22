@@ -38,10 +38,11 @@ export default function AcidGrid() {
     dots.forEach((dot) => {
       const pathSel = dot.getAttribute('data-path')
       const t = gsap.to(dot, {
-        duration: gsap.utils.random(4, 7),
+        // faster, denser stream => immersive teamLab flow
+        duration: gsap.utils.random(1.6, 3.2),
         repeat: -1,
         ease: 'none',
-        delay: gsap.utils.random(0, 4),
+        delay: gsap.utils.random(0, 2),
         motionPath: {
           path: svg.querySelector(pathSel),
           align: svg.querySelector(pathSel),
@@ -76,58 +77,58 @@ export default function AcidGrid() {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="acidLine" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#8fb98f" stopOpacity="0.0" />
-          <stop offset="0.5" stopColor="#8fb98f" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#b7d36a" stopOpacity="0.0" />
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2.4" result="b" />
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="3.4" result="b" />
           <feMerge>
+            <feMergeNode in="b" />
             <feMergeNode in="b" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
 
-      {/* fluid connector lines */}
+      {/* radiant neon-green connector lines */}
       {PATHS.map((d, i) => (
         <path
           key={i}
           id={`acid-path-${i}`}
           d={d}
           fill="none"
-          stroke="url(#acidLine)"
-          strokeWidth="1.4"
-          strokeDasharray="2 9"
+          stroke="#00FF00"
+          strokeWidth="2"
           strokeLinecap="round"
+          filter="url(#glow)"
+          opacity="0.92"
+          style={{ filter: 'drop-shadow(0 0 8px #00FF00)' }}
         />
       ))}
 
-      {/* streaming micro-particles (several per path, staggered) */}
+      {/* dense streaming micro-particles (more per path, staggered) */}
       {PATHS.map((_, i) =>
-        Array.from({ length: 5 }).map((_, j) => (
+        Array.from({ length: 11 }).map((_, j) => (
           <circle
             key={`d-${i}-${j}`}
             className="stream-dot"
             data-path={`#acid-path-${i}`}
-            r={1.8 + (j % 2) * 0.9}
-            fill={j % 2 ? '#c6ff5e' : '#8fb98f'}
+            r={2.2 + (j % 3) * 0.8}
+            fill={j % 2 ? '#eaffd4' : '#00FF00'}
             filter="url(#glow)"
+            style={{ filter: 'drop-shadow(0 0 6px #00FF00)' }}
           />
         ))
       )}
 
-      {/* nodes */}
+      {/* glowing nodes */}
       {NODES.map(([x, y], i) => (
         <circle
           key={`n-${i}`}
           className="grid-node"
           cx={x}
           cy={y}
-          r="2.6"
-          fill="#8fb98f"
-          opacity="0.55"
+          r="3.2"
+          fill="#00FF00"
+          opacity="0.9"
+          style={{ filter: 'drop-shadow(0 0 8px #00FF00)' }}
         />
       ))}
     </svg>

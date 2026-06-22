@@ -16,10 +16,10 @@ export default function Header() {
         alt="Shiya the Player"
         className="h-16 w-16 animate-floaty drop-shadow-[0_6px_14px_rgba(42,37,53,0.2)]"
       />
-      <h1 className="retro-stroke mt-1 font-display text-lg uppercase tracking-[0.45em] text-ink/85">
+      <h1 className="retro-stroke mt-1 font-display text-xl uppercase tracking-[0.45em] text-macaron-cream">
         Shiya the Player
       </h1>
-      <p className="font-body text-[0.6rem] uppercase tracking-[0.5em] text-ink/55">
+      <p className="font-body text-[0.6rem] uppercase tracking-[0.5em] text-acid-neon/80">
         digital playground · 桃花源
       </p>
     </motion.header>

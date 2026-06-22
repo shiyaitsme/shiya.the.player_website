@@ -29,12 +29,18 @@ export default {
       },
       keyframes: {
         flicker: {
-          '0%, 19%, 21%, 23%, 25%, 54%, 56%, 100%': {
+          '0%, 18%, 22%, 25%, 53%, 57%, 83%, 100%': {
             opacity: '1',
+            color: '#eaffd4',
             textShadow:
-              '0 0 4px #c6ff5e, 0 0 11px #8fb98f, 0 0 19px #8fb98f, 0 0 40px #b7d36a',
+              '0 0 4px #00ff00, 0 0 11px #00ff00, 0 0 22px #00ff00, 0 0 44px #39ff14, 0 0 70px #00ff00',
           },
-          '20%, 22%, 24%, 55%': { opacity: '0.55', textShadow: 'none' },
+          '20%, 24%, 55%, 85%': {
+            opacity: '0.28',
+            color: '#7bdc6a',
+            textShadow: 'none',
+          },
+          '19%, 23%, 54%, 84%': { opacity: '0.85', textShadow: '0 0 6px #00ff00' },
         },
         sparkleSpin: {
           '0%': { transform: 'rotate(0deg) scale(1)' },

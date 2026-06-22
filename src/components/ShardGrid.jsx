@@ -21,8 +21,11 @@ const SLOTS = [
   { right: '10vw', bottom: '14vh', rot: -6 },
 ]
 
-const tintIn = 'sepia(0.5) hue-rotate(55deg) saturate(1.4) brightness(0.96)'
-const tintOut = 'sepia(0) hue-rotate(0deg) saturate(1) brightness(1)'
+// resting state keeps the real texture readable (no flat fill) with a light
+// acid push + neon rim; expanding interpolates to fully crisp color.
+const tintIn =
+  'saturate(1.15) contrast(1.08) hue-rotate(-8deg) drop-shadow(0 0 10px rgba(0,255,0,0.45))'
+const tintOut = 'saturate(1) contrast(1) hue-rotate(0deg) drop-shadow(0 0 0 transparent)'
 
 export default function ShardGrid() {
   const [active, setActive] = useState(null)
@@ -44,17 +47,23 @@ export default function ShardGrid() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0, rotate: slot.rot }}
             transition={{ delay: 0.4 + i * 0.12, type: 'spring', stiffness: 120, damping: 16 }}
-            whileHover={{ scale: 1.06, rotate: 0 }}
+            whileHover={{ scale: 1.08, rotate: 0 }}
           >
-            <motion.img
-              layoutId={`shard-img-${shard.id}`}
-              src={`/assets/green_piece_${shard.id}.png`}
-              alt={shard.name}
-              className="w-[clamp(120px,14vw,210px)] drop-shadow-[0_14px_30px_rgba(42,37,53,0.25)]"
-              style={{ filter: tintIn }}
-              draggable={false}
-            />
-            <span className="neon-hover font-display text-sm uppercase tracking-[0.35em] text-ink/80">
+            {/* float wrapper isolates the slow drift from Framer's FLIP transform */}
+            <span
+              className="shard-float block"
+              style={{ animationDelay: `${i * -1.4}s`, animationDuration: `${7 + i}s` }}
+            >
+              <motion.img
+                layoutId={`shard-img-${shard.id}`}
+                src={`/assets/green_piece_${shard.id}.png`}
+                alt={shard.name}
+                className="w-[clamp(140px,16vw,240px)]"
+                style={{ filter: tintIn }}
+                draggable={false}
+              />
+            </span>
+            <span className="neon-hover font-display text-sm uppercase">
               {shard.nav}
             </span>
           </motion.button>
