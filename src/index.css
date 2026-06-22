@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* parallax offsets driven by GSAP (mouse) — unitless, px applied via calc() */
+  --mx: 0;
+  --my: 0;
+  --mx2: 0;
+  --my2: 0;
+  --halftone: 18px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  @apply font-body text-ink antialiased;
+  overflow-x: hidden;
+  background: #f6f1e7;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ *
+ * 1. PURE-CODE MACARON GRADIENT BASE  (no images)
+ * ------------------------------------------------------------------ */
+.macaron-base {
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  /* fluid, low-saturation macaron field via layered radial-gradients */
+  background:
+    radial-gradient(60% 55% at 22% 28%, rgba(233, 166, 201, 0.85) 0%, rgba(233, 166, 201, 0) 60%),
+    radial-gradient(55% 50% at 78% 30%, rgba(169, 196, 232, 0.8) 0%, rgba(169, 196, 232, 0) 62%),
+    radial-gradient(65% 60% at 68% 78%, rgba(196, 167, 231, 0.78) 0%, rgba(196, 167, 231, 0) 60%),
+    radial-gradient(50% 55% at 30% 80%, rgba(183, 211, 178, 0.55) 0%, rgba(183, 211, 178, 0) 58%),
+    linear-gradient(120deg, #f6f1e7 0%, #efe7f3 45%, #e7eef6 100%);
+  background-size: 160% 160%;
+  transform: translate3d(calc(var(--mx) * 1px), calc(var(--my) * 1px), 0) scale(1.06);
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. HALFTONE DOT GRID  (retro print texture)
+ * ------------------------------------------------------------------ */
+.halftone {
+  position: fixed;
+  inset: -12%;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(42, 37, 53, 0.16) 1.4px, transparent 1.5px),
+    radial-gradient(rgba(42, 37, 53, 0.1) 1.1px, transparent 1.2px);
+  background-size: var(--halftone) var(--halftone),
+    calc(var(--halftone) * 1.6) calc(var(--halftone) * 1.6);
+  background-position: 0 0, calc(var(--halftone) / 2) calc(var(--halftone) / 2);
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  transform: translate3d(calc(var(--mx2) * 1px), calc(var(--my2) * 1px), 0);
+  transition: transform 0.12s ease-out;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. GRAIN  (SVG feTurbulence overlay)
+ * ------------------------------------------------------------------ */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  @apply animate-grain;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * Neon Retro typography
+ * ------------------------------------------------------------------ */
+.neon-hover {
+  position: relative;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.neon-hover:hover {
+  color: #2a2535;
+  @apply animate-flicker;
+}
+
+.retro-stroke {
+  -webkit-text-stroke: 1.4px rgba(42, 37, 53, 0.55);
+  text-shadow: 3px 3px 0 rgba(233, 166, 201, 0.7);
+}
+
+/* chrome acid sparkle for star nodes */
+.chrome-star {
+  background: conic-gradient(
+    from 0deg,
+    #fff 0%,
+    #c4a7e7 18%,
+    #a9c4e8 38%,
+    #8fb98f 55%,
+    #e9a6c9 72%,
+    #fff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 2px rgba(42, 37, 53, 0.35));
+}
+
+/* full-bleed shard overlay (FLIP target) */
+.shard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .macaron-base,
+  .halftone,
+  .grain {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
