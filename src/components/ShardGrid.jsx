@@ -20,7 +20,7 @@ function NavLabel({ section }) {
       alt={section.nav}
       onError={() => setImgOk(false)}
       draggable={false}
-      className="pointer-events-none h-[26px] w-auto select-none drop-shadow-[0_2px_5px_rgba(40,55,0,0.35)]"
+      className="pointer-events-none h-[26px] w-auto select-none"
     />
   ) : (
     <span className="nav-label lowercase">{section.nav}</span>

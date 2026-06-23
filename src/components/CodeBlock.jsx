@@ -63,7 +63,7 @@ export default function CodeBlock({ code = '', language = '' }) {
           </span>
         )}
       </div>
-      <pre className="max-h-[40vh] overflow-auto px-4 py-4 text-[12.5px] leading-relaxed md:text-[13.5px]">
+      <pre className="no-scrollbar max-h-[40vh] overflow-auto px-4 py-4 text-[12.5px] leading-relaxed md:text-[13.5px]">
         <code className="whitespace-pre font-mono text-white/85">{tokens}</code>
       </pre>
     </div>

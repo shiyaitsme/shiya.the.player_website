@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
 import NumberBadge from './NumberBadge'
 import ProjectModal from './ProjectModal'
+import SafeMount from './butterfly/SafeMount'
 import { works } from '../data/projects'
+
+// 3D butterfly easter egg — lazy so three.js stays out of the main bundle
+const ButterflyEgg = lazy(() => import('./butterfly/ButterflyEgg'))
 
 /**
  * The content page a shard / star opens into. Soft section background image
@@ -17,10 +21,18 @@ export default function Page({ view, onClose }) {
   const section = view.type === 'section' ? view.section : null
   const bg = section ? section.bg : '/assets/bg_1.png'
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
+  const [entering, setEntering] = useState(false) // butterfly → archive "rabbit hole"
+
+  // TODO(archive world): replace this teaser with the real camera "fall" into
+  // the 3D archive scene. For now it acknowledges the catch.
+  const enterArchiveWorld = () => {
+    setEntering(true)
+    window.setTimeout(() => setEntering(false), 1600)
+  }
 
   return (
     <motion.div
-      className="fixed inset-0 z-[80] overflow-y-auto overflow-x-hidden"
+      className="no-scrollbar fixed inset-0 z-[80] overflow-y-auto overflow-x-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
@@ -127,6 +139,38 @@ export default function Page({ view, onClose }) {
           </div>
         )}
       </div>
+
+      {/* 3D butterfly easter egg (Works page only) */}
+      {section?.kind === 'works' && (
+        <SafeMount>
+          <Suspense fallback={null}>
+            <ButterflyEgg onEnter={enterArchiveWorld} />
+          </Suspense>
+        </SafeMount>
+      )}
+
+      {/* rabbit-hole teaser (placeholder until the archive world is wired) */}
+      <AnimatePresence>
+        {entering && (
+          <motion.div
+            className="pointer-events-none fixed inset-0 z-[130] grid place-items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="absolute inset-0 bg-white/70 backdrop-blur-xl" />
+            <motion.span
+              className="relative font-serif text-2xl lowercase text-ink/80 md:text-4xl"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              falling into the archive…
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* project deep-dive / case-study modal */}
       <AnimatePresence>

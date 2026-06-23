@@ -37,7 +37,7 @@ export default function ProjectModal({ project, onClose }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto overscroll-contain px-4 py-[6vh] md:py-[8vh]"
+      className="no-scrollbar fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto overscroll-contain px-4 py-[6vh] md:py-[8vh]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -81,7 +81,7 @@ export default function ProjectModal({ project, onClose }) {
           <span className="text-lg leading-none">×</span>
         </button>
 
-        <div className="relative max-h-[82vh] overflow-y-auto px-6 py-8 md:px-10 md:py-10">
+        <div className="no-scrollbar relative max-h-[82vh] overflow-y-auto px-6 py-8 md:px-10 md:py-10">
           {/* [Header] title + research goal */}
           <header>
             <span className="font-body text-[11px] uppercase tracking-[0.4em] text-ink/55">
