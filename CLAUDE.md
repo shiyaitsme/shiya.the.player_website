@@ -35,11 +35,14 @@ source of truth is the user's Figma file; we match it **1:1**.
   - The user **exports from Figma and uploads to the repo** (the reliable path).
 - **`lines.svg` was extracted by parsing the user's uploaded `frame1.svg`
   locally** (originally 16 `#B6FF00` elements — stroked lines, filled lines/
-  arrowheads, AND 4 filled **shard-shaped quads**). Those 4 filled shard quads
-  were a flat lime layer sitting *under* the real photo shards (`green_piece_*`)
-  at the same coords — they read as a "doubled" shard on load and were removed.
-  If you re-extract from a new `frame1.svg`, drop any small (~5-point, <200px)
-  filled `#B6FF00` polygon that sits on a shard center, or the duplicate returns.
+  arrowheads, 4 filled **shard-shaped quads**, AND the 4 nav **words** as filled
+  vector text: `contact / works / about / tools`). Both the shard quads and the
+  word-text sat *under* the real photo shards + the PNG nav labels at the same
+  coords, reading as "doubled" shards/words on load — all 8 were removed. If you
+  re-extract from a new `frame1.svg`, drop (a) small ~5-point filled `#B6FF00`
+  polygons on shard centers and (b) high-point (>100) filled `#B6FF00` paths
+  (the word outlines), or the duplicates return. Keep only the thin connector
+  lines (stroked, or ≤7-point filled).
 - **The user cannot send binary files through chat** (only one `.webm` ever came
   through). Images/SVGs must arrive via GitHub upload. Don't promise to "pull
   their file" from a chat attachment.
