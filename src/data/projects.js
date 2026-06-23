@@ -164,9 +164,9 @@ export const shards = [
   { id: 1, section: 'contact', piece: { left: 114.89, top: 135.25, w: 141.56, rot: -3.19 }, label: { left: 124.41, top: 265.18 } },
   { id: 2, section: 'works', piece: { left: 1139.73, top: 98.72, w: 128.73, rot: 7.35 }, label: { left: 1140.41, top: 223.18 } },
   { id: 3, section: 'about', piece: { left: 876.49, top: 333.75, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
-  // manifesto sits where the bottom-right lime lines converge, with its label
-  // below the shard (matching the other shards / the Figma layout).
-  { id: 4, section: 'manifesto', piece: { left: 1185.41, top: 648.18, w: 147.79, rot: 1.23 }, label: { left: 1188.41, top: 792.18 } },
+  // manifesto: shard nestled into the bottom-right lime-line convergence (its
+  // upper-left corner meets the star + converging lines), label below it.
+  { id: 4, section: 'manifesto', piece: { left: 1132.41, top: 660.18, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
 ]
 
 export const stars = [
