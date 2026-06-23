@@ -6,8 +6,9 @@ import ProjectModal from './ProjectModal'
 import SafeMount from './butterfly/SafeMount'
 import { works } from '../data/projects'
 
-// 3D butterfly easter egg — lazy so three.js stays out of the main bundle
+// 3D scenes — lazy so three.js stays out of the main bundle
 const ButterflyEgg = lazy(() => import('./butterfly/ButterflyEgg'))
+const ArchiveWorld = lazy(() => import('./butterfly/ArchiveWorld'))
 
 /**
  * The content page a shard / star opens into. Soft section background image
@@ -21,13 +22,16 @@ export default function Page({ view, onClose }) {
   const section = view.type === 'section' ? view.section : null
   const bg = section ? section.bg : '/assets/bg_1.png'
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
-  const [entering, setEntering] = useState(false) // butterfly → archive "rabbit hole"
+  const [entering, setEntering] = useState(false) // brief white "fall" flash
+  const [archiveOpen, setArchiveOpen] = useState(false) // 3D world archive
 
-  // TODO(archive world): replace this teaser with the real camera "fall" into
-  // the 3D archive scene. For now it acknowledges the catch.
+  // butterfly clicked → flash white, then drop into the 3D archive world
   const enterArchiveWorld = () => {
     setEntering(true)
-    window.setTimeout(() => setEntering(false), 1600)
+    window.setTimeout(() => {
+      setArchiveOpen(true)
+      setEntering(false)
+    }, 650)
   }
 
   return (
@@ -140,14 +144,25 @@ export default function Page({ view, onClose }) {
         )}
       </div>
 
-      {/* 3D butterfly easter egg (Works page only) */}
-      {section?.kind === 'works' && (
+      {/* 3D butterfly easter egg (Works page only, hidden once we've dropped in) */}
+      {section?.kind === 'works' && !archiveOpen && (
         <SafeMount>
           <Suspense fallback={null}>
             <ButterflyEgg onEnter={enterArchiveWorld} />
           </Suspense>
         </SafeMount>
       )}
+
+      {/* the 3D world archive (entered by clicking the butterfly) */}
+      <AnimatePresence>
+        {archiveOpen && (
+          <SafeMount key="archive">
+            <Suspense fallback={null}>
+              <ArchiveWorld onExit={() => setArchiveOpen(false)} />
+            </Suspense>
+          </SafeMount>
+        )}
+      </AnimatePresence>
 
       {/* rabbit-hole teaser (placeholder until the archive world is wired) */}
       <AnimatePresence>
