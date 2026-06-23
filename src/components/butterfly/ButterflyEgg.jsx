@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Suspense, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
@@ -75,7 +75,7 @@ function Butterfly({ hotspotRef }) {
   const prev = useMemo(() => new THREE.Vector3(), [])
 
   // prepare a normalized, green-glass clone of the model once
-  const { model, longAxis } = useMemo(() => {
+  const { model, longAxis, baseScale } = useMemo(() => {
     const root = fbx.clone(true)
     const box = new THREE.Box3().setFromObject(root)
     const sizeV = box.getSize(new THREE.Vector3())
@@ -126,15 +126,14 @@ function Butterfly({ hotspotRef }) {
     return c
   }, [size.width, size.height])
 
-  // gentle fade-in
-  const born = useRef(0)
-  useEffect(() => {
-    born.current = performance.now() / 1000
-  }, [])
+  // gentle fade-in — anchored to the SAME clock as `t` (clock.elapsedTime),
+  // initialised on the first frame so `age` is always a small positive number.
+  const born = useRef(null)
 
   useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05)
     const t = state.clock.elapsedTime
+    if (born.current === null) born.current = t
     const g = groupRef.current
     if (!g) return
 
@@ -154,11 +153,11 @@ function Butterfly({ hotspotRef }) {
     const m = modelRef.current
     if (m) {
       const flap = 0.45 + 0.55 * Math.abs(Math.sin(t * 9))
-      m.scale[longAxis] = m.userData.base * flap
+      m.scale[longAxis] = baseScale * flap
     }
 
     // fade in
-    const age = t - (born.current || t)
+    const age = t - born.current
     const appear = THREE.MathUtils.clamp(age / 0.9, 0, 1)
     g.scale.setScalar(appear)
 
@@ -187,11 +186,6 @@ function Butterfly({ hotspotRef }) {
       hs.style.opacity = appear.toFixed(2)
     }
   })
-
-  // stash base scale for flap math
-  useEffect(() => {
-    if (modelRef.current) modelRef.current.userData.base = modelRef.current.scale.x
-  }, [model])
 
   return (
     <group ref={groupRef} scale={0.001}>
