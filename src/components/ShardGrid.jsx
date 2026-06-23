@@ -56,7 +56,7 @@ export default function ShardGrid({ onOpen }) {
               <img
                 src={`/assets/green_piece_${shard.id}.png`}
                 alt={section.nav}
-                className="w-full select-none drop-shadow-[0_8px_18px_rgba(60,50,80,0.22)]"
+                className="w-full select-none"
                 draggable={false}
               />
             </motion.button>
