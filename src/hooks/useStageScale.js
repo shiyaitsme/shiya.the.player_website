@@ -9,7 +9,9 @@ export default function useStageScale(ref, { width = 1440, height = 900 } = {}) 
     const el = ref.current
     if (!el) return
     const fit = () => {
-      const scale = Math.min(window.innerWidth / width, window.innerHeight / height)
+      // COVER: fill the viewport so the lime lines bleed to the page edges
+      // (the stage is anchored top-center, so the logo/top row stay visible)
+      const scale = Math.max(window.innerWidth / width, window.innerHeight / height)
       el.style.setProperty('--stage-scale', String(scale))
     }
     fit()

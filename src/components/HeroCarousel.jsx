@@ -45,7 +45,7 @@ export default function HeroCarousel() {
         <video
           ref={videoRef}
           className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
-          style={{ transform: 'scale(2.9)', transformOrigin: 'center center' }}
+          style={{ transform: 'scale(1.7)', transformOrigin: 'center center' }}
           src="/assets/hero-carousel.webm"
           autoPlay
           loop
