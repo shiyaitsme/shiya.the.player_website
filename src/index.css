@@ -159,14 +159,15 @@ body {
 /* the 1440x900 art-directed stage, scaled to fit any viewport */
 .stage {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 50%;
   z-index: 10;
   width: 1440px;
   height: 900px;
-  /* cover-fill, anchored top-center so the logo + top row never clip */
-  transform: translateX(-50%) scale(var(--stage-scale, 1));
-  transform-origin: top center;
+  /* contain-fit, centered: the whole Figma frame stays visible, the
+     full-viewport gradient fills the letterbox so there are no gaps */
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform-origin: center center;
 }
 
 @media (prefers-reduced-motion: reduce) {
