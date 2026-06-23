@@ -48,19 +48,44 @@ source of truth is the user's Figma file; we match it **1:1**.
   their file" from a chat attachment.
 
 ## Git
-- `git push` works (the Claude GitHub App is installed with write access).
+- `git push` from THIS environment works (Claude GitHub App, write access).
   Push to the working branch; don't open PRs unless asked.
 - Commits got interrupted by transient `exit 144` a few times — just re-run the
   commit; check `git log --oneline -1` to confirm it landed.
-- The user develops from their Mac and frequently runs `git pull && npm run dev`
-  from the **wrong folder** (`~` instead of the repo). If they report
-  `not a git repository`, the fix is `cd ~/shiya.the.player_website` first.
+- **⚠️ The user's Mac CANNOT reach GitHub over git** (HTTP2 framing / Recv
+  timeout; likely a firewalled network). `git pull` / `git clone` time out for
+  them — even after `git config --global http.version HTTP/1.1`. **Their only
+  working channel is the browser ZIP download.** So:
+  - After every push, give them the branch ZIP URL, NOT a `git pull` command:
+    `https://github.com/shiyaitsme/shiya.the.player_website/archive/refs/heads/<branch>.zip`
+  - A ZIP is a **snapshot** — they must RE-download after each push or they keep
+    running stale code. ZIP folders have no `.git`, so `git pull` there errors
+    `not a git repository` — that's expected; just `npm install && npm run dev`.
+  - Sanity check which version they're on: have them
+    `grep -c 'fill="#B6FF00"' public/assets/lines.svg` (should be 4 now). Many
+    "you still haven't fixed it" rounds were simply stale local code.
+  - Always tell them to hard-refresh the browser (`Cmd+Shift+R`).
+- Other recurring user-env snags: typing `d` instead of `cd`; running from `~`
+  instead of the repo folder.
 
 ## Verifying visually (headless screenshots)
 - `puppeteer` + bundled chrome are used for screenshots (installed as needed;
-  not committed to `package.json`). Run `npx vite preview --port 4173 --host`
-  (use `run_in_background`) then screenshot with `NODE_PATH` pointed at the
-  project's `node_modules`.
+  **not** committed to `package.json` — `npm i puppeteer` gets pruned by later
+  `npm install`s, so reinstall when needed, and `git checkout -- package.json
+  package-lock.json` before committing so puppeteer never lands in deps).
+  Run `npx vite preview --port <port> --host` (use `run_in_background`; the
+  `&`-in-one-call trick gets killed) then screenshot with `NODE_PATH` pointed at
+  the project's `node_modules`. Write temp scripts to the scratchpad dir (`/tmp`
+  gets cleared mid-session).
+- **No GPU / WebGL in this environment** → the 3D butterfly + ArchiveWorld
+  (three.js) **cannot be rendered here** (`WebGLRenderer: context could not be
+  created`). Verify their code/build/paths, but the *visual* result must be
+  checked by the user on their Mac. (Both are wrapped in `SafeMount` so a missing
+  WebGL context degrades to nothing instead of crashing the Works page.)
+- Tiny upscaled PNGs (the 130×19 `*_lime_green.png` labels) ghost/"double" in
+  full-page headless screenshots even though the file + bare render are clean —
+  a headless rasterization artifact, not a real bug. Don't chase it; the real
+  label "doubling" was the baked text in `lines.svg` (now removed).
 - **Gotchas:**
   - Headless Chrome defaults to `prefers-reduced-motion: reduce` → our
     transitions short-circuit. Use `page.emulateMediaFeatures([{name:
@@ -72,10 +97,34 @@ source of truth is the user's Figma file; we match it **1:1**.
   - The transparent `.webm` may not render in headless — fine, ignore it.
 
 ## Performance bar
-Keep it smooth. Current bundle ≈ 117KB gzip JS. Prefer CSS/GSAP transforms and
-Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
+Keep it smooth. Main bundle ≈ 122KB gzip JS. **three.js / R3F live in a
+lazy-loaded chunk** (`ButterflyEgg`/`ArchiveWorld`, ~240KB gzip) that only loads
+on the Works page — keep it out of the main bundle. Prefer CSS/GSAP transforms
+and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
+
+## Works-page 3D (lazy, three.js + @react-three/fiber)
+- `components/butterfly/ButterflyEgg.jsx` — green-glass FBX butterfly (exact
+  `MeshPhysicalMaterial`: map + transmission .75 / ior 1.52 / clearcoat 1 …,
+  the user dictated these). Behaviour: random fly-in → dock in a corner → idle
+  "breathing" wing-flap + a CSS glow halo (`.bfly-*` in index.css) on a DOM
+  hotspot that tracks its projected position and is the click target. Click →
+  `enterArchiveWorld`.
+- `components/butterfly/ArchiveWorld.jsx` — "rabbit hole" camera dolly into a
+  misty card-cloud (work images on planes), mouse-move parallax, hover-scale,
+  click-to-focus. Referenced `reference_world_archive.png`.
+- FBX path has spaces/`+` → `encodeURI`. **Both 3D scenes are UNVERIFIED
+  visually** (no WebGL here) — ask the user how they actually look and expect to
+  tune material/flap/scene on feedback.
 
 ## Status / next ideas
-- Pending uploads: 4 zoom `*_cover.png` images; optional `work_carousel.png`.
+- Home map is settled: labels are `*_lime_green.png` PNGs (single, clean — the
+  doubled shards/words were baked layers in `lines.svg`, now stripped); manifesto
+  shard is nestled into the bottom-right line/star convergence with its label
+  below (note: on short/windowed browsers the very bottom can clip — accepted
+  tradeoff for correct placement; user can maximize).
+- Project deep-dive modal (`ProjectModal` + `CodeBlock` hand-rolled highlighter +
+  `ArchDiagram`) opens from each work; `caseStudy` content is in `projects.js`.
 - Figma has empty `Frame 3–5` reserved for future sections.
 - About/contact/manifesto copy is drafted placeholder — the user may rewrite it.
+- The user writes in Chinese and is design-detail-driven; trust their visual
+  observations (they correctly diagnosed the `lines.svg` baked-layer doubling).
