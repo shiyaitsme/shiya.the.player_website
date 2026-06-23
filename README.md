@@ -48,9 +48,21 @@ src/
    ├─ StarField.jsx      ← black-asterisk Gachapon nodes
    ├─ ShardZoom.jsx      ← the click→zoom-in→hold→zoom-out clip transition
    ├─ Page.jsx           ← content page (works list / about / contact / manifesto / single work)
-   ├─ WorkBlock.jsx      ← one work: number badge + media + Playfair copy + link
+   ├─ WorkBlock.jsx      ← one work: number badge + media + Playfair copy + link + deep-dive
+   ├─ ProjectModal.jsx   ← glassmorphism "project deep-dive" case-study overlay
+   ├─ ArchDiagram.jsx    ← inline-SVG architecture pipeline (for the modal)
+   ├─ CodeBlock.jsx      ← tiny dependency-free syntax highlighter (for the modal)
    └─ NumberBadge.jsx    ← bottle-cap number_N.png
 ```
+
+### Project deep-dive modal (case study)
+Each work can carry a `caseStudy` block in `projects.js`
+(`goal`, `architecture:{nodes[],caption}`, `code:{language,snippet}`,
+`analysis:[]`). In the Works page a **project deep-dive** button opens
+`ProjectModal` — a frosted-glass overlay (Framer Motion fade+scale) with the
+research goal, an SVG architecture pipeline, a syntax-highlighted code block,
+and a critical-analysis section. The highlighter is hand-rolled (no
+`react-syntax-highlighter`) to protect the bundle budget.
 
 **To edit copy or add works/sections, you almost always only touch
 `src/data/projects.js`.**
@@ -85,12 +97,12 @@ it "just works"** (components fall back gracefully until then).
 | `hero-carousel.webm` | transparent VP9 carousel loop |
 | `work_andromeda_freckles.png` | work #1 image |
 
-### Nav label PNGs (replace the lime text words on the map)
-The four map words are now static images, so no browser font rendering is
-involved (this killed the "doubled word" look). Upload:
-`nav_contact.png`, `nav_works.png`, `nav_about.png`, `nav_manifesto.png`
-(transparent PNGs, sized for ~30px tall on the 1440×900 stage). Until a file
-exists, that label falls back to the styled lime text.
+### Nav label PNGs (the lime words on the map)
+The four map words are static images, so no browser font rendering is involved
+(this killed the "doubled word" look from the text-shadow). Files:
+`contact_lime_green.png`, `works_lime_green.png`, `about_lime_green.png`,
+`manifesto_lime_green.png` (transparent PNGs, drawn at ~26px tall on the
+1440×900 stage). If one is missing, that label falls back to the styled text.
 
 ### Zoom cover images (uploaded — these ARE the shard→page transition)
 `contact_roller_coaster.png`, `works_tea_pot.png`, `about_cover.png`,

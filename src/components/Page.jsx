@@ -1,6 +1,8 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
 import NumberBadge from './NumberBadge'
+import ProjectModal from './ProjectModal'
 import { works } from '../data/projects'
 
 /**
@@ -14,6 +16,7 @@ import { works } from '../data/projects'
 export default function Page({ view, onClose }) {
   const section = view.type === 'section' ? view.section : null
   const bg = section ? section.bg : '/assets/bg_1.png'
+  const [caseProject, setCaseProject] = useState(null) // open project deep-dive
 
   return (
     <motion.div
@@ -59,13 +62,15 @@ export default function Page({ view, onClose }) {
         {section?.kind === 'works' && (
           <div className="flex flex-col gap-24 md:gap-36">
             {works.map((w, i) => (
-              <WorkBlock key={w.id} work={w} index={i} />
+              <WorkBlock key={w.id} work={w} index={i} onOpenCase={setCaseProject} />
             ))}
           </div>
         )}
 
         {/* ---- SINGLE WORK (Gachapon) ---- */}
-        {view.type === 'work' && <WorkBlock work={view.work} single />}
+        {view.type === 'work' && (
+          <WorkBlock work={view.work} single onOpenCase={setCaseProject} />
+        )}
 
         {/* ---- TEXT SECTIONS: about / contact / manifesto ---- */}
         {section?.kind === 'text' && (
@@ -122,6 +127,13 @@ export default function Page({ view, onClose }) {
           </div>
         )}
       </div>
+
+      {/* project deep-dive / case-study modal */}
+      <AnimatePresence>
+        {caseProject && (
+          <ProjectModal project={caseProject} onClose={() => setCaseProject(null)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

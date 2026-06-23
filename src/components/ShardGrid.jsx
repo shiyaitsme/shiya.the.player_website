@@ -7,19 +7,20 @@ import { shards, sections } from '../data/projects'
  * (1440x900 stage). Clicking a shard (or its label) opens that section's
  * content via the cinematic zoom (handled in App). Each shard slowly drifts.
  *
- * The lime nav words are rendered as static PNGs (`/assets/nav_<section>.png`),
- * so what shows is exactly the user's artwork — no browser font rendering. If a
- * PNG isn't uploaded yet, it falls back to the styled text so nothing breaks.
+ * The lime nav words are rendered as static PNGs
+ * (`/assets/<section>_lime_green.png`), so what shows is exactly the user's
+ * artwork — no browser font rendering. If a PNG isn't uploaded yet, it falls
+ * back to the styled text so nothing breaks.
  */
 function NavLabel({ section }) {
   const [imgOk, setImgOk] = useState(true)
   return imgOk ? (
     <img
-      src={`/assets/nav_${section.key}.png`}
+      src={`/assets/${section.key}_lime_green.png`}
       alt={section.nav}
       onError={() => setImgOk(false)}
       draggable={false}
-      className="pointer-events-none h-[30px] w-auto select-none"
+      className="pointer-events-none h-[26px] w-auto select-none drop-shadow-[0_2px_5px_rgba(40,55,0,0.35)]"
     />
   ) : (
     <span className="nav-label lowercase">{section.nav}</span>

@@ -17,6 +17,38 @@ export const works = [
       'In Cosmos, Carl Sagan said the nitrogen in our DNA, the calcium in our bones, the iron in our blood, the carbon in our apple pies — all these atoms were forged inside ancient stars. We are a way for the universe to know itself.',
       'And mapped across her face is Andromeda, born 10 billion years ago. Read her closely and you can read the countless secrets of the cosmos — countless stars that lived, and died. Everyone’s freckles are galaxies; everyone‘s own constellation of moles makes them who they are, and no one else.',
     ],
+    caseStudy: {
+      goal: 'Can a face become a star map? Andromeda Freckles treats each freckle as a catalogued star and fits the Andromeda galaxy onto a live portrait, so skin reads as a navigable sky rather than a surface.',
+      architecture: {
+        nodes: ['Webcam', 'Face Landmarks', 'UV Remap', 'Star Shader', 'Composite'],
+        caption:
+          'Real-time face landmarks anchor a UV remap that pins a star catalogue to the skin; a GPU fragment shader scatters and twinkles the constellation before compositing it back over the portrait.',
+      },
+      code: {
+        language: 'glsl',
+        snippet: `// fragment: scatter twinkling stars along remapped skin UVs
+uniform sampler2D uFace;
+uniform float uTime;
+varying vec2 vUv;
+
+float star(vec2 p, float s) {
+  float d = length(fract(p) - 0.5);
+  return smoothstep(s, 0.0, d);
+}
+
+void main() {
+  vec3 skin = texture2D(uFace, vUv).rgb;
+  float tw = 0.5 + 0.5 * sin(uTime * 2.0);
+  float s = star(vUv * 40.0, 0.08 * tw);
+  vec3 lime = vec3(0.71, 1.0, 0.0);
+  gl_FragColor = vec4(skin + lime * s, 1.0);
+}`,
+      },
+      analysis: [
+        'Landmark jitter was the hard constraint: raw detections wobble a couple of pixels, which made the whole constellation crawl across the face. A one-euro filter on the UV anchors traded a little latency for a sky that finally held still.',
+        'Mapping a real catalogue instead of random noise turned out to be the point — viewers who recognised Andromeda stopped reading it as a filter and started reading it as a claim: that they are, literally, made of stars.',
+      ],
+    },
   },
   {
     id: 'carousel',
@@ -33,6 +65,31 @@ export const works = [
     link: {
       label: 'watch on instagram',
       href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+    },
+    caseStudy: {
+      goal: 'Between Two Infinites stages a carousel at the seam of desert and sea — a waypoint for the lost. The research question: can a looping ride encode "keep moving" without a single word of text?',
+      architecture: {
+        nodes: ['Rotary Encoder', 'OSC Bus', 'TouchDesigner', 'Projection + Spatial Audio'],
+        caption:
+          'The carousel’s real rotation (a hardware encoder, not a timer) is broadcast over OSC; TouchDesigner blends a projection-mapped horizon and orbits a spatial-audio bed so the room breathes in lockstep with the ride.',
+      },
+      code: {
+        language: 'javascript',
+        snippet: `// map carousel angle -> horizon blend + sound pan
+const TAU = Math.PI * 2;
+
+function onRotation(angle) {
+  const t = (angle % TAU) / TAU;          // 0..1 per turn
+  const horizon = smoothstep(0.0, 1.0, t);
+  setProjectionBlend('desert', 1.0 - horizon);
+  setProjectionBlend('sea', horizon);
+  spatial.pan(Math.sin(angle));           // sound orbits the room
+}`,
+      },
+      analysis: [
+        'Sourcing rotation from the encoder rather than a clock kept image and motion phase-locked even when visitors shoved the ride — the illusion collapses the instant the sound lags the turn.',
+        'The hardest edit was restraint. An early build cross-faded six scenes per rotation and read as noise; two infinities, one transition per turn — the piece only worked once it did less.',
+      ],
     },
   },
 ]

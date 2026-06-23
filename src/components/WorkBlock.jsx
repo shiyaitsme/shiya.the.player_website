@@ -23,7 +23,7 @@ function MediaWrap({ link, children }) {
   )
 }
 
-export default function WorkBlock({ work, index = 0, single = false }) {
+export default function WorkBlock({ work, index = 0, single = false, onOpenCase }) {
   const mediaRef = useRef(null)
   const [imgOk, setImgOk] = useState(true)
   const flip = index % 2 === 1 // alternate sides for rhythm
@@ -110,16 +110,30 @@ export default function WorkBlock({ work, index = 0, single = false }) {
             {para}
           </p>
         ))}
-        {work.link && (
-          <a
-            href={work.link.href}
-            target="_blank"
-            rel="noreferrer"
-            className="nav-label mt-6 inline-block lowercase"
-          >
-            ↗ {work.link.label}
-          </a>
-        )}
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          {work.link && (
+            <a
+              href={work.link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="nav-label inline-block lowercase"
+            >
+              ↗ {work.link.label}
+            </a>
+          )}
+          {work.caseStudy && onOpenCase && (
+            <button
+              type="button"
+              onClick={() => onOpenCase(work)}
+              className="group inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-ink/70 transition hover:text-ink"
+            >
+              <span className="grid h-6 w-6 place-items-center rounded-full border border-ink/40 text-ink/70 transition group-hover:border-ink group-hover:bg-ink/5">
+                ⌖
+              </span>
+              project deep-dive
+            </button>
+          )}
+        </div>
       </div>
     </motion.article>
   )
