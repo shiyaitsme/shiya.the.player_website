@@ -85,10 +85,20 @@ it "just works"** (components fall back gracefully until then).
 | `hero-carousel.webm` | transparent VP9 carousel loop |
 | `work_andromeda_freckles.png` | work #1 image |
 
-### ⏳ Still to upload (code already wired, falls back until then)
-- Zoom **cover images**: `contact_roller_coaster.png`, `works_tea_pot.png`,
-  `about_cover.png`, `tools_manifesto_cover.png`
-- (optional) `work_carousel.png` — otherwise the carousel work uses the webm
+### Nav label PNGs (replace the lime text words on the map)
+The four map words are now static images, so no browser font rendering is
+involved (this killed the "doubled word" look). Upload:
+`nav_contact.png`, `nav_works.png`, `nav_about.png`, `nav_manifesto.png`
+(transparent PNGs, sized for ~30px tall on the 1440×900 stage). Until a file
+exists, that label falls back to the styled lime text.
+
+### Zoom cover images (uploaded — these ARE the shard→page transition)
+`contact_roller_coaster.png`, `works_tea_pot.png`, `about_cover.png`,
+`tools_manifesto_cover.png`. The shard zoom now grows **only** this cover photo
+(the green shard is just a pre-decode fallback). The carousel work
+("between two infinites") is a video, so it shows
+`work_carousel_between_two_infinites_ig_cover.png` and links out to the IG reel
+instead of autoplaying.
 
 ### Regenerating `lines.svg` from a new Figma export
 `lines.svg` is extracted from `frame1.svg` (the full Frame-1 SVG export). If you

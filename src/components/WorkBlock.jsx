@@ -7,6 +7,22 @@ import NumberBadge from './NumberBadge'
  * Playfair copy + optional link. Reveals on scroll; the media gets a soft
  * cursor-tilt (a small, performant touch of craft). Fully responsive.
  */
+/** Wraps the media in a link (new tab) when the piece points out somewhere. */
+function MediaWrap({ link, children }) {
+  if (!link) return children
+  return (
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={link.label}
+      className="group block cursor-pointer"
+    >
+      {children}
+    </a>
+  )
+}
+
 export default function WorkBlock({ work, index = 0, single = false }) {
   const mediaRef = useRef(null)
   const [imgOk, setImgOk] = useState(true)
@@ -34,42 +50,54 @@ export default function WorkBlock({ work, index = 0, single = false }) {
       viewport={{ once: true, margin: '-15%' }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* media */}
+      {/* media — a clickable poster when the piece links out (e.g. an IG reel) */}
       <div className="w-full md:w-[52%]">
-        <div
-          ref={mediaRef}
-          onMouseMove={onTilt}
-          onMouseLeave={resetTilt}
-          className="relative overflow-hidden rounded-[3px] shadow-[0_22px_50px_rgba(40,30,60,0.32)] transition-transform duration-200 ease-out will-change-transform"
-          style={{ aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }}
-        >
-          {work.video ? (
-            <video
-              className="h-full w-full object-contain"
-              src={work.video}
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          ) : imgOk ? (
-            <img
-              src={work.image}
-              alt={work.title}
-              className="h-full w-full object-cover"
-              onError={() => setImgOk(false)}
-              draggable={false}
-            />
-          ) : (
-            <span className="absolute inset-0 grid place-items-center text-center font-body text-xs uppercase tracking-[0.3em] text-white/55">
-              {work.title}
-            </span>
-          )}
-          {/* number badge tucked on the media corner */}
-          <div className="absolute -left-3 -top-3 md:-left-4 md:-top-4">
-            <NumberBadge n={work.number} size={single ? 60 : 52} />
+        <MediaWrap link={work.video ? null : work.link}>
+          <div
+            ref={mediaRef}
+            onMouseMove={onTilt}
+            onMouseLeave={resetTilt}
+            className="relative overflow-hidden rounded-[3px] shadow-[0_22px_50px_rgba(40,30,60,0.32)] transition-transform duration-200 ease-out will-change-transform"
+            style={{ aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }}
+          >
+            {work.video ? (
+              <video
+                className="h-full w-full object-contain"
+                src={work.video}
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            ) : imgOk ? (
+              <img
+                src={work.image}
+                alt={work.title}
+                className="h-full w-full object-cover"
+                onError={() => setImgOk(false)}
+                draggable={false}
+              />
+            ) : (
+              <span className="absolute inset-0 grid place-items-center text-center font-body text-xs uppercase tracking-[0.3em] text-white/55">
+                {work.title}
+              </span>
+            )}
+
+            {/* play affordance over a linked poster (reads as "watch the reel") */}
+            {!work.video && work.link && imgOk && (
+              <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-black/45 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 md:h-16 md:w-16">
+                  <span className="ml-1 border-y-[10px] border-l-[16px] border-y-transparent border-l-white md:border-y-[12px] md:border-l-[19px]" />
+                </span>
+              </span>
+            )}
+
+            {/* number badge tucked on the media corner */}
+            <div className="absolute -left-3 -top-3 md:-left-4 md:-top-4">
+              <NumberBadge n={work.number} size={single ? 60 : 52} />
+            </div>
           </div>
-        </div>
+        </MediaWrap>
       </div>
 
       {/* copy */}

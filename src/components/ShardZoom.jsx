@@ -3,21 +3,20 @@ import { motion } from 'framer-motion'
 
 /**
  * Cinematic "clip transition" for opening a shard:
- *   1. ZOOM IN  — the clicked green shard grows from its spot to fill the
- *      screen while its green tint melts, revealing the real ride.
- *   2. HOLD     — a brief beat on the full-bleed ride.
+ *   1. ZOOM IN  — the clicked spot grows from the shard's position to fill the
+ *      screen, revealing the section's cover photo (roller coaster / tea pot /
+ *      about / manifesto).
+ *   2. HOLD     — a brief beat on the full-bleed cover.
  *   3. ZOOM OUT — the portal pulls back + fades as the detail page fades in
  *      beneath it (match-cut pull-back).
  *
  * onReveal fires at the start of the zoom-out (mount the detail page then);
  * onComplete fires when the portal finishes (unmount this overlay).
  *
- * If a high-res ride photo (project.image) exists it cross-fades in at full
- * zoom; otherwise we de-tint the green shard — itself a green-cast ride photo.
+ * We zoom the section's cover image only — no green shard. The green shard is
+ * kept purely as a graceful fallback for the brief moment before the cover
+ * photo has decoded (or if it is ever missing).
  */
-const GREEN_REST = 'saturate(1) brightness(1) hue-rotate(0deg)'
-const GREEN_REVEAL = 'saturate(1.5) brightness(1.12) hue-rotate(-38deg)'
-
 export default function ShardZoom({ coverSrc, label, shardId, originRect, onReveal, onComplete }) {
   const [phase, setPhase] = useState('in') // 'in' | 'out'
   const [coverOk, setCoverOk] = useState(false)
@@ -88,24 +87,21 @@ export default function ShardZoom({ coverSrc, label, shardId, originRect, onReve
           }
         }}
       >
-        {/* green shard — de-tints on the way in (fallback if no cover yet) */}
-        <motion.img
-          className="absolute inset-[7%] h-[86%] w-[86%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
-          src={`/assets/green_piece_${shardId}.png`}
-          alt={label}
-          initial={{ filter: GREEN_REST }}
-          animate={{ filter: GREEN_REVEAL }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
-        />
-        {/* section cover image (if uploaded) fades in at full zoom */}
-        {coverOk && (
-          <motion.img
+        {/* section cover photo — the only thing that zooms */}
+        {coverOk ? (
+          <img
             className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
             src={coverSrc}
             alt={label}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            draggable={false}
+          />
+        ) : (
+          /* graceful fallback before the cover decodes (or if it's missing) */
+          <img
+            className="absolute inset-[7%] h-[86%] w-[86%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
+            src={`/assets/green_piece_${shardId}.png`}
+            alt={label}
+            draggable={false}
           />
         )}
       </motion.div>

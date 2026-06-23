@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { shards, sections } from '../data/projects'
 
@@ -5,7 +6,26 @@ import { shards, sections } from '../data/projects'
  * The 4 green polygon shards + lime nav labels, positioned to the Figma demo
  * (1440x900 stage). Clicking a shard (or its label) opens that section's
  * content via the cinematic zoom (handled in App). Each shard slowly drifts.
+ *
+ * The lime nav words are rendered as static PNGs (`/assets/nav_<section>.png`),
+ * so what shows is exactly the user's artwork — no browser font rendering. If a
+ * PNG isn't uploaded yet, it falls back to the styled text so nothing breaks.
  */
+function NavLabel({ section }) {
+  const [imgOk, setImgOk] = useState(true)
+  return imgOk ? (
+    <img
+      src={`/assets/nav_${section.key}.png`}
+      alt={section.nav}
+      onError={() => setImgOk(false)}
+      draggable={false}
+      className="pointer-events-none h-[30px] w-auto select-none"
+    />
+  ) : (
+    <span className="nav-label lowercase">{section.nav}</span>
+  )
+}
+
 export default function ShardGrid({ onOpen }) {
   return (
     <>
@@ -43,13 +63,14 @@ export default function ShardGrid({ onOpen }) {
             <motion.button
               type="button"
               onClick={open}
-              className="nav-label pointer-events-auto absolute z-30 whitespace-nowrap lowercase"
+              aria-label={`Open ${section.nav}`}
+              className="pointer-events-auto absolute z-30 whitespace-nowrap"
               style={{ left: label.left, top: label.top }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 + i * 0.12 }}
             >
-              {section.nav}
+              <NavLabel section={section} />
             </motion.button>
           </div>
         )

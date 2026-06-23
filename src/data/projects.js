@@ -23,9 +23,9 @@ export const works = [
     number: 2,
     title: 'between two infinites',
     emoji: '🎠',
-    // transparent carousel loop reused as this piece's media
-    video: '/assets/hero-carousel.webm',
-    image: '/assets/work_carousel.png',
+    // This piece is a video; embedding/autoplaying it on the page is heavy, so
+    // we show its Instagram cover and link out to the reel instead.
+    image: '/assets/work_carousel_between_two_infinites_ig_cover.png',
     body: [
       'Where the desert ends, the sea begins. Between two infinities, a carousel stands — pointing the lost toward a way forward, though we both know every road is long. So walk it as a pilgrimage.',
       'Don’t linger here. This is just one stop in the vast playground of the world. Ahead, the sands and the waves are waiting.',
@@ -82,7 +82,7 @@ export const sections = {
       {
         label: 'instagram',
         value: '@shiya.the.player',
-        href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+        href: 'https://www.instagram.com/shiya.the.player?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
       },
     ],
   },
