@@ -164,10 +164,11 @@ export const shards = [
   { id: 1, section: 'contact', piece: { left: 114.89, top: 135.25, w: 141.56, rot: -3.19 }, label: { left: 124.41, top: 265.18 } },
   { id: 2, section: 'works', piece: { left: 1139.73, top: 98.72, w: 128.73, rot: 7.35 }, label: { left: 1140.41, top: 223.18 } },
   { id: 3, section: 'about', piece: { left: 876.49, top: 333.75, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
-  // manifesto sits at the very bottom of the 1440x900 stage; on shorter (cover-
-  // cropped) windows a label *below* its shard falls off-screen, so its label
-  // is placed *above* the shard instead (shard + lime line stay put).
-  { id: 4, section: 'manifesto', piece: { left: 1185.41, top: 676.18, w: 147.79, rot: 1.23 }, label: { left: 1198.41, top: 612.18 } },
+  // manifesto sits at the bottom-right corner; on shorter (cover-cropped)
+  // windows the very bottom of the 1440x900 stage is clipped (and the macOS
+  // dock covers it), so the whole manifesto cluster is lifted up to stay fully
+  // visible. Label sits above the shard.
+  { id: 4, section: 'manifesto', piece: { left: 1185.41, top: 580.18, w: 147.79, rot: 1.23 }, label: { left: 1198.41, top: 516.18 } },
 ]
 
 export const stars = [
