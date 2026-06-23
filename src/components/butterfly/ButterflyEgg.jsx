@@ -4,8 +4,31 @@ import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 
-/** Generates a soft IBL environment once so the glass has something to reflect
- *  (clearcoat highlights + transmission look like glass, not flat plastic). */
+/**
+ * ButterflyEgg — a glass butterfly easter egg on the Works page.
+ *
+ * Behaviour (intentionally calm, easy to click):
+ *   1. FLY IN  — drifts in from a random off-screen direction (no trail).
+ *   2. DOCK    — eases to a quiet resting spot in an upper corner and stops.
+ *   3. IDLE    — slow "breathing" wing-flap + a soft pulsing glow halo beneath
+ *                it that doubles as the click target / hint.
+ *   4. CLICK   — fires onEnter (fall into the World Archive).
+ *
+ * The <Canvas> is pointer-events:none so it never blocks the page; clicking is
+ * handled by a DOM hotspot that tracks the butterfly's projected position
+ * (imperative — no per-frame React). Lazy-loaded + error-bounded by the caller.
+ */
+
+const MODEL_URL = encodeURI(
+  '/assets/green glass butterfly 3d model/green+glass+butterfly+3d+model.fbx',
+)
+const TEXTURE_URL = encodeURI(
+  '/assets/green glass butterfly 3d model/green+glass+butterfly+3d+model.fbm/green+glass+butterfly+3d+model_basecolor.jpg',
+)
+const FLY_IN = 2.2 // seconds to glide in and dock
+const easeOutCubic = (p) => 1 - Math.pow(1 - p, 3)
+
+/** Soft IBL so the glass reflects like glass, not flat plastic. */
 function GlassEnvironment() {
   const { gl, scene } = useThree()
   useMemo(() => {
@@ -16,99 +39,28 @@ function GlassEnvironment() {
   return null
 }
 
-/**
- * ButterflyEgg — a random 3D "easter egg" on the Works page.
- *
- * A green-glass butterfly (FBX) wanders the screen along a smooth
- * THREE.CatmullRomCurve3 path, trailing a time-fading particle stream for a
- * sense of life. Clicking it fires `onEnter` (the "rabbit hole" into the
- * archive world — wired separately).
- *
- * Rendering notes:
- *   • The <Canvas> is pointer-events:none so it never blocks the page; the
- *     butterfly is made clickable by a tiny DOM hotspot that tracks its
- *     projected screen position (updated imperatively — no per-frame React).
- *   • Whole thing is lazy-loaded by the Works page so three.js stays out of the
- *     main map bundle.
- */
-
-const MODEL_URL = encodeURI(
-  '/assets/green glass butterfly 3d model/green+glass+butterfly+3d+model.fbx',
-)
-const TEXTURE_URL = encodeURI(
-  '/assets/green glass butterfly 3d model/green+glass+butterfly+3d+model.fbm/green+glass+butterfly+3d+model_basecolor.jpg',
-)
-const TRAIL_COUNT = 240
-const TRAIL_LIFE = 1.3 // seconds — a long, slow-fading woven ribbon
-
-// ---- particle trail -------------------------------------------------------
-function useTrail() {
-  return useMemo(() => {
-    const positions = new Float32Array(TRAIL_COUNT * 3)
-    const alphas = new Float32Array(TRAIL_COUNT)
-    const sizes = new Float32Array(TRAIL_COUNT)
-    const geom = new THREE.BufferGeometry()
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geom.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1))
-    geom.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
-    const material = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: { uColor: { value: new THREE.Color('#ffffff') } },
-      vertexShader: `
-        attribute float aAlpha;
-        attribute float aSize;
-        varying float vAlpha;
-        void main() {
-          vAlpha = aAlpha;
-          vec4 mv = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = aSize * (300.0 / -mv.z);
-          gl_Position = projectionMatrix * mv;
-        }`,
-      fragmentShader: `
-        varying float vAlpha;
-        uniform vec3 uColor;
-        void main() {
-          float d = length(gl_PointCoord - 0.5);
-          // soft, smoky falloff — wispy rather than a hard dot
-          float a = pow(smoothstep(0.5, 0.0, d), 1.6) * vAlpha;
-          if (a < 0.004) discard;
-          gl_FragColor = vec4(uColor, a);
-        }`,
-    })
-    return { geom, material, positions, alphas, sizes, head: { i: 0 } }
-  }, [])
-}
-
-
-// ---- the butterfly + its trail -------------------------------------------
 function Butterfly({ hotspotRef }) {
   const fbx = useLoader(FBXLoader, MODEL_URL)
   const baseColor = useLoader(THREE.TextureLoader, TEXTURE_URL)
   const { camera, size } = useThree()
   const groupRef = useRef()
   const modelRef = useRef()
-  const trail = useTrail()
   const tmp = useMemo(() => new THREE.Vector3(), [])
-  const prev = useMemo(() => new THREE.Vector3(), [])
-  const perp = useMemo(() => new THREE.Vector3(), [])
 
-  // prepare a normalized, GLASS clone of the model once
+  // normalized GLASS model (exact MeshPhysicalMaterial requested by the user)
   const { model, longAxis, baseScale } = useMemo(() => {
     const root = fbx.clone(true)
     const box = new THREE.Box3().setFromObject(root)
     const sizeV = box.getSize(new THREE.Vector3())
     const center = box.getCenter(new THREE.Vector3())
     const maxDim = Math.max(sizeV.x, sizeV.y, sizeV.z) || 1
-    const s = 2.6 / maxDim
-    root.position.sub(center) // center at origin
+    const s = 2.4 / maxDim
+    root.position.sub(center)
     root.scale.setScalar(s)
 
     baseColor.colorSpace = THREE.SRGBColorSpace
-    baseColor.flipY = false // FBX UVs
+    baseColor.flipY = false
 
-    // exact physically-based glass requested by the user
     const glass = new THREE.MeshPhysicalMaterial({
       map: baseColor,
       roughness: 0.05,
@@ -132,97 +84,77 @@ function Butterfly({ hotspotRef }) {
     return { model: root, longAxis, baseScale: s }
   }, [fbx, baseColor])
 
-  // a smooth, closed wandering path that stays in view
-  const curve = useMemo(() => {
+  // pick a random off-screen entry and an upper-corner resting spot (once)
+  const { start, rest } = useMemo(() => {
     const aspect = size.width / size.height
-    const rx = 5.5 * Math.min(1.4, aspect)
-    const ry = 3.2
-    const pts = []
-    const n = 7
-    for (let k = 0; k < n; k++) {
-      pts.push(
-        new THREE.Vector3(
-          (Math.random() * 2 - 1) * rx,
-          (Math.random() * 2 - 1) * ry,
-          (Math.random() * 2 - 1) * 1.6,
-        ),
-      )
-    }
-    const c = new THREE.CatmullRomCurve3(pts, true, 'catmullrom', 0.5)
-    return c
+    const halfH = Math.tan((50 * Math.PI) / 180 / 2) * 9 // camera fov 50 @ z=9
+    const halfW = halfH * aspect
+    const cornerX = (Math.random() < 0.5 ? -1 : 1) * halfW * 0.62
+    const restV = new THREE.Vector3(cornerX, halfH * 0.55, 0) // upper corner
+    const ang = Math.random() * Math.PI * 2
+    const startV = new THREE.Vector3(
+      restV.x + Math.cos(ang) * (halfW + 6),
+      restV.y + Math.sin(ang) * (halfH + 6),
+      Math.random() * 2 - 1,
+    )
+    return { start: startV, rest: restV }
   }, [size.width, size.height])
 
-  // gentle fade-in — anchored to the SAME clock as `t` (clock.elapsedTime),
-  // initialised on the first frame so `age` is always a small positive number.
   const born = useRef(null)
 
-  useFrame((state, dtRaw) => {
-    const dt = Math.min(dtRaw, 0.05)
+  useFrame((state) => {
     const t = state.clock.elapsedTime
     if (born.current === null) born.current = t
     const g = groupRef.current
     if (!g) return
 
-    // --- position along the curve (with a touch of speed variation) ---
-    const u = ((t * 0.045 + 0.15 * Math.sin(t * 0.6)) % 1 + 1) % 1
-    curve.getPointAt(u, tmp)
-    g.position.lerp(tmp, 0.12)
+    const age = t - born.current
+    const p = THREE.MathUtils.clamp(age / FLY_IN, 0, 1)
+    const e = easeOutCubic(p)
+    const docked = p >= 1
 
-    // billboard to camera, with a little velocity-based banking
+    // position: glide start → rest, with a gentle arc + idle bob once docked
+    g.position.x = start.x + (rest.x - start.x) * e
+    g.position.y =
+      start.y + (rest.y - start.y) * e + (docked ? Math.sin(t * 1.1) * 0.12 : Math.sin(p * Math.PI) * 0.6)
+    g.position.z = start.z + (rest.z - start.z) * e
+
+    // face the camera; lean toward travel while flying, sway gently when docked
     g.quaternion.copy(camera.quaternion)
-    const vx = g.position.x - prev.x
-    g.rotateZ(THREE.MathUtils.clamp(-vx * 2.2, -0.5, 0.5))
-    g.rotateX(0.15 * Math.sin(t * 1.3))
-    prev.copy(g.position)
+    if (docked) {
+      g.rotateZ(Math.sin(t * 0.8) * 0.06)
+      g.rotateX(Math.sin(t * 0.6) * 0.05)
+    } else {
+      g.rotateZ(THREE.MathUtils.clamp((rest.x - start.x) * 0.02, -0.4, 0.4))
+    }
 
-    // --- wing flap: pulse the model's longest (wingspan) axis ---
+    // wing flap: fast while flying, slow "breathing" once docked
     const m = modelRef.current
     if (m) {
-      const flap = 0.45 + 0.55 * Math.abs(Math.sin(t * 9))
+      const freq = docked ? 1.6 : 5.5
+      const amp = docked ? 0.32 : 0.55
+      const flap = 1 - amp + amp * Math.abs(Math.sin(t * freq))
       m.scale[longAxis] = baseScale * flap
     }
 
-    // fade in
-    const age = t - born.current
-    const appear = THREE.MathUtils.clamp(age / 0.9, 0, 1)
-    g.scale.setScalar(appear)
+    // scale-in so it doesn't pop
+    g.scale.setScalar(THREE.MathUtils.clamp(age / 0.4, 0, 1))
 
-    // --- particle trail update: a long, woven white smoke ribbon ---
-    // weave = sample sideways (perpendicular to flight) on a sine, so the
-    // stream braids around the flight line instead of being a straight dotted
-    // tail. Two strands (alternating sign) read as interlaced smoke.
-    const { positions, alphas, sizes, head } = trail
-    perp.set(-(g.position.y - prev.y), g.position.x - prev.x, 0)
-    if (perp.lengthSq() > 1e-6) perp.normalize()
-    const weave = Math.sin(t * 11) * 0.22 * (head.i % 2 === 0 ? 1 : -1)
-    head.i = (head.i + 1) % TRAIL_COUNT
-    const h = head.i
-    positions[h * 3] = g.position.x + perp.x * weave + (Math.random() - 0.5) * 0.06
-    positions[h * 3 + 1] = g.position.y + perp.y * weave + (Math.random() - 0.5) * 0.06
-    positions[h * 3 + 2] = g.position.z
-    alphas[h] = 0.55 * appear // "淡淡的" — faint
-    sizes[h] = 4 + Math.random() * 4
-    const decay = dt / TRAIL_LIFE
-    for (let i = 0; i < TRAIL_COUNT; i++) alphas[i] = Math.max(0, alphas[i] - decay)
-    trail.geom.attributes.position.needsUpdate = true
-    trail.geom.attributes.aAlpha.needsUpdate = true
-    trail.geom.attributes.aSize.needsUpdate = true
-
-    // --- project to screen → move the DOM click hotspot ---
+    // project to screen → move the DOM hotspot, toggle the glow when docked
     const hs = hotspotRef.current
     if (hs) {
       tmp.copy(g.position).project(camera)
       const x = (tmp.x * 0.5 + 0.5) * size.width
       const y = (-tmp.y * 0.5 + 0.5) * size.height
       hs.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`
-      hs.style.opacity = appear.toFixed(2)
+      hs.style.opacity = THREE.MathUtils.clamp(age / 0.4, 0, 1).toFixed(2)
+      if (docked && hs.dataset.docked !== '1') hs.dataset.docked = '1'
     }
   })
 
   return (
     <group ref={groupRef} scale={0.001}>
       <primitive ref={modelRef} object={model} />
-      <points geometry={trail.geom} material={trail.material} frustumCulled={false} />
     </group>
   )
 }
@@ -247,16 +179,19 @@ export default function ButterflyEgg({ onEnter }) {
         </Suspense>
       </Canvas>
 
-      {/* DOM click hotspot that tracks the butterfly (keeps the page usable) */}
+      {/* DOM click hotspot — tracks the butterfly; grows + glows once docked so
+          it's an obvious, easy click target (the "breathing" halo hint). */}
       <button
         ref={hotspotRef}
         type="button"
         onClick={onEnter}
-        aria-label="Follow the butterfly"
-        title="follow me…"
-        className="pointer-events-auto absolute left-0 top-0 h-12 w-12 cursor-pointer rounded-full"
+        aria-label="Catch the butterfly"
+        title="catch me…"
+        className="bfly-hotspot pointer-events-auto absolute left-0 top-0"
         style={{ opacity: 0 }}
-      />
+      >
+        <span className="bfly-glow" aria-hidden />
+      </button>
     </div>
   )
 }
