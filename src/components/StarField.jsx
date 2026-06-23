@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { stars, pickRandomProject } from '../data/projects'
+import { stars, pickRandomWork } from '../data/projects'
 
 /**
  * Feature A — scattered black star "Gachapon" nodes at the Figma coordinates.
@@ -23,12 +23,12 @@ export default function StarField({ onSelect }) {
   }, [])
 
   const fire = (e) => {
-    const project = pickRandomProject()
+    const work = pickRandomWork()
     const r = e.currentTarget.getBoundingClientRect()
     setBloom({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
     window.setTimeout(() => {
       setBloom(null)
-      onSelect(project)
+      onSelect(work)
     }, 720)
   }
 

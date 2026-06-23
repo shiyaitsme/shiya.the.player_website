@@ -18,15 +18,16 @@ import { motion } from 'framer-motion'
 const GREEN_REST = 'saturate(1) brightness(1) hue-rotate(0deg)'
 const GREEN_REVEAL = 'saturate(1.5) brightness(1.12) hue-rotate(-38deg)'
 
-export default function ShardZoom({ project, shardId, originRect, onReveal, onComplete }) {
+export default function ShardZoom({ coverSrc, label, shardId, originRect, onReveal, onComplete }) {
   const [phase, setPhase] = useState('in') // 'in' | 'out'
-  const [workOk, setWorkOk] = useState(false)
+  const [coverOk, setCoverOk] = useState(false)
 
   useEffect(() => {
+    if (!coverSrc) return
     const img = new Image()
-    img.onload = () => setWorkOk(true)
-    img.src = project.image
-  }, [project.image])
+    img.onload = () => setCoverOk(true)
+    img.src = coverSrc
+  }, [coverSrc])
 
   // reduced-motion: skip straight to the detail page
   useEffect(() => {
@@ -87,24 +88,24 @@ export default function ShardZoom({ project, shardId, originRect, onReveal, onCo
           }
         }}
       >
-        {/* green shard (green-cast ride photo) — de-tints on the way in */}
+        {/* green shard — de-tints on the way in (fallback if no cover yet) */}
         <motion.img
           className="absolute inset-[7%] h-[86%] w-[86%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
           src={`/assets/green_piece_${shardId}.png`}
-          alt={project.title}
+          alt={label}
           initial={{ filter: GREEN_REST }}
-          animate={{ filter: phase === 'out' ? GREEN_REVEAL : GREEN_REVEAL }}
+          animate={{ filter: GREEN_REVEAL }}
           transition={{ duration: 0.7, ease: 'easeOut' }}
         />
-        {/* crisp ride photo (if uploaded) fades in at full zoom */}
-        {workOk && (
+        {/* section cover image (if uploaded) fades in at full zoom */}
+        {coverOk && (
           <motion.img
-            className="absolute inset-[7%] h-[86%] w-[86%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
-            src={project.image}
-            alt={project.title}
+            className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
+            src={coverSrc}
+            alt={label}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
           />
         )}
       </motion.div>

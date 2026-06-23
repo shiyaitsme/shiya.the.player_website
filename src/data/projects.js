@@ -1,92 +1,115 @@
-// Mock portfolio data.
-// `projects` = the random "Gachapon" pool for the black star (*) nodes.
-// `shards`   = the 4 green polygon shards, positioned to match the Figma
-//              demo (1440x900 stage) and each opening an editorial detail.
+// Content model for Shiya the Player.
+//   works    — the portfolio pieces (also the random "Gachapon" pool)
+//   sections — what each green shard on the map opens (works / about /
+//              contact / manifesto), each with a consistent background and a
+//              zoom-transition cover image
+//   shards   — shard positions on the 1440x900 map, mapped to a section
+//   stars    — black-asterisk Gachapon node positions
 
-export const projects = [
+export const works = [
   {
     id: 'andromeda-freckles',
     number: 1,
     title: 'andromeda freckles',
-    field: 'Immersive Portrait',
-    year: '2025',
-    image: '/assets/work_1.jpg',
+    emoji: '✨',
+    image: '/assets/work_andromeda_freckles.png',
     body: [
       'In Cosmos, Carl Sagan said the nitrogen in our DNA, the calcium in our bones, the iron in our blood, the carbon in our apple pies — all these atoms were forged inside ancient stars. We are a way for the universe to know itself.',
       'And mapped across her face is Andromeda, born 10 billion years ago. Read her closely and you can read the countless secrets of the cosmos — countless stars that lived, and died. Everyone’s freckles are galaxies; everyone‘s own constellation of moles makes them who they are, and no one else.',
     ],
   },
   {
-    id: 'tide-machine',
+    id: 'carousel',
     number: 2,
-    title: 'tide machine',
-    field: 'Kinetic Sculpture',
-    year: '2024',
-    image: '/assets/work_2.jpg',
+    title: 'between two infinites',
+    emoji: '🎠',
+    // transparent carousel loop reused as this piece's media
+    video: '/assets/hero-carousel.webm',
+    image: '/assets/work_carousel.png',
     body: [
-      'Seven hundred suspended mirrors choreographed to a generative tide model. The room breathes like an ocean at dusk, and the audience drifts beneath a sky they are quietly rewriting.',
-      'We borrow the moon’s arithmetic and hand it to strangers. The pull you feel is real; gravity is just love at a distance, doing the math.',
+      'Where the desert ends, the sea begins. Between two infinities, a carousel stands — pointing the lost toward a way forward, though we both know every road is long. So walk it as a pilgrimage.',
+      'Don’t linger here. This is just one stop in the vast playground of the world. Ahead, the sands and the waves are waiting.',
     ],
-  },
-  {
-    id: 'sugar-circuit',
-    number: 3,
-    title: 'sugar circuit',
-    field: 'Theme Park Dark Ride',
-    year: '2025',
-    image: '/assets/work_3.jpg',
-    body: [
-      'A narrative dark ride through a candy-coded utopia. Riders collect light through the journey and, without noticing, author the ending they arrive at.',
-      'Every child leaves convinced the ride remembered them. It did. Somewhere in the machine, their constellation is still glowing.',
-    ],
-  },
-  {
-    id: 'echo-orchard',
-    number: 4,
-    title: 'echo orchard',
-    field: 'Spatial Audio',
-    year: '2025',
-    image: '/assets/work_4.jpg',
-    body: [
-      'An orchard of acoustic trees. Shake a branch of light and harvest a melody seeded by a stranger who visited before you — a small, bearable piece of the vastness.',
-      'For small creatures such as we, the vastness is bearable only through love. So we planted a place to leave songs for people we will never meet.',
-    ],
+    link: {
+      label: 'watch on instagram',
+      href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+    },
   },
 ]
 
-// Green polygon shards — coordinates lifted from the Figma demo (1440x900).
-export const shards = [
-  {
-    id: 1,
-    nav: 'contact',
-    projectId: 'andromeda-freckles',
-    piece: { left: 114.89, top: 135.25, w: 141.56, rot: -3.19 },
-    label: { left: 124.41, top: 265.18 },
-  },
-  {
-    id: 2,
+export const sections = {
+  works: {
+    key: 'works',
     nav: 'works',
-    projectId: 'tide-machine',
-    piece: { left: 1139.73, top: 98.72, w: 128.73, rot: 7.35 },
-    label: { left: 1140.41, top: 223.18 },
+    kind: 'works',
+    bg: '/assets/bg_1.png',
+    cover: '/assets/works_tea_pot.png',
+    title: 'works',
+    blurb: 'A small playground of immersive pieces — read them slowly.',
   },
-  {
-    id: 3,
+  about: {
+    key: 'about',
     nav: 'about',
-    projectId: 'sugar-circuit',
-    piece: { left: 876.49, top: 333.75, w: 132.89, rot: 18.79 },
-    label: { left: 906.41, top: 456.18 },
+    kind: 'text',
+    bg: '/assets/bg_2.png',
+    cover: '/assets/about_cover.png',
+    title: 'about',
+    badge: 0,
+    body: [
+      'Shiya the Player — a creative technologist and immersive-media designer building interactive worlds where wonder becomes a way of knowing.',
+      'I design installations and narrative rides at the seam of art and engineering: real-time graphics, spatial sound, and physical space choreographed into one breathing thing.',
+    ],
+    skills: [
+      'WebGL · Three.js · GLSL',
+      'GSAP · Framer Motion',
+      'TouchDesigner · Blender · Houdini',
+      'spatial audio · creative direction',
+    ],
   },
-  {
-    id: 4,
-    nav: 'tools',
-    projectId: 'echo-orchard',
-    piece: { left: 1185.41, top: 676.18, w: 147.79, rot: 1.23 },
-    label: { left: 1214.41, top: 799.18 },
+  contact: {
+    key: 'contact',
+    nav: 'contact',
+    kind: 'text',
+    bg: '/assets/bg_3.png',
+    cover: '/assets/contact_roller_coaster.png',
+    title: 'contact',
+    badge: 3,
+    body: [
+      'Let’s build something impossible together — installations, rides, and playgrounds for strangers to leave light for one another.',
+    ],
+    links: [
+      { label: 'email', value: 'shiya9863@gmail.com', href: 'mailto:shiya9863@gmail.com' },
+      {
+        label: 'instagram',
+        value: '@shiya.the.player',
+        href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+      },
+    ],
   },
+  manifesto: {
+    key: 'manifesto',
+    nav: 'manifesto',
+    kind: 'text',
+    bg: '/assets/bg_4.png',
+    cover: '/assets/tools_manifesto_cover.png',
+    title: 'manifesto',
+    badge: 8,
+    body: [
+      'I make playgrounds because I believe wonder is a form of knowledge — that a room can teach you something a sentence never could.',
+      'My creative language is collision: retro Americana against acid graphics, analog warmth against digital impossibility, the sacred against the silly. I want the work to feel hand-made and faintly impossible at once.',
+      'The vision is a digital 桃花源 — a utopia you stumble into, where strangers quietly leave light for people they will never meet. Every project is one stop on that map. Don’t linger. Ahead, the sands and the waves are waiting.',
+    ],
+  },
+}
+
+// green polygon shards — coordinates from the Figma demo (1440x900)
+export const shards = [
+  { id: 1, section: 'contact', piece: { left: 114.89, top: 135.25, w: 141.56, rot: -3.19 }, label: { left: 124.41, top: 265.18 } },
+  { id: 2, section: 'works', piece: { left: 1139.73, top: 98.72, w: 128.73, rot: 7.35 }, label: { left: 1140.41, top: 223.18 } },
+  { id: 3, section: 'about', piece: { left: 876.49, top: 333.75, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
+  { id: 4, section: 'manifesto', piece: { left: 1185.41, top: 676.18, w: 147.79, rot: 1.23 }, label: { left: 1188.41, top: 799.18 } },
 ]
 
-// Scattered black asterisks (positions from the Figma demo, 1440x900).
 export const stars = [
   { left: 299.41, top: 158.18, size: 34 },
   { left: 150.41, top: 422.18, size: 33 },
@@ -97,7 +120,5 @@ export const stars = [
   { left: 1116.41, top: 676.18, size: 30 },
 ]
 
-export const projectById = (id) => projects.find((p) => p.id === id)
-
-export const pickRandomProject = () =>
-  projects[Math.floor(Math.random() * projects.length)]
+export const workById = (id) => works.find((w) => w.id === id)
+export const pickRandomWork = () => works[Math.floor(Math.random() * works.length)]

@@ -8,39 +8,37 @@ import HeroCarousel from './components/HeroCarousel'
 import StarField from './components/StarField'
 import ShardGrid from './components/ShardGrid'
 import ShardZoom from './components/ShardZoom'
-import ProjectDetail from './components/ProjectDetail'
-import { projectById } from './data/projects'
+import Page from './components/Page'
+import { sections } from './data/projects'
 
 /**
  * Shiya the Player — Digital Playground / 桃花源.
- * Rebuilt to match the Figma demo: soft iridescent macaron field, a
- * 1440x900 art-directed map stage (carousel hub, green shards, lime nav,
- * black-asterisk Gachapon nodes) and an editorial Playfair detail page.
+ * Map stage (carousel hub, green shards, lime nav, black-asterisk Gachapon)
+ * → cinematic shard zoom → editorial content pages.
+ *
+ * view: { type:'section', section } | { type:'work', work } | null
  */
 export default function App() {
   useMouseParallax()
   const stageRef = useRef(null)
   useStageScale(stageRef)
 
-  const [detail, setDetail] = useState(null) // the mounted detail page
+  const [view, setView] = useState(null)
   const [zoom, setZoom] = useState(null) // active shard clip-transition
 
-  // shard click → run the zoom-in / hold / zoom-out clip transition
-  const openProject = (id, shardId, rect) => {
-    setZoom({ project: projectById(id), shardId, rect })
+  // shard click → zoom transition → section page
+  const openSection = (key, shardId, rect) => {
+    setZoom({ section: sections[key], shardId, rect })
   }
 
   return (
     <main className="relative h-screen w-screen overflow-hidden">
-      {/* pure-code soft iridescent background (full viewport) */}
       <Background />
 
-      {/* art-directed 1440x900 map stage, scaled to fit */}
       <div ref={stageRef} className="stage">
         <MapLines />
         <HeroCarousel />
 
-        {/* brand spiral logo, top center */}
         <motion.img
           src="/assets/logo_s.svg"
           alt="Shiya the Player"
@@ -52,33 +50,34 @@ export default function App() {
         />
 
         {/* Feature A — random work Gachapon */}
-        <StarField onSelect={setDetail} />
+        <StarField onSelect={(work) => setView({ type: 'work', work })} />
 
         {/* Feature B — green shards + lime nav */}
-        <ShardGrid onOpen={openProject} />
+        <ShardGrid onOpen={openSection} />
       </div>
 
-      {/* Frame 2 — editorial work detail */}
+      {/* content page (section or single work) */}
       <AnimatePresence>
-        {detail && (
-          <ProjectDetail
-            project={detail}
+        {view && (
+          <Page
+            view={view}
             onClose={() => {
-              setDetail(null)
+              setView(null)
               setZoom(null)
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* shard clip transition (zoom in → hold → zoom out into the detail) */}
+      {/* shard clip transition (zoom in → hold → zoom out into the page) */}
       <AnimatePresence>
         {zoom && (
           <ShardZoom
-            project={zoom.project}
+            coverSrc={zoom.section.cover}
+            label={zoom.section.nav}
             shardId={zoom.shardId}
             originRect={zoom.rect}
-            onReveal={() => setDetail(zoom.project)}
+            onReveal={() => setView({ type: 'section', section: zoom.section })}
             onComplete={() => setZoom(null)}
           />
         )}
