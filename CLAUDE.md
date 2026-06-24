@@ -11,9 +11,18 @@ source of truth is the user's Figma file; we match it **1:1**.
 - **All content lives in `src/data/projects.js`.** Adding a work, editing copy,
   remapping a shard/section/background — do it there, not in components.
 - **Coordinates are in 1440×900 Figma space.** `useStageScale` scales the
-  `.stage` to **cover** the viewport (anchored top-center) so the lime lines
-  bleed to the page edges. Don't reintroduce `contain` (it leaves side gaps and
-  the lines stop short — the user explicitly rejected that).
+  `.stage` with **COVER** (`Math.max`) and the stage is anchored **dead-center**
+  (`top/left:50%` + `translate(-50%,-50%)` + `transform-origin:center center`),
+  so the lime lines bleed to the page edges on every screen and any crop is
+  symmetric + minimal. **cover-vs-contain is a settled, deliberate choice** —
+  the user wants the lines to bleed to the edges (esp. the right arc), and
+  accepts that cover crops a little at top/bottom on screens wider than 16:10.
+  We tried `contain` (whole frame always visible, no crop) and she rejected it
+  because the lines then stop short of the viewport edges. **Don't silently flip
+  between the two.** If something clips, first nudge the affected element rather
+  than switching modes: the top **S logo** is at `top:115` (App.jsx) and the
+  **carousel** container at `top:170` (HeroCarousel.jsx) precisely so they clear
+  the cover-crop on ~16:9–1.85 screens.
 - **Assets load by exact filename with graceful fallback.** New art is added by
   the user via GitHub upload; reference the intended filename and fall back
   (image `onerror` / `new Image()` preload) so the site never breaks. Wired-but-
@@ -117,14 +126,43 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   tune material/flap/scene on feedback.
 
 ## Status / next ideas
-- Home map is settled: labels are `*_lime_green.png` PNGs (single, clean — the
-  doubled shards/words were baked layers in `lines.svg`, now stripped); manifesto
-  shard is nestled into the bottom-right line/star convergence with its label
-  below (note: on short/windowed browsers the very bottom can clip — accepted
-  tradeoff for correct placement; user can maximize).
+- **Live working branch: `claude/busy-maxwell-kzpt97`** = the good
+  `pensive-goodall-749qae` base (3D butterfly, ArchiveWorld, glass ProjectModal,
+  lime PNG nav, de-duped `lines.svg`) + this session's home-map polish. ⚠️ It was
+  rebuilt by `git reset --hard` onto pensive-goodall, so it diverged from the
+  stale `87304b5` lineage. Other branches: `pensive-goodall-749qae` (older good
+  base), `wonderful-shannon-9rdua0` (the user's raw asset uploads — this is where
+  `carousel_hero_v2.webm` came from; pull new assets from whichever branch she
+  uploaded them to).
+- **Home-map nav clusters (`ShardGrid.jsx`) are now ONE container each.** The
+  shard image + its lime nav label are packed in a single absolutely-positioned
+  `flex flex-col items-center` div anchored at the Figma image coords
+  (`piece.left/top/w`); the label is pinned 12px (`mt-3`) below the image and
+  centered, so image + label share one anchor + one float animation and can
+  never drift apart (the old separate-absolute-coords version misaligned and the
+  user flagged it). The `label.left/top` fields in `projects.js` `shards[]` are
+  now **DEAD** — don't reintroduce separate label positioning.
+- **Carousel**: `carousel_hero_v2.webm` (1920×1080 / 10s) at `scale(2.55)`
+  (= 1.5× the prior 1.7) in `HeroCarousel.jsx`; container moved up to `top:170`
+  to clear the cover-crop. Falls back to `hero-carousel.webm` on error. If it
+  ever looks too big/small or clips, tune `scale()` and/or the container `top`.
+- **`MapLines.jsx`** renders `lines.svg` as `object-fill` (force-fills the stage,
+  no internal letterbox) at `z-[5]`, so it sits UNDER the carousel (z-20) and
+  shards/stars (z-30) and the mid-line segments hide beneath the opaque images.
+- **manifesto shard** nudged right to `left:1197.41` so its left edge clears the
+  converging lines/asterisk (it used to sit on top of them).
+- **Big open idea — responsive / mobile** (discussed, NOT started): the site is
+  a fixed 1440×900 art board scaled-to-fit; on phones it shrinks to a centered
+  strip. The user likes the idea of a "formula/generative" layout — proportional
+  anchor points per viewport + lines computed at runtime between them + labels
+  always attached to their image — so any screen fills nicely. Tradeoff she
+  accepted in principle: that is NOT pixel-1:1 to Figma anymore. One URL serves
+  desktop + mobile via responsive rules (no separate mobile site). She wants a
+  prototype when ready.
 - Project deep-dive modal (`ProjectModal` + `CodeBlock` hand-rolled highlighter +
   `ArchDiagram`) opens from each work; `caseStudy` content is in `projects.js`.
 - Figma has empty `Frame 3–5` reserved for future sections.
 - About/contact/manifesto copy is drafted placeholder — the user may rewrite it.
-- The user writes in Chinese and is design-detail-driven; trust their visual
-  observations (they correctly diagnosed the `lines.svg` baked-layer doubling).
+- The user writes in Chinese, is highly design-detail-driven, and iterates on
+  her own Mac (wide screen, ~1.85 aspect). Trust her visual observations (she
+  correctly diagnosed the `lines.svg` baked-layer doubling).
