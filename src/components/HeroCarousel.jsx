@@ -45,7 +45,7 @@ export default function HeroCarousel() {
   return (
     <div
       className="pointer-events-none absolute z-20"
-      style={{ left: 469, top: 233, width: 511, height: 631, perspective: 1000 }}
+      style={{ left: 469, top: 170, width: 511, height: 631, perspective: 1000 }}
     >
       <div
         ref={wrapRef}

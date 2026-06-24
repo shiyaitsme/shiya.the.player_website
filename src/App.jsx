@@ -43,7 +43,7 @@ export default function App() {
           src="/assets/logo_s.svg"
           alt="Shiya the Player"
           className="absolute z-30 animate-floaty"
-          style={{ left: 705, top: 58, width: 40, height: 55 }}
+          style={{ left: 705, top: 115, width: 40, height: 55 }}
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
