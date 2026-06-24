@@ -33,15 +33,16 @@ export default function MapLines() {
         src="/assets/lines.svg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+        className="pointer-events-none absolute inset-0 z-[5] h-full w-full object-fill"
       />
     )
   }
 
   return (
     <svg
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
       viewBox="0 0 1440 900"
+      preserveAspectRatio="none"
       fill="none"
       aria-hidden="true"
     >

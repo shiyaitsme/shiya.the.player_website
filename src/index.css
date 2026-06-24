@@ -161,11 +161,11 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 10;
+  z-index: 20;
   width: 1440px;
   height: 900px;
-  /* contain-fit, centered: the whole Figma frame stays visible, the
-     full-viewport gradient fills the letterbox so there are no gaps */
+  /* cover-fill, anchored dead-center: the stage fills the viewport so the lime
+     lines bleed to every edge, and center anchoring keeps the crop symmetric */
   transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
   transform-origin: center center;
 }

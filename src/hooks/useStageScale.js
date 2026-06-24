@@ -9,11 +9,12 @@ export default function useStageScale(ref, { width = 1440, height = 900 } = {}) 
     const el = ref.current
     if (!el) return
     const fit = () => {
-      // CONTAIN: keep the whole 1440x900 Figma frame visible on every viewport
-      // (nothing clips — manifesto/carousel stay in frame). The gradient
-      // Background is full-viewport, so the letterbox margins fill seamlessly
-      // and the lime lines reach the frame edges exactly as drawn in Figma.
-      const scale = Math.min(window.innerWidth / width, window.innerHeight / height)
+      // COVER + center: fill the viewport so the lime lines (esp. the right
+      // arc) bleed all the way to the page edges. Combined with the stage's
+      // `transform-origin: center center`, any overflow is split evenly
+      // top/bottom (or left/right), so the crop is symmetric and minimal —
+      // nothing important clips on ~16:10 / 16:9 screens.
+      const scale = Math.max(window.innerWidth / width, window.innerHeight / height)
       el.style.setProperty('--stage-scale', String(scale))
     }
     fit()
