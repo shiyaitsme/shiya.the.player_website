@@ -3,6 +3,25 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
+## Start here (2026-07-03)
+- **Work on `claude/mobile-responsive-design-j4zpzc`.** As of this date it is
+  both the GitHub repo's default branch AND identical (same commit) to every
+  other branch in the repo (`wonderful-shannon-9rdua0`, `world-archive-
+  redesign-vdf9o6`, `pensive-goodall-749qae`, `busy-maxwell-kzpt97`) — see
+  the "Branch history" bullet under Git below for how/why they were unified.
+  There is currently no reason to touch any other branch name; don't create
+  a new one unless the user asks you to.
+- **After pushing meaningful work, that branch alone is enough** — the old
+  practice of manually re-pushing to 2-3 other branches to "keep them in
+  sync" is retired now that there's only one branch that matters. If you
+  ever find the branches have drifted apart again (check with `git log
+  origin/claude/mobile-responsive-design-j4zpzc..origin/<other-branch>
+  --oneline`), that means something branched off unexpectedly — fast-
+  forward/merge it back rather than starting a second parallel-sync habit.
+- The user cannot run `git pull`/`git clone` from her Mac (see the Git
+  section) — always hand her the branch ZIP URL after pushing:
+  `https://github.com/shiyaitsme/shiya.the.player_website/archive/refs/heads/claude/mobile-responsive-design-j4zpzc.zip`
+
 ## What this is
 Shiya the Player — a Figma-matched, React/Vite immersive portfolio. The design
 source of truth is the user's Figma file; we match it **1:1**.
@@ -449,13 +468,11 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   that means someone branched off instead of continuing on the shared one —
   treat it as a bug to fix (fast-forward/merge back together), not a new
   permanent multi-branch reality.
-  - **The user still has to flip the GitHub repo's default branch by hand**
-    (Settings → Branches → Default branch) — no tool available to a coding
-    session can do this via the API used here. Until she does, `git remote
-    show origin` will keep reporting `claude/wonderful-shannon-9rdua0` as
-    default, which is harmless now (it's the same commit as every other
-    branch) but still worth pointing at the actual intended branch, e.g.
-    `claude/mobile-responsive-design-j4zpzc`, for a cleaner GitHub UI default.
+  - **Done: the user flipped the GitHub repo's default branch by hand**
+    (Settings → Branches → Default branch — not something a coding session's
+    tools can do via API) to `claude/mobile-responsive-design-j4zpzc`.
+    `git remote show origin` → "HEAD branch" now correctly reports that, not
+    `wonderful-shannon-9rdua0`. See "Start here" at the top of this file.
 - **Home-map nav clusters (`ShardGrid.jsx`) are now ONE container each.** The
   shard image + its lime nav label are packed in a single absolutely-positioned
   `flex flex-col items-center` div anchored at the Figma image coords
