@@ -36,6 +36,14 @@ function centerIn(el, base) {
   return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top }
 }
 
+/** Point just below `el`'s live bottom edge, horizontally centered — the
+ * arc threads through here instead of the hub's center so it cradles the
+ * carousel from underneath rather than cutting through the middle of it. */
+function belowBottomOf(el, base, pad = 14) {
+  const r = el.getBoundingClientRect()
+  return { x: r.left + r.width / 2 - base.left, y: r.bottom - base.top + pad }
+}
+
 /**
  * The mobile map's exact 5 connector lines — everything else was deleted
  * (the old hub-spoke lines to all 4 shards read as too busy/overlapping).
@@ -44,8 +52,9 @@ function centerIn(el, base) {
  *   1. `through`   — straight line through about + works, bled past BOTH
  *      ends until it exits the screen.
  *   2. `arc`       — one smooth curve (SVG Q...T, so the on-curve points are
- *      hit exactly) from contact down through the hub, then back up to a
- *      fixed exit point on the right edge, vertically just below center.
+ *      hit exactly) from contact down to just below the carousel — cradling
+ *      it from underneath, not cutting through its center — then back up to
+ *      a fixed exit point on the right edge, vertically just below center.
  *   3–5. a triangle directly connecting contact–manifesto, manifesto–works,
  *      and works–contact (about is NOT part of this triangle).
  */
@@ -56,7 +65,6 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const base = containerEl.getBoundingClientRect()
   const w = containerEl.clientWidth
   const h = containerEl.clientHeight
-  const hub = centerIn(hubEl, base)
   const contact = centerIn(contactEl, base)
   const works = centerIn(worksEl, base)
   const about = centerIn(aboutEl, base)
@@ -68,14 +76,16 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const backwardEdge = rayToEdge(about, { x: -dirAW.x, y: -dirAW.y }, w, h)
   const through = `M ${pt(backwardEdge)} L ${pt(about)} L ${pt(works)} L ${pt(forwardEdge)}`
 
-  // 2. contact -> hub (exactly on-curve) -> right edge, just below mid-height
+  // 2. contact -> just below the carousel (exactly on-curve) -> right edge,
+  // just below mid-height
+  const cradle = belowBottomOf(hubEl, base)
   const edgeExit = { x: w, y: h * 0.56 }
   const bow = 22
-  const mid = { x: (contact.x + hub.x) / 2, y: (contact.y + hub.y) / 2 }
-  const d = { x: hub.x - contact.x, y: hub.y - contact.y }
+  const mid = { x: (contact.x + cradle.x) / 2, y: (contact.y + cradle.y) / 2 }
+  const d = { x: cradle.x - contact.x, y: cradle.y - contact.y }
   const dLen = Math.hypot(d.x, d.y) || 1
   const ctrl = { x: mid.x + (-d.y / dLen) * bow, y: mid.y + (d.x / dLen) * bow }
-  const arc = `M ${pt(contact)} Q ${pt(ctrl)} ${pt(hub)} T ${pt(edgeExit)}`
+  const arc = `M ${pt(contact)} Q ${pt(ctrl)} ${pt(cradle)} T ${pt(edgeExit)}`
 
   // 3–5. contact/manifesto/works triangle (about excluded)
   const triCM = bowPath(contact, manifesto, 14)
