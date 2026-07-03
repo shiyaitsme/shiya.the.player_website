@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
 import NumberBadge from './NumberBadge'
@@ -20,13 +20,27 @@ const WorldArchive = lazy(() => import('./butterfly/WorldArchive'))
  *
  * onSelectWork: bubbled up to App.jsx so picking a floating work inside
  * WorldArchive can switch the page's own view to that work's detail.
+ *
+ * Stateful back-navigation: a work opened by picking it inside the 3D
+ * World Archive should return to the archive on "back", not to the map.
+ * `cameFromArchive` tracks that for the current work view (in-memory —
+ * correct here since Page never unmounts across the archive→work
+ * transition) and is mirrored into sessionStorage as a fallback in case
+ * of an unexpected remount (e.g. a hard refresh mid-flow).
  */
+const ARCHIVE_RETURN_KEY = 'shiya:archiveReturn'
+
 export default function Page({ view, onClose, onSelectWork }) {
   const section = view.type === 'section' ? view.section : null
   const bg = section ? section.bg : '/assets/bg_1.png'
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
   const [entering, setEntering] = useState(false) // brief white "fall" flash
   const [archiveOpen, setArchiveOpen] = useState(false) // 3D world archive
+  const [cameFromArchive, setCameFromArchive] = useState(false)
+
+  useEffect(() => {
+    if (sessionStorage.getItem(ARCHIVE_RETURN_KEY) === '1') setCameFromArchive(true)
+  }, [])
 
   // butterfly clicked → flash white, then drop into the 3D archive world
   const enterArchiveWorld = () => {
@@ -35,6 +49,18 @@ export default function Page({ view, onClose, onSelectWork }) {
       setArchiveOpen(true)
       setEntering(false)
     }, 650)
+  }
+
+  // top-bar back button: one breadcrumb level at a time — a work reached
+  // via the archive returns to the archive first, then to the map next.
+  const handleBack = () => {
+    if (cameFromArchive) {
+      setCameFromArchive(false)
+      sessionStorage.removeItem(ARCHIVE_RETURN_KEY)
+      setArchiveOpen(true)
+    } else {
+      onClose()
+    }
   }
 
   return (
@@ -59,10 +85,10 @@ export default function Page({ view, onClose, onSelectWork }) {
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleBack}
           className="nav-label lowercase"
         >
-          ↩ map
+          {cameFromArchive ? '↩ archive' : '↩ map'}
         </button>
         <span className="font-display text-sm uppercase tracking-[0.3em] text-ink/70">
           {section ? section.title : 'works'}
@@ -171,6 +197,8 @@ export default function Page({ view, onClose, onSelectWork }) {
                 onClose={() => setArchiveOpen(false)}
                 onSelectWork={(work) => {
                   setArchiveOpen(false)
+                  setCameFromArchive(true)
+                  sessionStorage.setItem(ARCHIVE_RETURN_KEY, '1')
                   onSelectWork(work)
                 }}
               />

@@ -119,12 +119,16 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   and is the click target (NO glow halo — removed, see Status below). Sized
   1/3 on mobile via `targetSize` prop (`useIsMobile`), desktop untouched.
   Click → `enterArchiveWorld` (in `Page.jsx`).
-- `components/butterfly/WorldArchive.jsx` — black/blue retro-futurist scene:
-  procedural checkerboard floor (now `MeshReflectorMaterial` — a canvas-drawn
-  checker texture + blurred mirror, so the floor shows a real soft reflection
-  of the sphere/cards), refractive glass sphere (`MeshTransmissionMaterial`),
-  starfield, `@react-three/postprocessing` (Bloom/ChromaticAberration/Noise/
-  Vignette). Replaced the original `ArchiveWorld.jsx` (a pale "misty
+- `components/butterfly/WorldArchive.jsx` — "museum-grade" black/deep-blue
+  retro-futurist scene: a `SkyDome` (large inverted sphere, vertical-gradient
+  shader — rich midnight blue at top AND bottom, near-black at the horizon
+  band, `fog:false` so it stays the backdrop fog fades into rather than
+  getting fogged itself) instead of a flat background color, a checkerboard
+  floor (`MeshReflectorMaterial` — canvas-drawn checker texture + blurred
+  mirror, real soft reflection of the sphere/cards), a refractive glass
+  sphere (`MeshTransmissionMaterial`, the fixed depth/parallax anchor),
+  `drei/Stars`, and `@react-three/postprocessing` (Bloom/ChromaticAberration/
+  Noise/Vignette). Replaced the original `ArchiveWorld.jsx` (a pale "misty
   card-cloud" — deleted, don't resurrect it).
 - **The floating pictures are the 6 uploaded `world_archive_pictures/*.png`**
   (extracted from her `world_archive_pictures.zip`, kept alongside it — the
@@ -137,41 +141,72 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   calls `onSelectWork` → the normal work-detail `Page`, same plumbing as the
   star Gachapon; it'll just render an almost-empty detail page until she
   adds real copy for these pieces in `projects.js` (expected, not a bug).
-- **Layout/interaction, several specific asks baked in:**
-  - Cards sit on a loose cylinder around the sphere (radius 3.6–5.4, height
-    -0.4–2.2, seeded `mulberry32` so it's stable across renders, not
-    re-shuffled every mount).
-  - Each card **billboards toward the camera every frame** — but the
-    correct way for a card nested inside a rotating group: call
-    `.lookAt()` on the object itself (which is parent-aware via
-    `updateWorldMatrix`), save/restore the quaternion, then `slerp` toward
-    it. A detached dummy `Object3D.lookAt()` (the naive approach) computes
-    an orientation with NO parent, and just copying that quaternion onto a
-    nested child ignores the parent's rotation — looks fine standing still,
-    visibly wrong the instant the group spins. If you touch the billboard
-    logic again, keep it as save-quat → `ref.current.lookAt()` → copy-target
-    → restore-quat → slerp, not a standalone lookAt helper object.
-  - **Dragging rotates the picture-cloud `<group>`, not the camera** —
-    `OrbitControls` only handles scroll-to-zoom (`enableRotate={false}`).
-    This was explicit: the glass sphere + floor need to read as a *fixed*
-    depth/parallax anchor while the cards swirl around it, which camera-
-    orbiting the whole scene together wouldn't give. Drag handling lives in
-    `useDragRotate()` — plain `pointerdown/move/up` listeners on
-    `gl.domElement`/`window` (**must be a `useEffect`, not `useMemo`** —
-    `useMemo`'s return value is never used for cleanup, so a `useMemo` with
-    an addEventListener + return-cleanup silently never removes the
-    listeners), with a small velocity-decay inertia and a slow idle drift
-    when untouched.
-  - **Lazy-load gate**: each card is wrapped in `LazyWorkPlane`, which
-    checks `camera` frustum-vs-world-position every frame and only mounts
-    the real `useLoader(TextureLoader, …)` component the first time the
-    card's point enters the frustum (a `THREE.Frustum` built from
-    `camera.projectionMatrix * camera.matrixWorldInverse`). Before that (and
-    as the error-boundary fallback) it renders `FallbackPlane`, an
-    untextured tinted plane so the composition doesn't have holes.
-  - Hover brightens the card tint (`#9fc2ff` → `#e3edff`), bumps the rim
-    opacity (0.32 → 0.75), and scales up slightly (1.0 → 1.08, lerped) as
-    the "selected" highlight the user asked for.
+  Page.jsx remembers the trip (`ARCHIVE_RETURN_KEY`, in-memory state +
+  sessionStorage fallback) so the work's "back" button returns to the
+  archive, not the map — see the routing bullet below.
+- **"Museum array" layout — repetition is deliberate, not a placeholder.**
+  With only 6 real pictures, the user explicitly asked for the *shock of
+  repetition* ("我们追求重复带来的震撼感") rather than 6 lonely cards: 30
+  slots (`SLOT_COUNT`) are laid out on a seeded (`mulberry32`) cylindrical
+  array (radius 3.6–8.8, height -2.2–5) cycling through the 6 pictures
+  (`i % 6`) for a rhythmic gallery-rotunda repeat. If she uploads more real
+  pictures later, add them to the `PICTURES` array and either raise
+  `SLOT_COUNT` or let the existing slots redistribute — don't hardcode
+  "6" anywhere else.
+- **Instanced rendering, not one mesh per card** — this is what keeps the
+  "vast data museum" density at 60fps: `ArchiveInstancedGroup` renders TWO
+  `InstancedMesh`es per unique picture (main photo + a cool-cyan glow rim,
+  `THREE.PlaneGeometry` translated -0.015 in the rim's own geometry to dodge
+  z-fighting instead of relying on a different instance transform), so the
+  draw-call count is constant at 12 total (6 pictures × 2 meshes) no matter
+  how many of the 30 slots exist. Bumping `SLOT_COUNT` for more density is
+  cheap; adding more *unique* pictures adds 2 draw calls each.
+- **Billboarding an InstancedMesh needs the local-space version of the
+  parent-aware trick**, not a plain per-object `.lookAt()` (there's no
+  single "the object" — each instance is just a matrix). Each frame:
+  `parent.worldToLocal(camera.position → localCam)`, then a scratch
+  `THREE.Object3D` (`dummy`) does `dummy.position.set(slot...); dummy.lookAt(localCam)`
+  entirely in that local space, and its matrix is written via
+  `mesh.setMatrixAt(i, dummy.matrix)`. Because `dummy` is parentless and
+  `localCam` was already pre-transformed into the correct frame, this is
+  mathematically equivalent to the single-mesh save/restore/slerp technique
+  used elsewhere — don't "simplify" it to a world-space `lookAt`, it'll be
+  correct standing still and visibly wrong the instant the group rotates.
+- **Dragging rotates the picture array `<group>`, not the camera** —
+  `OrbitControls` only handles scroll-to-zoom (`enableRotate={false}`). This
+  was explicit: the glass sphere + floor need to read as a *fixed*
+  depth/parallax anchor while the array swirls around it. Drag handling
+  lives in `useDragRotate()` — plain `pointerdown/move/up` listeners on
+  `gl.domElement`/`window` (**must be a `useEffect`, not `useMemo`** —
+  `useMemo`'s return value is never used for cleanup, so a `useMemo` with an
+  addEventListener + return-cleanup silently never removes the listeners),
+  with a small velocity-decay inertia and a slow idle drift when untouched.
+- **Full upfront preload, not per-card lazy load** (a deliberate reversal of
+  an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
+  `Promise.all`s every picture through `THREE.TextureLoader` before the
+  `<Canvas>` even mounts, showing a small "entering the archive…" progress
+  bar overlay in the meantime. A failed image resolves to `null` (renders as
+  a plain tinted placeholder plane, not a crash) and still counts toward the
+  progress total so one bad file can't hang the entrance. This makes sense
+  now specifically because there are only 6 unique textures reused across
+  30 slots — do NOT reintroduce per-instance viewport lazy-loading if the
+  picture count grows into the hundreds; that's a different problem
+  (probably worth a texture atlas) rather than "just add the old gate back".
+- Hover brightens the card tint (`#9fc2ff` → `#e7f2ff`) and the rim opacity
+  (0.26 → 0.75) for the whole `ArchiveInstancedGroup` at once (all repeated
+  copies of that picture highlight together — they're the same work, so
+  that's correct, not a bug where "only one instance" should light up).
+- **Stateful back-navigation** (`Page.jsx`): a work opened by clicking a
+  picture in the archive sets `cameFromArchive` + `sessionStorage.setItem
+  (ARCHIVE_RETURN_KEY, '1')`; the top-bar button reads `↩ archive` instead
+  of `↩ map` and reopens the archive overlay instead of calling `onClose`.
+  It's one breadcrumb level, consumed on use — closing the archive again
+  (its own `↩ back`) reveals the same work with the flag now cleared, so a
+  second "back" from there goes to the map, not an infinite loop. This is
+  plain React state (correct here since `Page` never unmounts across the
+  archive→work transition) with sessionStorage only as a remount fallback —
+  there's no router in this app; don't add URL query params for this unless
+  actual deep-linking is required later.
 - **Pin `@react-three/drei` to `^9.122.0` and `@react-three/postprocessing`
   to `^2.19.1`** if you ever reinstall — a bare `npm install @react-three/
   drei` grabs v10, which requires `@react-three/fiber@^9` and conflicts with
@@ -179,24 +214,27 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   despite what you might see referenced elsewhere.
 - FBX path has spaces/`+` → `encodeURI`.
 - **Headless WebGL here is possible but fragile — don't trust it past a
-  sanity check.** `puppeteer.launch({ args: [...,
-  '--enable-unsafe-swiftshader'] })` *does* get a software GL context here
-  (contradicts the old "cannot be rendered here" note — that session likely
-  didn't pass this flag), and it's enough to confirm the scene graph is
-  wired correctly (billboarded cards, lazy-loaded textures, glass sphere all
-  rendered in a captured screenshot). But stacking `MeshReflectorMaterial` +
-  `MeshTransmissionMaterial` + the full `EffectComposer` reliably triggers
-  `THREE.WebGLRenderer: Context Lost` under this swiftshader path, and a
-  second render-target-heavy interaction (mouse-wheel zoom) after that can
-  crash the whole headless tab (`TargetCloseError: Target closed`). This is
-  a sandbox software-rasterizer ceiling, not a code bug — but it's also a
-  genuine signal: those two materials are the most expensive things in the
-  scene, so real-hardware perf headroom is smaller than it looks. Current
-  mitigations (don't undo without reason): reflector `resolution={256}`
-  `blur={[160,60]}`, transmission `resolution={256} samples={4}`, Canvas
-  `dpr={[1,1.3]}`, `Stars count={1400}`. **Full interactive verification
-  (does dragging stay smooth, does it look right) still has to happen on
-  the user's real Mac GPU** — ask for feedback and expect to tune on it.
+  sanity check, and budget for real crashes, not just "Context Lost".**
+  `puppeteer.launch({ args: [..., '--enable-unsafe-swiftshader'] })` does
+  get a software GL context here, enough to confirm the scene graph is
+  wired correctly (instanced billboarded cards, sky dome, glass sphere, all
+  correctly textured/positioned in a captured screenshot). But this sandbox
+  has a real ceiling: `<Bloom mipmapBlur>` alone was enough to crash the tab
+  on the very first static frame (no interaction needed) — removed, and
+  that's a genuine perf win to keep regardless of environment, not just a
+  headless workaround. With `mipmapBlur` off, a static frame survives
+  (through a recoverable `Context Lost` blip), but **any further interaction
+  (drag, wheel) reliably kills the whole tab** (`TargetCloseError: Target
+  closed`) once `MeshReflectorMaterial` + `MeshTransmissionMaterial` +
+  `EffectComposer` + instanced-billboard matrix updates are all live
+  together — a software-rasterizer ceiling, not a code bug, but also a
+  genuine signal that this combination is the most expensive thing in the
+  scene. Current mitigations (don't undo without reason): reflector
+  `resolution={256} blur={[160,60]}`, transmission `resolution={256}
+  samples={4}`, Canvas `dpr={[1,1.3]}`, `Stars count={1400}`, no
+  `mipmapBlur`. **Full interactive verification (does dragging stay smooth
+  at 60fps, does the atmosphere read right) still has to happen on the
+  user's real Mac GPU** — ask for feedback and expect to tune on it.
 
 ## Status / next ideas
 - **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work,

@@ -1,23 +1,25 @@
 import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, MeshTransmissionMaterial, MeshReflectorMaterial, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette, Noise, ChromaticAberration } from '@react-three/postprocessing'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 
 /**
- * WorldArchive — black/blue retro-futurist 3D scene the butterfly drops you
- * into. A procedural checkerboard floor (with a real blurred reflection),
- * a refractive glass sphere (MeshTransmissionMaterial) as the fixed depth
- * anchor, a starfield, and a cloud of uploaded archive pictures arranged on
- * a cylinder around the sphere — camera-facing, drag-to-orbit, lazily
- * textured — finished with Bloom/ChromaticAberration/Noise/Vignette.
+ * WorldArchive — a "museum-grade" black/deep-blue retro-futurist scene the
+ * butterfly drops you into. A midnight-blue sky dome (not a flat color) +
+ * fog, a checkerboard floor with a real blurred reflection, a refractive
+ * glass sphere as the fixed depth anchor, and the 6 uploaded archive
+ * pictures repeated across a large cylindrical array (instanced — constant
+ * draw-call count no matter how many copies) for a "vast data museum"
+ * scale rather than 6 lonely cards.
  *
- * These 6 images (public/assets/world_archive_pictures/) are NOT yet real
- * `works` entries in projects.js — the user hasn't written copy for them.
- * Clicking one still calls onSelectWork() (same plumbing as the star
- * Gachapon / other floating works) so the wiring is correct once she adds
- * them properly; until then the detail page they land on is minimal.
+ * These pictures are NOT yet real `works` entries in projects.js — the user
+ * hasn't written copy for them. Clicking one still calls onSelectWork()
+ * (same plumbing as the star Gachapon) so the wiring is correct once she
+ * adds them properly; until then the detail page they land on is minimal.
+ * Page.jsx remembers the trip back to the archive (see ARCHIVE_RETURN_KEY
+ * there) so "back" from that detail page returns here, not to the map.
  */
 
 const PICTURES = [
@@ -50,6 +52,104 @@ function mulberry32(seed) {
   }
 }
 
+/** Preloads every archive texture up front (Promise.all, with progress) so
+ *  the scene reveals fully formed instead of popping cards in one by one.
+ *  A failed image resolves to `null` and still counts toward progress —
+ *  one bad file can't hang the whole entrance. */
+function useArchiveTextures(urls) {
+  const [state, setState] = useState({ textures: null, loaded: 0, total: urls.length })
+
+  useEffect(() => {
+    let live = true
+    const loader = new THREE.TextureLoader()
+    const results = new Array(urls.length).fill(null)
+    let loaded = 0
+
+    const bump = () => {
+      loaded += 1
+      if (live) setState((s) => ({ ...s, loaded }))
+    }
+
+    Promise.all(
+      urls.map(
+        (url, i) =>
+          new Promise((resolve) => {
+            loader.load(
+              url,
+              (tex) => {
+                tex.colorSpace = THREE.SRGBColorSpace
+                results[i] = tex
+                bump()
+                resolve()
+              },
+              undefined,
+              () => {
+                bump()
+                resolve()
+              },
+            )
+          }),
+      ),
+    ).then(() => {
+      if (live) setState({ textures: results, loaded: urls.length, total: urls.length })
+    })
+
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return state
+}
+
+/** Deep-space sky: a large inverted dome with a vertical gradient (rich
+ *  midnight blue at the very top AND bottom, fading to near-black at the
+ *  horizon band) — replaces a flat background color so the space itself
+ *  reads as a saturated retro-futurist void, not just "black". Ignores
+ *  scene fog (it's the backdrop fog fades into, not a foreground object). */
+function SkyDome() {
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms: {
+          topColor: { value: new THREE.Color('#182f78') },
+          bottomColor: { value: new THREE.Color('#14276b') },
+          horizonColor: { value: new THREE.Color('#030410') },
+        },
+        vertexShader: `
+          varying vec3 vDir;
+          void main() {
+            vDir = normalize((modelMatrix * vec4(position, 1.0)).xyz);
+            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vDir;
+          uniform vec3 topColor;
+          uniform vec3 bottomColor;
+          uniform vec3 horizonColor;
+          void main() {
+            float h = vDir.y;
+            vec3 vertical = mix(bottomColor, topColor, smoothstep(-1.0, 1.0, h));
+            float band = 1.0 - smoothstep(0.0, 0.6, abs(h));
+            vec3 color = mix(vertical, horizonColor, band * 0.85);
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `,
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+      }),
+    [],
+  )
+  return (
+    <mesh material={material} renderOrder={-1}>
+      <sphereGeometry args={[60, 32, 32]} />
+    </mesh>
+  )
+}
+
 /** Procedural black/white checker pattern, tiled, fed into MeshReflectorMaterial as a color map. */
 function useCheckerTexture() {
   return useMemo(() => {
@@ -78,7 +178,7 @@ function CheckerFloor() {
   const checkerMap = useCheckerTexture()
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.4, 0]}>
-      <planeGeometry args={[80, 80]} />
+      <planeGeometry args={[100, 100]} />
       <MeshReflectorMaterial
         map={checkerMap}
         mirror={0.3}
@@ -116,7 +216,7 @@ function GlassSphere() {
         distortionScale={0.3}
         temporalDistortion={0.1}
         color="#dfe9ff"
-        background={new THREE.Color('#000014')}
+        background={new THREE.Color('#0a1442')}
         resolution={256}
         samples={4}
       />
@@ -124,183 +224,140 @@ function GlassSphere() {
   )
 }
 
-/** Catches a missing/unloadable picture so one bad asset can't crash the scene. */
-class WorkPlaneBoundary extends Component {
-  state = { failed: false }
-  static getDerivedStateFromError() {
-    return { failed: true }
-  }
-  render() {
-    if (this.state.failed) return <FallbackPlane {...this.props} />
-    return this.props.children
-  }
+const SLOT_COUNT = 30 // repeated instances across the 6 pictures — "museum array" density
+
+/** Slot positions for the whole array (cylindrical, seeded so it's stable
+ *  across re-renders): evenly spaced bins around the circle with jitter on
+ *  angle/radius/height, cycling through the 6 pictures for a rhythmic,
+ *  gallery-rotunda repeat rather than a random scatter. */
+function useArchiveLayout() {
+  return useMemo(() => {
+    const rand = mulberry32(20260703)
+    return Array.from({ length: SLOT_COUNT }, (_, i) => {
+      const pictureIndex = i % archiveWorks.length
+      const angle = (i / SLOT_COUNT) * Math.PI * 2 + (rand() - 0.5) * 0.35
+      const radius = 3.6 + rand() * 5.2
+      const y = -2.2 + rand() * 7.2
+      return { pictureIndex, position: [Math.cos(angle) * radius, y, Math.sin(angle) * radius] }
+    })
+  }, [])
 }
 
-/** Untextured tinted placeholder — shown before a picture has scrolled into
- *  the camera frustum (lazy-load gate) and as the error fallback. */
-function FallbackPlane({ work, position, onSelect, w = 1.7, h = 2.1 }) {
-  const ref = useRef(null)
-  useFrame(({ camera }) => {
-    if (ref.current) ref.current.lookAt(camera.position)
-  })
-  return (
-    <group position={position}>
-      <mesh
-        ref={ref}
-        onClick={(e) => {
-          e.stopPropagation()
-          onSelect?.(work)
-        }}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'default')}
-      >
-        <planeGeometry args={[w, h]} />
-        <meshStandardMaterial color="#0a0e2a" emissive="#294a8f" emissiveIntensity={0.3} />
-      </mesh>
-    </group>
-  )
-}
-
-/** A floating, cool-tinted archive picture: lazy-textured, camera-billboarded,
- *  brightens on hover, flashes then navigates on click. */
-function WorkPlane({ work, position, onSelect }) {
-  const texture = useLoader(THREE.TextureLoader, work.image)
-  const ref = useRef(null)
+/** One picture's worth of the array, rendered as two InstancedMeshes (main
+ *  photo + a cool-cyan "digital artifact" glow rim) — draw-call count stays
+ *  constant (2 per unique picture) no matter how many repeated slots exist,
+ *  which is what keeps this scalable/60fps instead of one draw call per card.
+ *
+ *  Billboarding is done by hand per instance: camera position is converted
+ *  into the group's LOCAL space (worldToLocal), then a scratch Object3D
+ *  computes lookAt/position/scale entirely in that local space and its
+ *  matrix is written via setMatrixAt. This is the instanced equivalent of
+ *  the parent-aware billboard trick used for single meshes — a naive
+ *  world-space lookAt would ignore the rotating parent group entirely. */
+function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
+  const mainRef = useRef(null)
   const rimRef = useRef(null)
   const [hovered, setHovered] = useState(false)
-  const seed = useMemo(() => Math.random() * Math.PI * 2, [])
-  const prevQuat = useMemo(() => new THREE.Quaternion(), [])
-  const targetQuat = useMemo(() => new THREE.Quaternion(), [])
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const localCam = useMemo(() => new THREE.Vector3(), [])
+  const seeds = useMemo(() => slots.map(() => Math.random() * Math.PI * 2), [slots])
 
-  const aspect = texture.image ? texture.image.width / texture.image.height : 1
+  const aspect = texture?.image ? texture.image.width / texture.image.height : 1
   const h = 1.9
   const w = h * aspect
 
-  useFrame(({ clock, camera }, delta) => {
-    if (!ref.current) return
+  const rimGeometry = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(w + 0.08, h + 0.08)
+    geo.translate(0, 0, -0.015) // avoid z-fighting with the main plane at the same instance transform
+    return geo
+  }, [w, h])
+
+  useFrame(({ clock, camera }) => {
+    const main = mainRef.current
+    const rim = rimRef.current
+    if (!main || !main.parent) return
+    main.parent.updateWorldMatrix(true, false)
+    localCam.copy(camera.position)
+    main.parent.worldToLocal(localCam)
+
     const t = clock.getElapsedTime()
-    const bobY = position[1] + Math.sin(t * 0.5 + seed) * 0.16
-    ref.current.position.set(position[0], bobY, position[2])
-
-    // slight camera-facing billboard: lookAt() on the object itself correctly
-    // accounts for the rotating parent cloud group (unlike a detached dummy
-    // object), so save/restore + slerp gets a smooth, parent-aware billboard
-    // instead of a rigid snap or a facing that breaks once the group spins.
-    prevQuat.copy(ref.current.quaternion)
-    ref.current.lookAt(camera.position)
-    targetQuat.copy(ref.current.quaternion)
-    ref.current.quaternion.copy(prevQuat)
-    ref.current.quaternion.slerp(targetQuat, Math.min(1, delta * 3.2))
-
-    const targetScale = hovered ? 1.08 : 1
-    ref.current.scale.lerp({ x: targetScale, y: targetScale, z: targetScale }, 0.15)
+    const scale = hovered ? 1.08 : 1
+    slots.forEach((slot, i) => {
+      const bobY = slot.position[1] + Math.sin(t * 0.5 + seeds[i]) * 0.16
+      dummy.position.set(slot.position[0], bobY, slot.position[2])
+      dummy.lookAt(localCam)
+      dummy.scale.set(scale, scale, scale)
+      dummy.updateMatrix()
+      main.setMatrixAt(i, dummy.matrix)
+      if (rim) rim.setMatrixAt(i, dummy.matrix)
+    })
+    main.instanceMatrix.needsUpdate = true
+    if (rim) rim.instanceMatrix.needsUpdate = true
   })
 
+  const handleSelect = (e) => {
+    e.stopPropagation()
+    onSelect?.(work)
+  }
+  const handleOver = () => {
+    setHovered(true)
+    document.body.style.cursor = 'pointer'
+  }
+  const handleOut = () => {
+    setHovered(false)
+    document.body.style.cursor = 'default'
+  }
+
   return (
-    <group ref={ref} position={position}>
-      <mesh
-        onClick={(e) => {
-          e.stopPropagation()
-          onSelect?.(work)
-        }}
-        onPointerOver={() => {
-          setHovered(true)
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={() => {
-          setHovered(false)
-          document.body.style.cursor = 'default'
-        }}
+    <group>
+      <instancedMesh
+        ref={mainRef}
+        args={[null, null, slots.length]}
+        onClick={handleSelect}
+        onPointerOver={handleOver}
+        onPointerOut={handleOut}
       >
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial
-          map={texture}
-          color={hovered ? '#e3edff' : '#9fc2ff'}
-          toneMapped={false}
-          transparent
-        />
-      </mesh>
-      {/* bloom-catching rim; brightens as a "selected" highlight on hover */}
-      <mesh ref={rimRef} position={[0, 0, -0.01]}>
-        <planeGeometry args={[w + 0.06, h + 0.06]} />
-        <meshBasicMaterial
-          color="#b6ff00"
-          toneMapped={false}
-          transparent
-          opacity={hovered ? 0.75 : 0.32}
-        />
-      </mesh>
+        {texture ? (
+          <meshBasicMaterial map={texture} color={hovered ? '#e7f2ff' : '#9fc2ff'} toneMapped={false} transparent />
+        ) : (
+          <meshStandardMaterial color="#0a0e2a" emissive="#2a5fb0" emissiveIntensity={0.3} />
+        )}
+      </instancedMesh>
+      {/* cool "digital artifact" glow rim — bloom picks this up */}
+      <instancedMesh ref={rimRef} args={[rimGeometry, null, slots.length]} raycast={() => null}>
+        <meshBasicMaterial color="#6fd8ff" toneMapped={false} transparent opacity={hovered ? 0.75 : 0.26} depthWrite={false} />
+      </instancedMesh>
     </group>
   )
 }
 
-/** Mounts the real (network-fetching) WorkPlane only once its point enters
- *  the camera frustum — a lightweight lazy-load gate for the six full-res
- *  uploads, so nothing fetches until it could actually be seen. */
-function LazyWorkPlane({ work, position, onSelect }) {
-  const [visible, setVisible] = useState(false)
-  const seenRef = useRef(false)
-  const frustum = useMemo(() => new THREE.Frustum(), [])
-  const projScreenMatrix = useMemo(() => new THREE.Matrix4(), [])
-  const worldPos = useMemo(() => new THREE.Vector3(), [])
-  const groupRef = useRef(null)
-
-  useFrame(({ camera }) => {
-    if (seenRef.current || !groupRef.current) return
-    groupRef.current.getWorldPosition(worldPos)
-    projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-    frustum.setFromProjectionMatrix(projScreenMatrix)
-    if (frustum.containsPoint(worldPos)) {
-      seenRef.current = true
-      setVisible(true)
-    }
-  })
+/** The whole repeated picture field, grouped by unique picture (one
+ *  instanced pair per picture) so a hover/click naturally applies to every
+ *  duplicate of that picture at once — they're all the same work. */
+function ArchiveField({ textures, onSelect, groupRef }) {
+  const layout = useArchiveLayout()
+  const slotsByPicture = useMemo(() => {
+    const buckets = archiveWorks.map(() => [])
+    layout.forEach((slot) => buckets[slot.pictureIndex].push(slot))
+    return buckets
+  }, [layout])
 
   return (
-    <group ref={groupRef} position={position}>
-      {visible ? (
-        <WorkPlaneBoundary work={work} position={[0, 0, 0]} onSelect={onSelect}>
-          <Suspense fallback={<FallbackPlane work={work} position={[0, 0, 0]} onSelect={onSelect} />}>
-            <WorkPlane work={work} position={[0, 0, 0]} onSelect={onSelect} />
-          </Suspense>
-        </WorkPlaneBoundary>
-      ) : (
-        <FallbackPlane work={work} position={[0, 0, 0]} onSelect={onSelect} />
+    <group ref={groupRef}>
+      {archiveWorks.map((work, i) =>
+        slotsByPicture[i].length ? (
+          <ArchiveInstancedGroup key={work.id} work={work} texture={textures[i]} slots={slotsByPicture[i]} onSelect={onSelect} />
+        ) : null,
       )}
     </group>
   )
 }
 
-/** The archive pictures, scattered on a loose cylinder around the sphere
- *  (radius + height jitter, like the reference "floating card cloud"),
- *  all living inside one rotating group so a drag spins the whole set. */
-function ArchiveCloud({ groupRef, onSelect }) {
-  const layout = useMemo(() => {
-    const rand = mulberry32(20260703)
-    const n = archiveWorks.length
-    return archiveWorks.map((work, i) => {
-      const angle = (i / n) * Math.PI * 2 + (rand() - 0.5) * 0.5
-      const radius = 3.6 + rand() * 1.8
-      const y = -0.4 + rand() * 2.6
-      return {
-        work,
-        position: [Math.cos(angle) * radius, y, Math.sin(angle) * radius],
-      }
-    })
-  }, [])
-
-  return (
-    <group ref={groupRef}>
-      {layout.map(({ work, position }) => (
-        <LazyWorkPlane key={work.id} work={work} position={position} onSelect={onSelect} />
-      ))}
-    </group>
-  )
-}
-
-/** Drag-to-rotate the archive cloud (not the camera) so the sphere/floor
- *  stay put as a fixed parallax anchor while the picture ring swirls around
- *  it. Includes a little inertia so a flick keeps spinning and decays. */
+/** Drag-to-rotate the archive field (not the camera) so the sphere/floor
+ *  stay put as a fixed parallax anchor while the picture array swirls
+ *  around it. Includes a little inertia so a flick keeps spinning and
+ *  decays, plus a slow idle drift when untouched. */
 function useDragRotate(groupRef) {
   const { gl } = useThree()
   const dragging = useRef(false)
@@ -342,43 +399,42 @@ function useDragRotate(groupRef) {
       groupRef.current.rotation.y += velocity.current
       velocity.current *= 0.94
     } else {
-      // gentle idle drift so the cloud never feels static
-      groupRef.current.rotation.y += 0.0009
+      groupRef.current.rotation.y += 0.0006
     }
   })
 }
 
-function DragRotatedCloud({ onSelect }) {
+function DragRotatedField({ textures, onSelect }) {
   const groupRef = useRef(null)
   useDragRotate(groupRef)
-  return <ArchiveCloud groupRef={groupRef} onSelect={onSelect} />
+  return <ArchiveField textures={textures} onSelect={onSelect} groupRef={groupRef} />
 }
 
-function Scene({ onSelect }) {
+function Scene({ onSelect, textures }) {
   return (
     <>
-      <color attach="background" args={['#000014']} />
-      <fog attach="fog" args={['#000014', 8, 30]} />
+      <fog attach="fog" args={['#020208', 10, 34]} />
       <ambientLight intensity={0.25} />
       <pointLight position={[0, 4, 2]} intensity={2.2} color="#dfe9ff" />
       <pointLight position={[-4, 1, -3]} intensity={1.2} color="#4060ff" />
       <spotLight position={[0, 6, 0]} intensity={1.5} angle={0.6} penumbra={1} color="#ffffff" />
 
+      <SkyDome />
       <Stars radius={40} depth={30} count={1400} factor={2.4} saturation={0} fade speed={0.4} />
 
       <CheckerFloor />
       <GlassSphere />
-      <DragRotatedCloud onSelect={onSelect} />
+      <DragRotatedField textures={textures} onSelect={onSelect} />
 
-      {/* rotation now lives on the picture cloud (see useDragRotate); OrbitControls
+      {/* rotation lives on the picture field (see useDragRotate); OrbitControls
           is kept only for scroll-to-dolly so the sphere stays a fixed depth anchor */}
-      <OrbitControls enablePan={false} enableRotate={false} enableZoom minDistance={3.5} maxDistance={12} />
+      <OrbitControls enablePan={false} enableRotate={false} enableZoom minDistance={3.5} maxDistance={14} />
 
       <EffectComposer>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} mipmapBlur />
+        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} />
         <ChromaticAberration offset={[0.0008, 0.0012]} />
         <Noise opacity={0.045} />
-        <Vignette eskil={false} offset={0.25} darkness={0.9} />
+        <Vignette eskil={false} offset={0.25} darkness={0.85} />
       </EffectComposer>
     </>
   )
@@ -397,6 +453,10 @@ class SceneBoundary extends Component {
 }
 
 export default function WorldArchive({ onClose, onSelectWork }) {
+  const urls = useMemo(() => archiveWorks.map((w) => w.image), [])
+  const { textures, loaded, total } = useArchiveTextures(urls)
+  const ready = textures !== null
+
   return (
     <motion.div
       className="fixed inset-0 z-[140] touch-none bg-black"
@@ -405,13 +465,29 @@ export default function WorldArchive({ onClose, onSelectWork }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      <SceneBoundary>
-        <Canvas camera={{ position: [0, 1.2, 6.5], fov: 45 }} dpr={[1, 1.3]}>
-          <Suspense fallback={null}>
-            <Scene onSelect={onSelectWork} />
-          </Suspense>
-        </Canvas>
-      </SceneBoundary>
+      {ready ? (
+        <SceneBoundary>
+          <Canvas camera={{ position: [0, 1.2, 7.5], fov: 45 }} dpr={[1, 1.3]}>
+            <Suspense fallback={null}>
+              <Scene onSelect={onSelectWork} textures={textures} />
+            </Suspense>
+          </Canvas>
+        </SceneBoundary>
+      ) : (
+        <div className="absolute inset-0 grid place-items-center bg-black">
+          <div className="flex flex-col items-center gap-4">
+            <span className="font-body text-xs uppercase tracking-[0.4em] text-white/70">
+              entering the archive…
+            </span>
+            <div className="h-[2px] w-48 overflow-hidden bg-white/15">
+              <div
+                className="h-full bg-lime-acid transition-[width] duration-200"
+                style={{ width: `${total ? (loaded / total) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute inset-0 flex items-start justify-between p-6 md:p-10">
         <span className="font-body text-xs uppercase tracking-[0.4em] text-white/80">
