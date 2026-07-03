@@ -36,12 +36,10 @@ function centerIn(el, base) {
   return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top }
 }
 
-/** Point just below `el`'s live bottom edge, horizontally centered — the
- * arc threads through here instead of the hub's center so it cradles the
- * carousel from underneath rather than cutting through the middle of it. */
-function belowBottomOf(el, base, pad = 14) {
+/** Live top/bottom edge y (in `base`'s coordinate space) of `el`. */
+function edgesOf(el, base) {
   const r = el.getBoundingClientRect()
-  return { x: r.left + r.width / 2 - base.left, y: r.bottom - base.top + pad }
+  return { top: r.top - base.top, bottom: r.bottom - base.top }
 }
 
 /**
@@ -72,10 +70,10 @@ function smoothThrough3(p0, p1, p2) {
  *   1. `through`   — straight line through about + works, bled past BOTH
  *      ends until it exits the screen.
  *   2. `arc`       — one smooth Catmull-Rom-derived curve (see
- *      smoothThrough3, on-curve points hit exactly) from contact down to
- *      just below the carousel — cradling it from underneath, not cutting
- *      through its center — then back up to a fixed exit point on the right
- *      edge, vertically just below center.
+ *      smoothThrough3, on-curve points hit exactly) from contact down to a
+ *      cradle point — x aligned with works, y halfway between the
+ *      carousel's bottom edge and about's top edge — then back up to a
+ *      fixed exit point on the right edge, vertically just below center.
  *   3–5. a triangle directly connecting contact–manifesto, manifesto–works,
  *      and works–contact (about is NOT part of this triangle).
  */
@@ -97,10 +95,14 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const backwardEdge = rayToEdge(about, { x: -dirAW.x, y: -dirAW.y }, w, h)
   const through = `M ${pt(backwardEdge)} L ${pt(about)} L ${pt(works)} L ${pt(forwardEdge)}`
 
-  // 2. contact -> just below the carousel (exactly on-curve) -> right edge,
-  // just below mid-height — one smooth curve (see smoothThrough3) through
-  // all three points, cradling the carousel from underneath.
-  const cradle = belowBottomOf(hubEl, base)
+  // 2. contact -> cradle point -> right edge, just below mid-height — one
+  // smooth curve (see smoothThrough3) through all three points. The cradle
+  // sits under the carousel's right side rather than dead-center: x lines
+  // up with works, y is the midpoint between the carousel's bottom edge and
+  // about's top edge (both live-measured, not hand-picked).
+  const hubEdges = edgesOf(hubEl, base)
+  const aboutEdges = edgesOf(aboutEl, base)
+  const cradle = { x: works.x, y: (hubEdges.bottom + aboutEdges.top) / 2 }
   const edgeExit = { x: w, y: h * 0.56 }
   const arc = smoothThrough3(contact, cradle, edgeExit)
 
