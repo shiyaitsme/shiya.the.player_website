@@ -378,9 +378,36 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
     if (rim) rim.instanceMatrix.needsUpdate = true
   })
 
-  const handleSelect = (e) => {
+  // Real pointer/click-detection, not the native `onClick` DOM event: on a
+  // real mouse/trackpad (unlike a synthetic same-pixel test click), pressing
+  // and releasing almost always has a few pixels of incidental movement —
+  // and because OrbitControls is actively listening for that exact movement
+  // to start orbiting, the browser can end up treating the gesture as a drag
+  // and never fire a native 'click' at all, so R3F's onClick silently never
+  // triggers. This is a known OrbitControls-vs-click-to-select interaction,
+  // not something a raycasting fix can address. Instead: capture the
+  // intended target on `onPointerDown` (still correctly raycast-resolved to
+  // whichever instance was actually under the cursor at press-time), then
+  // confirm it on a GLOBAL `pointerup` (not the mesh's own onPointerUp,
+  // which could miss entirely if the camera rotated the target out from
+  // under the cursor before release) only if total movement stayed small.
+  const pendingRef = useRef(null)
+
+  useEffect(() => {
+    const onWindowPointerUp = (e) => {
+      const start = pendingRef.current
+      pendingRef.current = null
+      if (!start) return
+      const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y)
+      if (dist < 8) onSelect?.(work)
+    }
+    window.addEventListener('pointerup', onWindowPointerUp)
+    return () => window.removeEventListener('pointerup', onWindowPointerUp)
+  }, [work, onSelect])
+
+  const handlePointerDown = (e) => {
     e.stopPropagation()
-    onSelect?.(work)
+    pendingRef.current = { x: e.clientX, y: e.clientY }
   }
   const handleOver = () => {
     setHovered(true)
@@ -396,7 +423,7 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
       <instancedMesh
         ref={mainRef}
         args={[null, null, slots.length]}
-        onClick={handleSelect}
+        onPointerDown={handlePointerDown}
         onPointerOver={handleOver}
         onPointerOut={handleOut}
       >

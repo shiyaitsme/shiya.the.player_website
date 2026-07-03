@@ -263,6 +263,32 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   cards genuinely needed an extreme upward tilt to even see, which is a
   real reachability problem distinct from the test artifact above; look
   for both if this is reported a third time.)
+- **Third round: the user then reported on her REAL machine that literally
+  NOTHING was clickable any more, with zero console output on click — a
+  different symptom from the two rounds above, and a real one.** This is a
+  genuine, well-known OrbitControls-vs-click-to-select interaction, not a
+  raycasting bug: native `onClick` in the browser (and R3F's `onClick`,
+  which is driven by the native `click` DOM event) only fires if the
+  pointerdown→pointerup gesture didn't move "too much" — and a real mouse
+  or trackpad click almost always has a few pixels of incidental drift,
+  which `OrbitControls` (now doing real camera rotation, per the change
+  above) actively interprets as the start of an orbit. Once that happens,
+  the browser can skip firing `click` entirely, so R3F's `onClick` silently
+  never triggers — meanwhile a headless test's `page.mouse.click()` moves
+  zero pixels between down and up, so it never hits this path, which is
+  exactly why this only showed up on real hardware and not in any of this
+  session's own (admittedly janky) sandbox tests. Fixed by not depending on
+  the native `click` event at all: each `ArchiveInstancedGroup` captures its
+  candidate on `onPointerDown` (still correctly raycast-resolved to the
+  instance under the cursor at press-time, with `stopPropagation` so a
+  farther/occluded card can't also claim it), then confirms the selection
+  on a **global `window` `pointerup`** listener — deliberately not the
+  mesh's own `onPointerUp`, which could miss entirely if the camera rotated
+  the card out from under the cursor before release — only if total
+  on-screen movement stayed under 8px. If click-to-select ever needs
+  touching again anywhere OrbitControls (or any other component that
+  actively rotates the camera on drag) is in play, use this pattern, not
+  `onClick`.
 - **Full upfront preload, not per-card lazy load** (a deliberate reversal of
   an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
   `Promise.all`s every picture through `THREE.TextureLoader` before the
