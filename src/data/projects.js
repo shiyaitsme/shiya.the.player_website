@@ -88,7 +88,7 @@ function onRotation(angle) {
     id: 'limited-night',
     title: 'limited night',
     emoji: '',
-    image: '/assets/works/works_p03_deep-dive_limited-night.png',
+    image: '/assets/works/works_p03_limited-night.png',
     body: [
       'That she wrote, "Speech to the Young: Speech to the Progress Toward"',
       'Say to them, say to the down-keepers, the sun-slappers, the self-soilers, the harmony-hushers',
