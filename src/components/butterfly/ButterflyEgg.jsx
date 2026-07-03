@@ -13,7 +13,10 @@ import useIsMobile from '../../hooks/useIsMobile'
  *   2. DOCK    — eases to a quiet resting spot in an upper corner and stops.
  *   3. IDLE    — slow "breathing" wing-flap; the DOM hotspot behind it grows
  *                on dock so it stays an easy click target (no glow).
- *   4. CLICK   — fires onEnter (fall into the World Archive).
+ *   4. HOVER   — wing-flap accelerates to a "startled" flutter and a
+ *                "[ EXPLORE ARCHIVE ]" hint fades in below it (CSS ::after
+ *                on .bfly-hotspot, driven by hoverRef — see index.css).
+ *   5. CLICK   — fires onEnter (fall into the World Archive).
  *
  * The <Canvas> is pointer-events:none so it never blocks the page; clicking is
  * handled by a DOM hotspot that tracks the butterfly's projected position
@@ -42,7 +45,7 @@ function GlassEnvironment() {
   return null
 }
 
-function Butterfly({ hotspotRef, targetSize }) {
+function Butterfly({ hotspotRef, hoverRef, targetSize }) {
   const fbx = useLoader(FBXLoader, MODEL_URL)
   const baseColor = useLoader(THREE.TextureLoader, TEXTURE_URL)
   const { camera, size } = useThree()
@@ -131,11 +134,13 @@ function Butterfly({ hotspotRef, targetSize }) {
       g.rotateZ(THREE.MathUtils.clamp((rest.x - start.x) * 0.02, -0.4, 0.4))
     }
 
-    // wing flap: fast while flying, slow "breathing" once docked
+    // wing flap: fast while flying, slow "breathing" once docked — hovering
+    // the hotspot startles it into a fast, alert flap as a click affordance.
     const m = modelRef.current
     if (m) {
-      const freq = docked ? 1.6 : 5.5
-      const amp = docked ? 0.32 : 0.55
+      const hovered = docked && hoverRef.current
+      const freq = hovered ? 9 : docked ? 1.6 : 5.5
+      const amp = hovered ? 0.5 : docked ? 0.32 : 0.55
       const flap = 1 - amp + amp * Math.abs(Math.sin(t * freq))
       m.scale[longAxis] = baseScale * flap
     }
@@ -164,6 +169,7 @@ function Butterfly({ hotspotRef, targetSize }) {
 
 export default function ButterflyEgg({ onEnter }) {
   const hotspotRef = useRef(null)
+  const hoverRef = useRef(false) // read imperatively in useFrame — no re-render on hover
   const isMobile = useIsMobile()
   const targetSize = isMobile ? 0.8 : 2.4 // 1/3 size on phones; desktop untouched
 
@@ -180,17 +186,23 @@ export default function ButterflyEgg({ onEnter }) {
         <directionalLight position={[3, 4, 5]} intensity={1.4} />
         <pointLight position={[-4, -2, 3]} intensity={0.9} color="#d8ffe0" />
         <Suspense fallback={null}>
-          <Butterfly hotspotRef={hotspotRef} targetSize={targetSize} />
+          <Butterfly hotspotRef={hotspotRef} hoverRef={hoverRef} targetSize={targetSize} />
         </Suspense>
       </Canvas>
 
       {/* DOM click hotspot — tracks the butterfly; grows once docked so it
-          stays an obvious, easy click target (no glow — see index.css). */}
+          stays an obvious, easy click target (no glow — see index.css).
+          Hover fades in a "[ EXPLORE ARCHIVE ]" hint (CSS ::after) and
+          startles the wing-flap via hoverRef, read imperatively in useFrame. */}
       <button
         ref={hotspotRef}
         type="button"
         onClick={onEnter}
-        aria-label="Catch the butterfly"
+        onMouseEnter={() => (hoverRef.current = true)}
+        onMouseLeave={() => (hoverRef.current = false)}
+        onFocus={() => (hoverRef.current = true)}
+        onBlur={() => (hoverRef.current = false)}
+        aria-label="Catch the butterfly — explore the archive"
         title="catch me…"
         className="bfly-hotspot pointer-events-auto absolute left-0 top-0"
         style={{ opacity: 0 }}

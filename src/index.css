@@ -119,6 +119,30 @@ body {
   height: 88px;
 }
 
+/* hover hint — Y2K/monospace label fades in below the butterfly once docked,
+   so hovering reads unambiguously as "this is clickable" without a glow. */
+.bfly-hotspot::after {
+  content: '[ EXPLORE ARCHIVE ]';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 6px);
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #b6ff00;
+  text-shadow: 0 0 8px rgba(182, 255, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.bfly-hotspot[data-docked='1']:hover::after,
+.bfly-hotspot[data-docked='1']:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 10px);
+}
+
 /* scattered black asterisk star */
 .star-asterisk {
   font-family: 'Gravitas One', Georgia, serif;
