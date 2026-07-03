@@ -8,7 +8,7 @@ import { works } from '../data/projects'
 
 // 3D scenes — lazy so three.js stays out of the main bundle
 const ButterflyEgg = lazy(() => import('./butterfly/ButterflyEgg'))
-const ArchiveWorld = lazy(() => import('./butterfly/ArchiveWorld'))
+const WorldArchive = lazy(() => import('./butterfly/WorldArchive'))
 
 /**
  * The content page a shard / star opens into. Soft section background image
@@ -17,8 +17,11 @@ const ArchiveWorld = lazy(() => import('./butterfly/ArchiveWorld'))
  * view:
  *   { type:'section', section }  → works list | about | contact | manifesto
  *   { type:'work', work }        → a single piece (random Gachapon pull)
+ *
+ * onSelectWork: bubbled up to App.jsx so picking a floating work inside
+ * WorldArchive can switch the page's own view to that work's detail.
  */
-export default function Page({ view, onClose }) {
+export default function Page({ view, onClose, onSelectWork }) {
   const section = view.type === 'section' ? view.section : null
   const bg = section ? section.bg : '/assets/bg_1.png'
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
@@ -164,7 +167,13 @@ export default function Page({ view, onClose }) {
         {archiveOpen && (
           <SafeMount key="archive">
             <Suspense fallback={null}>
-              <ArchiveWorld onExit={() => setArchiveOpen(false)} />
+              <WorldArchive
+                onClose={() => setArchiveOpen(false)}
+                onSelectWork={(work) => {
+                  setArchiveOpen(false)
+                  onSelectWork(work)
+                }}
+              />
             </Suspense>
           </SafeMount>
         )}
