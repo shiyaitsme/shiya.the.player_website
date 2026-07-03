@@ -13,9 +13,10 @@ import useIsMobile from '../../hooks/useIsMobile'
  *   2. DOCK    — eases to a quiet resting spot in an upper corner and stops.
  *   3. IDLE    — slow "breathing" wing-flap; the DOM hotspot behind it grows
  *                on dock so it stays an easy click target (no glow).
- *   4. HOVER   — wing-flap accelerates to a "startled" flutter and a
- *                "[ EXPLORE ARCHIVE ]" hint fades in below it (CSS ::after
- *                on .bfly-hotspot, driven by hoverRef — see index.css).
+ *   4. HOVER   — wing-flap accelerates to a "startled" flutter and a thin
+ *                "-> enter archive" hint fades in below it (CSS ::after on
+ *                .bfly-hotspot, driven by hoverRef — see index.css; no
+ *                native title tooltip).
  *   5. CLICK   — fires onEnter (fall into the World Archive).
  *
  * The <Canvas> is pointer-events:none so it never blocks the page; clicking is
@@ -192,8 +193,9 @@ export default function ButterflyEgg({ onEnter }) {
 
       {/* DOM click hotspot — tracks the butterfly; grows once docked so it
           stays an obvious, easy click target (no glow — see index.css).
-          Hover fades in a "[ EXPLORE ARCHIVE ]" hint (CSS ::after) and
-          startles the wing-flap via hoverRef, read imperatively in useFrame. */}
+          Hover fades in a thin "-> enter archive" hint (CSS ::after, no
+          native title tooltip) and startles the wing-flap via hoverRef,
+          read imperatively in useFrame. */}
       <button
         ref={hotspotRef}
         type="button"
@@ -203,7 +205,6 @@ export default function ButterflyEgg({ onEnter }) {
         onFocus={() => (hoverRef.current = true)}
         onBlur={() => (hoverRef.current = false)}
         aria-label="Catch the butterfly — explore the archive"
-        title="catch me…"
         className="bfly-hotspot pointer-events-auto absolute left-0 top-0"
         style={{ opacity: 0 }}
       />
