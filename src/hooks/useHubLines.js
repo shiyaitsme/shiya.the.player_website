@@ -16,6 +16,27 @@ function bowPath(x1, y1, x2, y2, bow) {
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`
 }
 
+/** Where a ray from `origin` in direction `dir` exits the [0,w]x[0,h] rect —
+ * used to "bleed" a line out to the screen edge like the desktop lines do. */
+function rayToEdge(origin, dir, w, h) {
+  const len = Math.hypot(dir.x, dir.y) || 1
+  const dx = dir.x / len
+  const dy = dir.y / len
+  let t = Infinity
+  if (dx > 0) t = Math.min(t, (w - origin.x) / dx)
+  if (dx < 0) t = Math.min(t, (0 - origin.x) / dx)
+  if (dy > 0) t = Math.min(t, (h - origin.y) / dy)
+  if (dy < 0) t = Math.min(t, (0 - origin.y) / dy)
+  if (!isFinite(t) || t < 0) t = 0
+  return { x: origin.x + dx * t, y: origin.y + dy * t }
+}
+
+/** Live center of `el`, in the coordinate space of `base` (a DOMRect). */
+function centerIn(el, base) {
+  const r = el.getBoundingClientRect()
+  return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top }
+}
+
 /**
  * Builds one bezier path per node, connecting it to the hub, with both
  * endpoints snapped to the elements' LIVE centers (via getBoundingClientRect)
@@ -35,38 +56,75 @@ function bowPath(x1, y1, x2, y2, bow) {
 export function computeHubLines(hubEl, nodeEls, containerEl, bows) {
   if (!hubEl || !containerEl) return []
   const base = containerEl.getBoundingClientRect()
-  const centerOf = (el) => {
-    const r = el.getBoundingClientRect()
-    return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top }
-  }
-  const hub = centerOf(hubEl)
+  const hub = centerIn(hubEl, base)
   return nodeEls.map((el, i) => {
     if (!el) return null
-    const node = centerOf(el)
+    const node = centerIn(el, base)
     const bow = bows ? bows[i] : (i % 2 === 0 ? 1 : -1) * (18 + (i % 3) * 6)
     return bowPath(hub.x, hub.y, node.x, node.y, bow)
   })
 }
 
 /**
- * React hook wrapper: keeps hub→node bezier paths (and the pixel size to
- * draw them at) in sync with live layout. Recomputes on resize/orientation
- * change, and for ~2s after mount to track entrance-animation movement
- * (Framer Motion spring-ins shift elements after first paint), then settles
- * to resize-only updates so it isn't running every frame forever.
+ * Two extra "bleed" lines in the desktop's spirit (lines run past their
+ * anchors out to the screen edge, they don't just stop at a node):
+ *  - `through`: a straight line through the about + works centers, extended
+ *    past BOTH of them until it exits the container on each side.
+ *  - `arc`: a single smooth curve (SVG `Q ... T ...`, so it's guaranteed to
+ *    pass exactly through all three on-curve points) from contact, down
+ *    through the hub, then mirrored back upward past the hub out to the edge
+ *    — a shallow valley with the hub as its low point.
  */
-export function useHubLines(hubRef, nodeRefs, containerRef, bows) {
-  const [state, setState] = useState({ paths: [], size: { w: 0, h: 0 } })
+export function computeExtraLines(hubEl, contactEl, worksEl, aboutEl, containerEl) {
+  if (!hubEl || !contactEl || !worksEl || !aboutEl || !containerEl) {
+    return { through: null, arc: null }
+  }
+  const base = containerEl.getBoundingClientRect()
+  const w = containerEl.clientWidth
+  const h = containerEl.clientHeight
+  const hub = centerIn(hubEl, base)
+  const contact = centerIn(contactEl, base)
+  const works = centerIn(worksEl, base)
+  const about = centerIn(aboutEl, base)
+
+  const dirAW = { x: works.x - about.x, y: works.y - about.y }
+  const forwardEdge = rayToEdge(works, dirAW, w, h)
+  const backwardEdge = rayToEdge(about, { x: -dirAW.x, y: -dirAW.y }, w, h)
+  const through = [
+    `M ${backwardEdge.x.toFixed(1)} ${backwardEdge.y.toFixed(1)}`,
+    `L ${about.x.toFixed(1)} ${about.y.toFixed(1)}`,
+    `L ${works.x.toFixed(1)} ${works.y.toFixed(1)}`,
+    `L ${forwardEdge.x.toFixed(1)} ${forwardEdge.y.toFixed(1)}`,
+  ].join(' ')
+
+  // contact -> hub travels down-right; mirror the vertical delta so the path
+  // continues rightward but now climbs — a valley with the hub at bottom.
+  const d = { x: hub.x - contact.x, y: hub.y - contact.y }
+  const edgeExit = rayToEdge(hub, { x: d.x, y: -d.y }, w, h)
+  const bow = 22
+  const mid = { x: (contact.x + hub.x) / 2, y: (contact.y + hub.y) / 2 }
+  const dLen = Math.hypot(d.x, d.y) || 1
+  const ctrl = { x: mid.x + (-d.y / dLen) * bow, y: mid.y + (d.x / dLen) * bow }
+  const arc = [
+    `M ${contact.x.toFixed(1)} ${contact.y.toFixed(1)}`,
+    `Q ${ctrl.x.toFixed(1)} ${ctrl.y.toFixed(1)} ${hub.x.toFixed(1)} ${hub.y.toFixed(1)}`,
+    `T ${edgeExit.x.toFixed(1)} ${edgeExit.y.toFixed(1)}`,
+  ].join(' ')
+
+  return { through, arc }
+}
+
+/**
+ * Shared lifecycle for anything computed from live DOM positions: runs
+ * `compute` once on mount, every frame for ~2s after (to track Framer
+ * Motion's entrance-animation settle), then only on resize/orientation
+ * change — so it isn't paying a per-frame cost forever.
+ */
+function useLiveGeometry(compute) {
+  const [value, setValue] = useState(() => compute())
 
   useEffect(() => {
-    const recompute = () => {
-      const el = containerRef.current
-      if (!el) return
-      setState({
-        paths: computeHubLines(hubRef.current, nodeRefs.map((r) => r.current), el, bows),
-        size: { w: el.clientWidth, h: el.clientHeight },
-      })
-    }
+    const recompute = () => setValue(compute())
     recompute()
 
     let raf
@@ -87,5 +145,24 @@ export function useHubLines(hubRef, nodeRefs, containerRef, bows) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return state
+  return value
+}
+
+/** Hub→node spoke lines (see computeHubLines) kept in sync with live layout. */
+export function useHubLines(hubRef, nodeRefs, containerRef, bows) {
+  return useLiveGeometry(() => {
+    const el = containerRef.current
+    if (!el) return { paths: [], size: { w: 0, h: 0 } }
+    return {
+      paths: computeHubLines(hubRef.current, nodeRefs.map((r) => r.current), el, bows),
+      size: { w: el.clientWidth, h: el.clientHeight },
+    }
+  })
+}
+
+/** The two bleed lines (see computeExtraLines) kept in sync with live layout. */
+export function useBleedLines(hubRef, contactRef, worksRef, aboutRef, containerRef) {
+  return useLiveGeometry(() =>
+    computeExtraLines(hubRef.current, contactRef.current, worksRef.current, aboutRef.current, containerRef.current)
+  )
 }

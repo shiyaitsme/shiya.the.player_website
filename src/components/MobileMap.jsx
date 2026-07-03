@@ -3,13 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { mobileHub, mobileShards, mobileStars, sections, pickRandomWork } from '../data/projects'
 import NavLabel from './NavLabel'
 import HeroCarousel from './HeroCarousel'
-import { useHubLines } from '../hooks/useHubLines'
+import { useHubLines, useBleedLines } from '../hooks/useHubLines'
 
-/** Renders the hub→shard connector lines. Endpoints are snapped to the live
- * centers of `hubEl` and each shard's photo (see useHubLines.js) — nothing
- * here is hand-coordinated, so it can't drift out of sync with the layout. */
+/** Renders every connector line: the 4 hub→shard spokes, plus two lines that
+ * bleed out to the screen edge (matching the desktop's "lines run off the
+ * page" language) — a straight line through about+works, and a smooth arc
+ * from contact down through the hub and back up past it. All endpoints are
+ * snapped to LIVE element centers (see useHubLines.js) — nothing here is
+ * hand-coordinated, so it can't drift out of sync with the layout.
+ * `nodeRefs` order matches mobileShards: [contact, works, about, manifesto]. */
 function MobileLines({ containerRef, hubRef, nodeRefs }) {
   const { paths, size } = useHubLines(hubRef, nodeRefs, containerRef)
+  const bleed = useBleedLines(hubRef, nodeRefs[0], nodeRefs[1], nodeRefs[2], containerRef)
   if (!size.w || !size.h) return null
   return (
     <svg
@@ -24,6 +29,8 @@ function MobileLines({ containerRef, hubRef, nodeRefs }) {
             <path key={mobileShards[i].id} d={d} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
           )
       )}
+      {bleed.through && <path d={bleed.through} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.85" />}
+      {bleed.arc && <path d={bleed.arc} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.85" />}
     </svg>
   )
 }

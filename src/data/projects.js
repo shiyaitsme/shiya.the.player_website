@@ -212,4 +212,6 @@ export const mobileStars = [
   { xPct: 18, yPct: 38, size: 18 },
   { xPct: 71, yPct: 58, size: 20 },
   { xPct: 40, yPct: 74, size: 20 },
+  { xPct: 11, yPct: 51, size: 19 },
+  { xPct: 88, yPct: 41, size: 21 },
 ]
