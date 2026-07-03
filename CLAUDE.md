@@ -115,23 +115,54 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
 - `components/butterfly/ButterflyEgg.jsx` — green-glass FBX butterfly (exact
   `MeshPhysicalMaterial`: map + transmission .75 / ior 1.52 / clearcoat 1 …,
   the user dictated these). Behaviour: random fly-in → dock in a corner → idle
-  "breathing" wing-flap + a CSS glow halo (`.bfly-*` in index.css) on a DOM
-  hotspot that tracks its projected position and is the click target. Click →
-  `enterArchiveWorld`.
-- `components/butterfly/ArchiveWorld.jsx` — "rabbit hole" camera dolly into a
-  misty card-cloud (work images on planes), mouse-move parallax, hover-scale,
-  click-to-focus. Referenced `reference_world_archive.png`.
-- FBX path has spaces/`+` → `encodeURI`. **Both 3D scenes are UNVERIFIED
-  visually** (no WebGL here) — ask the user how they actually look and expect to
-  tune material/flap/scene on feedback.
+  "breathing" wing-flap on a DOM hotspot that tracks its projected position
+  and is the click target (NO glow halo — removed, see Status below). Sized
+  1/3 on mobile via `targetSize` prop (`useIsMobile`), desktop untouched.
+  Click → `enterArchiveWorld` (in `Page.jsx`).
+- `components/butterfly/WorldArchive.jsx` — black/blue retro-futurist scene:
+  procedural checkerboard floor, refractive glass sphere
+  (`MeshTransmissionMaterial` from `@react-three/drei`), starfield, works as
+  blue-tinted floating planes with a lime bloom rim, `@react-three/
+  postprocessing` (Bloom/ChromaticAberration/Noise/Vignette). Replaced the
+  original `ArchiveWorld.jsx` (a pale "misty card-cloud" — deleted, don't
+  resurrect it) — see the Status entry below for why/how. Clicking a
+  floating work calls `onSelectWork`, wired up through `Page.jsx` to
+  `App.jsx`'s `openWork`, same as the star Gachapon.
+- **Pin `@react-three/drei` to `^9.122.0` and `@react-three/postprocessing`
+  to `^2.19.1`** if you ever reinstall — a bare `npm install @react-three/
+  drei` grabs v10, which requires `@react-three/fiber@^9` and conflicts with
+  our fiber@8. `three` stays at `^0.169.0`; no need to downgrade to 0.160
+  despite what you might see referenced elsewhere.
+- FBX path has spaces/`+` → `encodeURI`. **All 3D scenes are UNVERIFIED
+  visually** (no WebGL here) — ask the user how they actually look and expect
+  to tune material/flap/scene on feedback. Headless verification is limited
+  to confirming the shell/HUD mounts (SafeMount + SceneBoundary degrade
+  gracefully instead of crashing when WebGL context creation fails).
 
 ## Status / next ideas
-- **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work.**
-  A session once built the mobile branch straight off stale `main` and
-  silently lost the butterfly/ArchiveWorld/PNG-nav/de-duped-lines work that
-  only lived on `busy-maxwell-kzpt97` — `main` (`wonderful-shannon-9rdua0`) is
-  *only* the user's raw asset uploads, never merged with the real code
-  branches. `git branch -a` / `git fetch` before assuming you're on the latest.
+- **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work,
+  even though this is less likely to bite you now.** The repo's actual
+  default branch (`git remote show origin` → "HEAD branch") is
+  `claude/wonderful-shannon-9rdua0`, confusingly *not* named `main` — for a
+  long time it only had the user's raw asset uploads, never merged with the
+  real code branches. A session once built the mobile branch straight off
+  it and silently lost the butterfly/ArchiveWorld/PNG-nav/de-duped-lines
+  work that only lived on `busy-maxwell-kzpt97`. **This has now been fixed
+  at the root** — the default branch was merged up to full parity with the
+  live branch (see below) — but a *second*, independent session made the
+  identical mistake in parallel before that fix landed (built a whole
+  parallel `WorldArchive` off the stale default, branch
+  `claude/world-archive-redesign-vdf9o6` — that work has since been
+  ported in, see the Works-page 3D section; the branch itself is now stale/
+  absorbed, don't pull from it again). **Moral: still `git branch -a` /
+  `git fetch` and sanity-check you're not on some *third* orphaned branch
+  before assuming the default is current** — nothing stops another session
+  from repeating this pattern on a brand-new branch name.
+- **Keep the default branch (`claude/wonderful-shannon-9rdua0`) in sync.**
+  Whenever you push meaningful work to the live branch, also
+  `git push origin HEAD:claude/wonderful-shannon-9rdua0` so a fresh session
+  that (reasonably) trusts the default branch actually lands on current
+  code instead of history repeating itself a third time.
 - **Live working branch: `claude/mobile-responsive-design-j4zpzc`** (rebuilt
   from `busy-maxwell-kzpt97`, which is now just its stale parent — don't
   branch from `busy-maxwell-kzpt97` again, branch from *this* one). Has
