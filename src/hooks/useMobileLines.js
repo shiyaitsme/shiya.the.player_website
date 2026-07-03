@@ -45,16 +45,37 @@ function belowBottomOf(el, base, pad = 14) {
 }
 
 /**
+ * A smooth (C1-continuous) cubic-bezier path through exactly [p0, p1, p2],
+ * via a standard Catmull-Rom -> cubic conversion. Unlike a quadratic
+ * `Q ... T ...` (whose mirrored control point can badly overshoot when the
+ * two segments have very different lengths/directions — that was tried
+ * here first and the curve's real bottom ended up way past p1, toward
+ * manifesto), each segment's tangent is estimated from its own neighbors,
+ * so it stays close to the through-points instead of swinging wide.
+ */
+function smoothThrough3(p0, p1, p2) {
+  const t0 = { x: p1.x - p0.x, y: p1.y - p0.y } // one-sided at the start
+  const t1 = { x: (p2.x - p0.x) / 2, y: (p2.y - p0.y) / 2 } // central at p1
+  const t2 = { x: p2.x - p1.x, y: p2.y - p1.y } // one-sided at the end
+  const c1a = { x: p0.x + t0.x / 3, y: p0.y + t0.y / 3 }
+  const c2a = { x: p1.x - t1.x / 3, y: p1.y - t1.y / 3 }
+  const c1b = { x: p1.x + t1.x / 3, y: p1.y + t1.y / 3 }
+  const c2b = { x: p2.x - t2.x / 3, y: p2.y - t2.y / 3 }
+  return `M ${pt(p0)} C ${pt(c1a)} ${pt(c2a)} ${pt(p1)} C ${pt(c1b)} ${pt(c2b)} ${pt(p2)}`
+}
+
+/**
  * The mobile map's exact 5 connector lines — everything else was deleted
  * (the old hub-spoke lines to all 4 shards read as too busy/overlapping).
  * All endpoints are snapped to LIVE element centers (getBoundingClientRect),
  * never hand-picked coordinates, so they can't drift out of sync:
  *   1. `through`   — straight line through about + works, bled past BOTH
  *      ends until it exits the screen.
- *   2. `arc`       — one smooth curve (SVG Q...T, so the on-curve points are
- *      hit exactly) from contact down to just below the carousel — cradling
- *      it from underneath, not cutting through its center — then back up to
- *      a fixed exit point on the right edge, vertically just below center.
+ *   2. `arc`       — one smooth Catmull-Rom-derived curve (see
+ *      smoothThrough3, on-curve points hit exactly) from contact down to
+ *      just below the carousel — cradling it from underneath, not cutting
+ *      through its center — then back up to a fixed exit point on the right
+ *      edge, vertically just below center.
  *   3–5. a triangle directly connecting contact–manifesto, manifesto–works,
  *      and works–contact (about is NOT part of this triangle).
  */
@@ -77,20 +98,11 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const through = `M ${pt(backwardEdge)} L ${pt(about)} L ${pt(works)} L ${pt(forwardEdge)}`
 
   // 2. contact -> just below the carousel (exactly on-curve) -> right edge,
-  // just below mid-height. Two independent Q segments sharing the cradle
-  // point, each with its control point pinned to the SAME y as the cradle —
-  // that makes the y-component of both segments monotonic (provably, since
-  // it collapses to a 2-point interpolation in y), so the curve can only
-  // ever approach `cradle.y` and never dip past it. A naive single Q...T
-  // curve was tried first, but T's mirrored control point overshot well
-  // past the cradle depth (down toward/past manifesto) instead of stopping
-  // there — this construction is what actually keeps the real bottom of the
-  // arc pinned at the cradle height instead of just passing through it.
+  // just below mid-height — one smooth curve (see smoothThrough3) through
+  // all three points, cradling the carousel from underneath.
   const cradle = belowBottomOf(hubEl, base)
   const edgeExit = { x: w, y: h * 0.56 }
-  const ctrl1 = { x: contact.x + (cradle.x - contact.x) * 0.6, y: cradle.y }
-  const ctrl2 = { x: cradle.x + (edgeExit.x - cradle.x) * 0.4, y: cradle.y }
-  const arc = `M ${pt(contact)} Q ${pt(ctrl1)} ${pt(cradle)} Q ${pt(ctrl2)} ${pt(edgeExit)}`
+  const arc = smoothThrough3(contact, cradle, edgeExit)
 
   // 3–5. contact/manifesto/works triangle (about excluded)
   const triCM = bowPath(contact, manifesto, 14)
