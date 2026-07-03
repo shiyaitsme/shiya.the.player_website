@@ -13,20 +13,10 @@ import { motion } from 'framer-motion'
  * onReveal fires at the start of the zoom-out (mount the detail page then);
  * onComplete fires when the portal finishes (unmount this overlay).
  *
- * We zoom the section's cover image only — no green shard. The green shard is
- * kept purely as a graceful fallback for the brief moment before the cover
- * photo has decoded (or if it is ever missing).
+ * We zoom the section's cover image only — no green shard fallback.
  */
-export default function ShardZoom({ coverSrc, label, shardId, originRect, onReveal, onComplete }) {
+export default function ShardZoom({ coverSrc, label, originRect, onReveal, onComplete }) {
   const [phase, setPhase] = useState('in') // 'in' | 'out'
-  const [coverOk, setCoverOk] = useState(false)
-
-  useEffect(() => {
-    if (!coverSrc) return
-    const img = new Image()
-    img.onload = () => setCoverOk(true)
-    img.src = coverSrc
-  }, [coverSrc])
 
   // reduced-motion: skip straight to the detail page
   useEffect(() => {
@@ -88,22 +78,12 @@ export default function ShardZoom({ coverSrc, label, shardId, originRect, onReve
         }}
       >
         {/* section cover photo — the only thing that zooms */}
-        {coverOk ? (
-          <img
-            className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
-            src={coverSrc}
-            alt={label}
-            draggable={false}
-          />
-        ) : (
-          /* graceful fallback before the cover decodes (or if it's missing) */
-          <img
-            className="absolute inset-[7%] h-[86%] w-[86%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
-            src={`/assets/green_piece_${shardId}.png`}
-            alt={label}
-            draggable={false}
-          />
-        )}
+        <img
+          className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
+          src={coverSrc}
+          alt={label}
+          draggable={false}
+        />
       </motion.div>
     </div>
   )

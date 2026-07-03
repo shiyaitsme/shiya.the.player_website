@@ -96,7 +96,6 @@ export default function App() {
           <ShardZoom
             coverSrc={zoom.section.cover}
             label={zoom.section.nav}
-            shardId={zoom.shardId}
             originRect={zoom.rect}
             onReveal={() => setView({ type: 'section', section: zoom.section })}
             onComplete={() => setZoom(null)}
