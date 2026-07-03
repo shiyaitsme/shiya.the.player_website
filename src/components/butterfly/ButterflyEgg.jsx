@@ -3,6 +3,7 @@ import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import useIsMobile from '../../hooks/useIsMobile'
 
 /**
  * ButterflyEgg — a glass butterfly easter egg on the Works page.
@@ -10,13 +11,15 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
  * Behaviour (intentionally calm, easy to click):
  *   1. FLY IN  — drifts in from a random off-screen direction (no trail).
  *   2. DOCK    — eases to a quiet resting spot in an upper corner and stops.
- *   3. IDLE    — slow "breathing" wing-flap + a soft pulsing glow halo beneath
- *                it that doubles as the click target / hint.
+ *   3. IDLE    — slow "breathing" wing-flap; the DOM hotspot behind it grows
+ *                on dock so it stays an easy click target (no glow).
  *   4. CLICK   — fires onEnter (fall into the World Archive).
  *
  * The <Canvas> is pointer-events:none so it never blocks the page; clicking is
  * handled by a DOM hotspot that tracks the butterfly's projected position
  * (imperative — no per-frame React). Lazy-loaded + error-bounded by the caller.
+ *
+ * Sized to 1/3 on phone-width viewports (targetSize) — desktop is untouched.
  */
 
 const MODEL_URL = encodeURI(
@@ -39,7 +42,7 @@ function GlassEnvironment() {
   return null
 }
 
-function Butterfly({ hotspotRef }) {
+function Butterfly({ hotspotRef, targetSize }) {
   const fbx = useLoader(FBXLoader, MODEL_URL)
   const baseColor = useLoader(THREE.TextureLoader, TEXTURE_URL)
   const { camera, size } = useThree()
@@ -54,7 +57,7 @@ function Butterfly({ hotspotRef }) {
     const sizeV = box.getSize(new THREE.Vector3())
     const center = box.getCenter(new THREE.Vector3())
     const maxDim = Math.max(sizeV.x, sizeV.y, sizeV.z) || 1
-    const s = 2.4 / maxDim
+    const s = targetSize / maxDim
     root.position.sub(center)
     root.scale.setScalar(s)
 
@@ -82,7 +85,7 @@ function Butterfly({ hotspotRef }) {
     })
     const longAxis = sizeV.x >= sizeV.y && sizeV.x >= sizeV.z ? 'x' : sizeV.y >= sizeV.z ? 'y' : 'z'
     return { model: root, longAxis, baseScale: s }
-  }, [fbx, baseColor])
+  }, [fbx, baseColor, targetSize])
 
   // pick a random off-screen entry and an upper-corner resting spot (once)
   const { start, rest } = useMemo(() => {
@@ -161,6 +164,8 @@ function Butterfly({ hotspotRef }) {
 
 export default function ButterflyEgg({ onEnter }) {
   const hotspotRef = useRef(null)
+  const isMobile = useIsMobile()
+  const targetSize = isMobile ? 0.8 : 2.4 // 1/3 size on phones; desktop untouched
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[70]">
@@ -175,12 +180,12 @@ export default function ButterflyEgg({ onEnter }) {
         <directionalLight position={[3, 4, 5]} intensity={1.4} />
         <pointLight position={[-4, -2, 3]} intensity={0.9} color="#d8ffe0" />
         <Suspense fallback={null}>
-          <Butterfly hotspotRef={hotspotRef} />
+          <Butterfly hotspotRef={hotspotRef} targetSize={targetSize} />
         </Suspense>
       </Canvas>
 
-      {/* DOM click hotspot — tracks the butterfly; grows + glows once docked so
-          it's an obvious, easy click target (the "breathing" halo hint). */}
+      {/* DOM click hotspot — tracks the butterfly; grows once docked so it
+          stays an obvious, easy click target (no glow — see index.css). */}
       <button
         ref={hotspotRef}
         type="button"
@@ -189,9 +194,7 @@ export default function ButterflyEgg({ onEnter }) {
         title="catch me…"
         className="bfly-hotspot pointer-events-auto absolute left-0 top-0"
         style={{ opacity: 0 }}
-      >
-        <span className="bfly-glow" aria-hidden />
-      </button>
+      />
     </div>
   )
 }

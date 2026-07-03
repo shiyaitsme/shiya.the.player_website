@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 
 /**
@@ -6,10 +6,15 @@ import gsap from 'gsap'
  * WebKit's video pipeline) doesn't composite the alpha channel in a
  * transparent VP9 .webm — it just shows the opaque RGB plane, which reads as
  * a solid black box behind the carousel. There's no reliable feature-detect
- * for "can this engine composite webm alpha", so we UA-sniff and swap to a
- * pre-baked transparent PNG frame (extracted via `ffmpeg -c:v libvpx-vp9`,
- * the ONLY decoder path that actually surfaces the alpha plane) instead of
- * the video on those engines.
+ * for "can this engine composite webm alpha", so we UA-sniff and swap to an
+ * **animated WebP** (`carousel_hero_v2_mobile.webp`, real alpha + all 120
+ * frames — extracted the same way as the still poster, via
+ * `ffmpeg -c:v libvpx-vp9`, then re-encoded with `-vcodec libwebp`) instead
+ * of the video on those engines. WebP with alpha (animated or not) has been
+ * supported in Safari/iOS since version 14, so this keeps the carousel
+ * actually spinning instead of freezing on one frame the way a static PNG
+ * poster did (that was the very first fix here, before this was animated —
+ * don't regress back to the static poster, it visibly doesn't rotate).
  */
 const NEEDS_POSTER_FALLBACK = (() => {
   if (typeof navigator === 'undefined') return false
@@ -33,6 +38,7 @@ const NEEDS_POSTER_FALLBACK = (() => {
 export default function HeroCarousel({ mobile = false }) {
   const wrapRef = useRef(null)
   const videoRef = useRef(null)
+  const [webpFailed, setWebpFailed] = useState(false)
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -81,7 +87,8 @@ export default function HeroCarousel({ mobile = false }) {
           <img
             className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
             style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-            src="/assets/carousel_hero_v2_poster.png"
+            src={webpFailed ? '/assets/carousel_hero_v2_poster.png' : '/assets/carousel_hero_v2_mobile.webp'}
+            onError={() => setWebpFailed(true)}
             alt=""
             draggable={false}
           />
