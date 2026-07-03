@@ -77,15 +77,20 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const through = `M ${pt(backwardEdge)} L ${pt(about)} L ${pt(works)} L ${pt(forwardEdge)}`
 
   // 2. contact -> just below the carousel (exactly on-curve) -> right edge,
-  // just below mid-height
+  // just below mid-height. Two independent Q segments sharing the cradle
+  // point, each with its control point pinned to the SAME y as the cradle —
+  // that makes the y-component of both segments monotonic (provably, since
+  // it collapses to a 2-point interpolation in y), so the curve can only
+  // ever approach `cradle.y` and never dip past it. A naive single Q...T
+  // curve was tried first, but T's mirrored control point overshot well
+  // past the cradle depth (down toward/past manifesto) instead of stopping
+  // there — this construction is what actually keeps the real bottom of the
+  // arc pinned at the cradle height instead of just passing through it.
   const cradle = belowBottomOf(hubEl, base)
   const edgeExit = { x: w, y: h * 0.56 }
-  const bow = 22
-  const mid = { x: (contact.x + cradle.x) / 2, y: (contact.y + cradle.y) / 2 }
-  const d = { x: cradle.x - contact.x, y: cradle.y - contact.y }
-  const dLen = Math.hypot(d.x, d.y) || 1
-  const ctrl = { x: mid.x + (-d.y / dLen) * bow, y: mid.y + (d.x / dLen) * bow }
-  const arc = `M ${pt(contact)} Q ${pt(ctrl)} ${pt(cradle)} T ${pt(edgeExit)}`
+  const ctrl1 = { x: contact.x + (cradle.x - contact.x) * 0.6, y: cradle.y }
+  const ctrl2 = { x: cradle.x + (edgeExit.x - cradle.x) * 0.4, y: cradle.y }
+  const arc = `M ${pt(contact)} Q ${pt(ctrl1)} ${pt(cradle)} Q ${pt(ctrl2)} ${pt(edgeExit)}`
 
   // 3–5. contact/manifesto/works triangle (about excluded)
   const triCM = bowPath(contact, manifesto, 14)
