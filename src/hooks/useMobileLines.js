@@ -43,23 +43,36 @@ function edgesOf(el, base) {
 }
 
 /**
- * A smooth (C1-continuous) cubic-bezier path through exactly [p0, p1, p2],
- * via a standard Catmull-Rom -> cubic conversion. Unlike a quadratic
- * `Q ... T ...` (whose mirrored control point can badly overshoot when the
- * two segments have very different lengths/directions — that was tried
- * here first and the curve's real bottom ended up way past p1, toward
- * manifesto), each segment's tangent is estimated from its own neighbors,
- * so it stays close to the through-points instead of swinging wide.
+ * One smooth cubic-bezier "bump" from `a` to `b` that bulges toward
+ * `through` (roughly — see below) — a SINGLE, unbroken curve, so there is
+ * no seam anywhere for curvature to jump at.
+ *
+ * Two things were tried before this and both still read as a polyline:
+ * (1) two bezier pieces stitched at the through-point — even tangent-
+ * matched (C1-continuous), the curvature itself still jumped at the seam,
+ * which the eye reads as a corner; (2) the true circumcircle through all 3
+ * points — genuinely constant curvature, but whichever arc actually passes
+ * through the through-point can turn out to be the *major* arc (>180°) if
+ * that point sits past the circle's far side relative to the a-b chord —
+ * here that produced a huge unwanted loop out past the edge of the screen.
+ *
+ * This sidesteps both: it's one Bezier segment (no seam, so no curvature
+ * jump), and both control points are offset from the chord by the SAME
+ * vector (the through-point's perpendicular deviation from its own foot on
+ * the chord, scaled by `factor`), which is the standard construction for a
+ * single symmetric hump — no risk of an unexpected long way around, and
+ * `factor` directly dials the bulge/tension up or down.
  */
-function smoothThrough3(p0, p1, p2) {
-  const t0 = { x: p1.x - p0.x, y: p1.y - p0.y } // one-sided at the start
-  const t1 = { x: (p2.x - p0.x) / 2, y: (p2.y - p0.y) / 2 } // central at p1
-  const t2 = { x: p2.x - p1.x, y: p2.y - p1.y } // one-sided at the end
-  const c1a = { x: p0.x + t0.x / 3, y: p0.y + t0.y / 3 }
-  const c2a = { x: p1.x - t1.x / 3, y: p1.y - t1.y / 3 }
-  const c1b = { x: p1.x + t1.x / 3, y: p1.y + t1.y / 3 }
-  const c2b = { x: p2.x - t2.x / 3, y: p2.y - t2.y / 3 }
-  return `M ${pt(p0)} C ${pt(c1a)} ${pt(c2a)} ${pt(p1)} C ${pt(c1b)} ${pt(c2b)} ${pt(p2)}`
+function bumpThrough(a, b, through, factor = 1) {
+  const ux = b.x - a.x
+  const uy = b.y - a.y
+  const uLen = Math.hypot(ux, uy) || 1
+  const along = ((through.x - a.x) * ux + (through.y - a.y) * uy) / uLen
+  const foot = { x: a.x + (ux / uLen) * along, y: a.y + (uy / uLen) * along }
+  const dev = { x: (through.x - foot.x) * factor, y: (through.y - foot.y) * factor }
+  const c1 = { x: a.x + ux / 3 + dev.x, y: a.y + uy / 3 + dev.y }
+  const c2 = { x: a.x + (ux * 2) / 3 + dev.x, y: a.y + (uy * 2) / 3 + dev.y }
+  return `M ${pt(a)} C ${pt(c1)} ${pt(c2)} ${pt(b)}`
 }
 
 /**
@@ -69,11 +82,11 @@ function smoothThrough3(p0, p1, p2) {
  * never hand-picked coordinates, so they can't drift out of sync:
  *   1. `through`   — straight line through about + works, bled past BOTH
  *      ends until it exits the screen.
- *   2. `arc`       — one smooth Catmull-Rom-derived curve (see
- *      smoothThrough3, on-curve points hit exactly) from contact down to a
- *      cradle point — x aligned with works, y halfway between the
- *      carousel's bottom edge and about's top edge — then back up to a
- *      fixed exit point on the right edge, vertically just below center.
+ *   2. `arc`       — one single, unbroken bezier "bump" (see bumpThrough —
+ *      no seam anywhere, so curvature can't jump/read as a corner) from
+ *      contact toward a cradle point — x aligned with works, y halfway
+ *      between the carousel's bottom edge and about's top edge — then back
+ *      up to a fixed exit point on the right edge, just below center.
  *   3–5. a triangle directly connecting contact–manifesto, manifesto–works,
  *      and works–contact (about is NOT part of this triangle).
  */
@@ -96,15 +109,16 @@ export function computeMobileLines({ hubEl, contactEl, worksEl, aboutEl, manifes
   const through = `M ${pt(backwardEdge)} L ${pt(about)} L ${pt(works)} L ${pt(forwardEdge)}`
 
   // 2. contact -> cradle point -> right edge, just below mid-height — one
-  // smooth curve (see smoothThrough3) through all three points. The cradle
-  // sits under the carousel's right side rather than dead-center: x lines
-  // up with works, y is the midpoint between the carousel's bottom edge and
-  // about's top edge (both live-measured, not hand-picked).
+  // true circular arc (see arcThrough3) through all three points. The
+  // cradle sits under the carousel's right side rather than dead-center: x
+  // lines up with works, y is the midpoint between the carousel's bottom
+  // edge and about's top edge (both live-measured, not hand-picked). factor
+  // 1.35 gives the curve real tension instead of barely bending.
   const hubEdges = edgesOf(hubEl, base)
   const aboutEdges = edgesOf(aboutEl, base)
   const cradle = { x: works.x, y: (hubEdges.bottom + aboutEdges.top) / 2 }
   const edgeExit = { x: w, y: h * 0.56 }
-  const arc = smoothThrough3(contact, cradle, edgeExit)
+  const arc = bumpThrough(contact, edgeExit, cradle, 1.35)
 
   // 3–5. contact/manifesto/works triangle (about excluded)
   const triCM = bowPath(contact, manifesto, 14)
