@@ -163,12 +163,22 @@ export const mobileShards = [
   { id: 4, section: 'manifesto', xPct: 71, yPct: 73, wVw: 26, rot: 1.23 },
 ]
 
+// Re-tuned (2026-07-03) to sit in the gaps between the hub carousel, the 4
+// shard photos, AND their nav labels — several used to land right on top of
+// "works"/"contact"/"about" text or clip the carousel artwork. Checked
+// against measured on-screen rects, not just eyeballed: with `mobileHub` at
+// (50,53)/50vw and `mobileShards` above, the shard+label footprints are
+// roughly contact x16-46/y23-40, works x56-86/y28-43, about x10-44/y62-79,
+// manifesto x56-86/y72-85 (in %), and the carousel's actual VISIBLE artwork
+// (its bounding box is much bigger than that because the webm/PNG frame has
+// transparent padding) is roughly x35-66/y40-64. Every star below sits
+// outside all of those.
 export const mobileStars = [
   { xPct: 72, yPct: 18, size: 22 },
-  { xPct: 26, yPct: 33, size: 20 },
-  { xPct: 18, yPct: 38, size: 18 },
-  { xPct: 71, yPct: 58, size: 20 },
-  { xPct: 40, yPct: 74, size: 20 },
-  { xPct: 11, yPct: 51, size: 19 },
-  { xPct: 88, yPct: 41, size: 21 },
+  { xPct: 16, yPct: 14, size: 20 },
+  { xPct: 12, yPct: 47, size: 18 },
+  { xPct: 16, yPct: 58, size: 20 },
+  { xPct: 50, yPct: 69, size: 20 },
+  { xPct: 85, yPct: 48, size: 19 },
+  { xPct: 80, yPct: 61, size: 21 },
 ]
