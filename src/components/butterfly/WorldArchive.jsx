@@ -4,40 +4,29 @@ import { OrbitControls, MeshTransmissionMaterial, MeshReflectorMaterial, Stars }
 import { EffectComposer, Bloom, Vignette, Noise, ChromaticAberration } from '@react-three/postprocessing'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
+import { works } from '../../data/projects'
 
 /**
  * WorldArchive — a "museum-grade" black/deep-blue retro-futurist scene the
  * butterfly drops you into. A midnight-blue sky dome (not a flat color) +
  * fog, a checkerboard floor with a real blurred reflection, a refractive
- * glass sphere as the fixed depth anchor, and the 6 uploaded archive
- * pictures repeated across a large cylindrical array (instanced — constant
- * draw-call count no matter how many copies) for a "vast data museum"
- * scale rather than 6 lonely cards.
+ * glass sphere as the fixed depth anchor, and the real works-page pictures
+ * repeated across a large spherical array (instanced — constant draw-call
+ * count no matter how many copies) for a "vast data museum" scale rather
+ * than a handful of lonely cards.
  *
- * These pictures are NOT yet real `works` entries in projects.js — the user
- * hasn't written copy for them. Clicking one still calls onSelectWork()
- * (same plumbing as the star Gachapon) so the wiring is correct once she
- * adds them properly; until then the detail page they land on is minimal.
- * Page.jsx remembers the trip back to the archive (see ARCHIVE_RETURN_KEY
- * there) so "back" from that detail page returns here, not to the map.
+ * Pure visual flair, deliberately not clickable/navigable — the user tried
+ * click-to-navigate through several rounds of fixes (see git history /
+ * CLAUDE.md) and ultimately asked for it to be dropped entirely: the
+ * navigation logic added bundle size/complexity she didn't want for a
+ * feature that's meant to just look impressive. Don't reintroduce an
+ * onSelect/onClose-to-work flow here without being asked again.
  */
 
-const PICTURES = [
-  { id: 'obsidian', title: 'obsidian', file: 'obsidian.png' },
-  { id: 'see-you-in-spring', title: 'see you in spring', file: 'See_you_in_spring .png' },
-  { id: 'heart-of-empire', title: 'heart of empire', file: 'heart_of_empire.png' },
-  { id: 'breathing-against-the-light', title: 'breathing against the light', file: 'Breathing_against_the_light.png' },
-  { id: 'limited-night', title: 'limited night', file: 'limited_night.png' },
-  { id: 'the-vanishing-tree', title: 'the vanishing tree', file: 'the_vanishing_tree.png' },
-]
-
-const archiveWorks = PICTURES.map((p, i) => ({
-  id: p.id,
-  number: (i % 9) + 1,
-  title: p.title,
-  emoji: '',
-  image: encodeURI(`/assets/world_archive_pictures/${p.file}`),
-  body: [],
+const archiveWorks = works.map((w) => ({
+  id: w.id,
+  title: w.title,
+  image: w.image,
 }))
 
 /** Deterministic pseudo-random (mulberry32) so the layout doesn't reshuffle on re-render. */
@@ -341,7 +330,7 @@ function useArchiveLayout() {
  *  camera, not a spun group), so each instance can look at the camera's
  *  world position directly with a scratch Object3D, no local-space
  *  conversion needed. */
-function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
+function ArchiveInstancedGroup({ texture, slots }) {
   const mainRef = useRef(null)
   const rimRef = useRef(null)
   const [hovered, setHovered] = useState(false)
@@ -378,52 +367,14 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
     if (rim) rim.instanceMatrix.needsUpdate = true
   })
 
-  // Real pointer/click-detection, not the native `onClick` DOM event: on a
-  // real mouse/trackpad (unlike a synthetic same-pixel test click), pressing
-  // and releasing almost always has a few pixels of incidental movement —
-  // and because OrbitControls is actively listening for that exact movement
-  // to start orbiting, the browser can end up treating the gesture as a drag
-  // and never fire a native 'click' at all, so R3F's onClick silently never
-  // triggers. This is a known OrbitControls-vs-click-to-select interaction,
-  // not something a raycasting fix can address. Instead: capture the
-  // intended target on `onPointerDown` (still correctly raycast-resolved to
-  // whichever instance was actually under the cursor at press-time), then
-  // confirm it on a GLOBAL `pointerup` (not the mesh's own onPointerUp,
-  // which could miss entirely if the camera rotated the target out from
-  // under the cursor before release) only if total movement stayed small.
-  const pendingRef = useRef(null)
-
-  useEffect(() => {
-    const onWindowPointerUp = (e) => {
-      const start = pendingRef.current
-      pendingRef.current = null
-      if (!start) return
-      const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y)
-      if (dist < 8) onSelect?.(work)
-    }
-    window.addEventListener('pointerup', onWindowPointerUp)
-    return () => window.removeEventListener('pointerup', onWindowPointerUp)
-  }, [work, onSelect])
-
-  const handlePointerDown = (e) => {
-    e.stopPropagation()
-    pendingRef.current = { x: e.clientX, y: e.clientY }
-  }
-  const handleOver = () => {
-    setHovered(true)
-    document.body.style.cursor = 'pointer'
-  }
-  const handleOut = () => {
-    setHovered(false)
-    document.body.style.cursor = 'default'
-  }
+  const handleOver = () => setHovered(true)
+  const handleOut = () => setHovered(false)
 
   return (
     <group>
       <instancedMesh
         ref={mainRef}
         args={[null, null, slots.length]}
-        onPointerDown={handlePointerDown}
         onPointerOver={handleOver}
         onPointerOut={handleOut}
       >
@@ -446,7 +397,7 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
  *  instanced-mesh pair so it's raycast (and drag-rotated, in the old scheme)
  *  as one coherent unit. Navigation itself is now real 3D OrbitControls (see
  *  Scene below), so this group has no rotation logic of its own any more. */
-function GalleryGroup({ textures, onSelect }) {
+function GalleryGroup({ textures }) {
   const layout = useArchiveLayout()
   const slotsByPicture = useMemo(() => {
     const buckets = archiveWorks.map(() => [])
@@ -458,14 +409,14 @@ function GalleryGroup({ textures, onSelect }) {
     <group name="GalleryGroup">
       {archiveWorks.map((work, i) =>
         slotsByPicture[i].length ? (
-          <ArchiveInstancedGroup key={work.id} work={work} texture={textures[i]} slots={slotsByPicture[i]} onSelect={onSelect} />
+          <ArchiveInstancedGroup key={work.id} texture={textures[i]} slots={slotsByPicture[i]} />
         ) : null,
       )}
     </group>
   )
 }
 
-function Scene({ onSelect, textures }) {
+function Scene({ textures }) {
   return (
     <>
       {/* FogExp2 (exponential) rather than linear Fog — depth fades in
@@ -483,7 +434,7 @@ function Scene({ onSelect, textures }) {
 
       <CheckerFloor />
       <GlassSphere />
-      <GalleryGroup textures={textures} onSelect={onSelect} />
+      <GalleryGroup textures={textures} />
 
       {/* Real 3D orbit, not a 2D drag-the-group hack: full spherical
           coordinates, free look in every direction (only just short of the
@@ -521,7 +472,7 @@ class SceneBoundary extends Component {
   }
 }
 
-export default function WorldArchive({ onClose, onSelectWork }) {
+export default function WorldArchive({ onClose }) {
   const urls = useMemo(() => archiveWorks.map((w) => w.image), [])
   const { textures, loaded, total } = useArchiveTextures(urls)
   const ready = textures !== null
@@ -538,7 +489,7 @@ export default function WorldArchive({ onClose, onSelectWork }) {
         <SceneBoundary>
           <Canvas camera={{ position: [0, 3, 19], fov: 50 }} dpr={[1, 1.3]}>
             <Suspense fallback={null}>
-              <Scene onSelect={onSelectWork} textures={textures} />
+              <Scene textures={textures} />
             </Suspense>
           </Canvas>
         </SceneBoundary>

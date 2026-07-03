@@ -72,6 +72,16 @@ source of truth is the user's Figma file; we match it **1:1**.
 - Match the user's design; **don't invent a different visual direction.** Early
   in the project a "neon/rebellious" detour was built and rejected — the real
   target is soft, iridescent, editorial.
+- **`WorkBlock`'s media renders at each image's own native aspect ratio —
+  don't force a uniform box again.** An earlier version fixed every work's
+  media to `aspectRatio: '16 / 10'` + `object-cover`; the user flagged that
+  some images are a very different shape and a center-crop into that box
+  "只留下中间不好看" (only keeps the middle, looks bad). Fixed by using
+  `h-auto w-full` (no `object-fit` needed since there's no fixed box to fit
+  into) so a portrait piece stays portrait and a wide one stays wide. The
+  fixed `16/10` box is kept ONLY as the fallback placeholder background for
+  the broken-image/text-title state (`!imgOk && !work.video`), since that
+  case has no real image to derive a ratio from.
 
 ## Hard environment constraints (important)
 - **Figma's asset host is network-blocked.** `curl`-ing `www.figma.com/...`
@@ -177,20 +187,16 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   Stars`, and `@react-three/postprocessing` (Bloom/ChromaticAberration/
   Noise/Vignette). Replaced the original `ArchiveWorld.jsx` (a pale "misty
   card-cloud" — deleted, don't resurrect it).
-- **The floating pictures are the 6 uploaded `world_archive_pictures/*.png`**
-  (extracted from her `world_archive_pictures.zip`, kept alongside it — the
-  zip is the source upload, the extracted folder is what the app actually
-  fetches; one filename has a trailing space (`See_you_in_spring .png`) so
-  every reference goes through `encodeURI`, same reasoning as the butterfly
-  FBX path). These are declared inline in `WorldArchive.jsx` (`PICTURES` /
-  `archiveWorks`), **not** in `projects.js` `works[]` — she hasn't written
-  copy for them yet, so `body: []` and no `caseStudy`. Clicking one still
-  calls `onSelectWork` → the normal work-detail `Page`, same plumbing as the
-  star Gachapon; it'll just render an almost-empty detail page until she
-  adds real copy for these pieces in `projects.js` (expected, not a bug).
-  Page.jsx remembers the trip (`ARCHIVE_RETURN_KEY`, in-memory state +
-  sessionStorage fallback) so the work's "back" button returns to the
-  archive, not the map — see the routing bullet below.
+- **SUPERSEDED — see the "floating pictures now ARE the real works-page
+  pictures" and "click-navigation was ultimately abandoned" bullets further
+  below.** (Originally the 6 floating pictures were a separate, hardcoded
+  `PICTURES`/`archiveWorks` set sourced from `world_archive_pictures/*.png`
+  with no copy written yet, and clicking one navigated to a work-detail
+  page via `onSelectWork` + an `ARCHIVE_RETURN_KEY` breadcrumb in
+  `Page.jsx`. Both of those decisions were reversed: the pictures now come
+  straight from `works` in `projects.js`, and all click/navigation code —
+  including the `ARCHIVE_RETURN_KEY` plumbing — was deleted. Keeping this
+  note so a stale mental model doesn't resurface either piece.)
 - **"Museum array" layout — repetition is deliberate, not a placeholder.**
   With only 6 real pictures, the user explicitly asked for the *shock of
   repetition* ("我们追求重复带来的震撼感") rather than 6 lonely cards: 30
@@ -331,6 +337,33 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   touching again anywhere OrbitControls (or any other component that
   actively rotates the camera on drag) is in play, use this pattern, not
   `onClick`.
+- **Click-navigation was ultimately abandoned entirely — don't re-add it
+  without being asked.** Even after the onPointerDown+global-pointerup fix
+  above, it still didn't work reliably for the user on her real machine, and
+  she explicitly gave up on it: "算了没关系那这个world archive就纯粹炫技好了，
+  具体的跳转会让网站体积太大了" (never mind, make World Archive pure visual
+  flair — navigation would bloat the site too much). All `onSelect`/
+  `onSelectWork`/`onPointerDown`/global-`pointerup` code was removed from
+  `WorldArchive.jsx`, and the now-dead plumbing it left behind
+  (`Page.jsx`'s `cameFromArchive` state, `ARCHIVE_RETURN_KEY` sessionStorage
+  breadcrumb, `handleBack`, and the `onSelectWork` prop threaded from
+  `App.jsx` → `Page` → `WorldArchive`) was deleted too — `Page`'s back
+  button is unconditionally `↩ map` again. The scene is intentionally
+  look-but-don't-touch now (still fully orbitable via `OrbitControls`,
+  hover still brightens a card's tint/rim); if the user asks for
+  navigation again later, this is a from-scratch feature, not a bug to fix.
+- **The floating pictures now ARE the real works-page pictures, not a
+  separate upload.** `archiveWorks` is derived directly from `works` in
+  `../../data/projects` (`id`/`title`/`image`, mapped 1:1) instead of a
+  hardcoded `PICTURES` array pointing at `/assets/world_archive_pictures/*`
+  — the user asked for the archive to mirror the actual works page rather
+  than maintain a second, separate set of "starter" images. The old
+  `world_archive_pictures` folder/zip is now unused by this component (left
+  on disk, not deleted, in case another part of the site still wants it —
+  double check before assuming it's dead). Because `works` currently has 10
+  entries (not 6), `SLOT_COUNT=30` cycling via `i % archiveWorks.length`
+  still applies — no hardcoded "6" was left behind, per the existing
+  "museum array" note below.
 - **Full upfront preload, not per-card lazy load** (a deliberate reversal of
   an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
   `Promise.all`s every picture through `THREE.TextureLoader` before the

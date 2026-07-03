@@ -57,31 +57,13 @@ export const works = [
         label: 'watch on instagram',
         href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
       },
+      {
+        label: 'watch on xiaohongshu',
+        href: 'https://www.xiaohongshu.com/discovery/item/6a37db5d00000000080034ee?source=webshare&xhsshare=pc_web&xsec_token=ABFkTwJmbz5MMCzN7tGXi6PVeUr-rZXpSHzH8IYnakVgI=&xsec_source=pc_share',
+      },
     ],
     caseStudy: {
-      goal: 'Between Two Infinites stages a carousel at the seam of desert and sea — a waypoint for the lost. The research question: can a looping ride encode "keep moving" without a single word of text?',
-      architecture: {
-        nodes: ['Rotary Encoder', 'OSC Bus', 'TouchDesigner', 'Projection + Spatial Audio'],
-        caption:
-          'The carousel’s real rotation (a hardware encoder, not a timer) is broadcast over OSC; TouchDesigner blends a projection-mapped horizon and orbits a spatial-audio bed so the room breathes in lockstep with the ride.',
-      },
-      code: {
-        language: 'javascript',
-        snippet: `// map carousel angle -> horizon blend + sound pan
-const TAU = Math.PI * 2;
-
-function onRotation(angle) {
-  const t = (angle % TAU) / TAU;          // 0..1 per turn
-  const horizon = smoothstep(0.0, 1.0, t);
-  setProjectionBlend('desert', 1.0 - horizon);
-  setProjectionBlend('sea', horizon);
-  spatial.pan(Math.sin(angle));           // sound orbits the room
-}`,
-      },
-      analysis: [
-        'Sourcing rotation from the encoder rather than a clock kept image and motion phase-locked even when visitors shoved the ride — the illusion collapses the instant the sound lags the turn.',
-        'The hardest edit was restraint. An early build cross-faded six scenes per rotation and read as noise; two infinities, one transition per turn — the piece only worked once it did less.',
-      ],
+      tools: ['Tripo AI 3D modeling', 'Blender', 'DaVinci Resolve'],
     },
   },
   {

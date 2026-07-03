@@ -86,7 +86,6 @@ export default function App() {
               setView(null)
               setZoom(null)
             }}
-            onSelectWork={openWork}
           />
         )}
       </AnimatePresence>

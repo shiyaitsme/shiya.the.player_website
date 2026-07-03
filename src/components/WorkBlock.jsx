@@ -62,22 +62,23 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             onMouseMove={onTilt}
             onMouseLeave={resetTilt}
             className="relative overflow-hidden rounded-[3px] shadow-[0_22px_50px_rgba(40,30,60,0.32)] transition-transform duration-200 ease-out will-change-transform"
-            style={{ aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }}
+            // Only forced to a fixed box when there's no real media to show its
+            // own aspect ratio — every other work keeps its native proportions
+            // (a portrait piece stays portrait, a wide one stays wide) instead
+            // of being center-cropped into a uniform frame.
+            style={
+              !imgOk && !work.video
+                ? { aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }
+                : undefined
+            }
           >
             {work.video ? (
-              <video
-                className="h-full w-full object-contain"
-                src={work.video}
-                autoPlay
-                loop
-                muted
-                playsInline
-              />
+              <video className="block h-auto w-full" src={work.video} autoPlay loop muted playsInline />
             ) : imgOk ? (
               <img
                 src={work.image}
                 alt={work.title}
-                className="h-full w-full object-cover"
+                className="block h-auto w-full"
                 onError={() => setImgOk(false)}
                 draggable={false}
               />
