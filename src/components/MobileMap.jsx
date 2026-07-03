@@ -1,49 +1,34 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { mobileHub, mobileShards, mobileStars, sections, pickRandomWork } from '../data/projects'
 import NavLabel from './NavLabel'
 import HeroCarousel from './HeroCarousel'
+import { useHubLines } from '../hooks/useHubLines'
 
-/** Quadratic bow from (x1,y1) to (x2,y2) in % coords — a hand-drawn curve
- * computed at runtime instead of a baked SVG (see projects.js comment). */
-function bowPath(x1, y1, x2, y2, bow) {
-  const mx = (x1 + x2) / 2
-  const my = (y1 + y2) / 2
-  const dx = x2 - x1
-  const dy = y2 - y1
-  const len = Math.hypot(dx, dy) || 1
-  const nx = -dy / len
-  const ny = dx / len
-  const cx = mx + nx * bow
-  const cy = my + ny * bow
-  return `M ${x1} ${y1} Q ${cx.toFixed(2)} ${cy.toFixed(2)} ${x2} ${y2}`
-}
-
-function MobileLines() {
+/** Renders the hub→shard connector lines. Endpoints are snapped to the live
+ * centers of `hubEl` and each shard's photo (see useHubLines.js) — nothing
+ * here is hand-coordinated, so it can't drift out of sync with the layout. */
+function MobileLines({ containerRef, hubRef, nodeRefs }) {
+  const { paths, size } = useHubLines(hubRef, nodeRefs, containerRef)
+  if (!size.w || !size.h) return null
   return (
     <svg
       className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
+      viewBox={`0 0 ${size.w} ${size.h}`}
       fill="none"
       aria-hidden="true"
     >
-      {mobileShards.map((s, i) => (
-        <path
-          key={s.id}
-          d={bowPath(mobileHub.xPct, mobileHub.yPct + 10, s.xPct, s.yPct - 6, i % 2 === 0 ? 5 : -5)}
-          stroke="#b6ff00"
-          strokeWidth="2"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          opacity="0.9"
-        />
-      ))}
+      {paths.map(
+        (d, i) =>
+          d && (
+            <path key={mobileShards[i].id} d={d} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+          )
+      )}
     </svg>
   )
 }
 
-function MobileShards({ onOpen }) {
+function MobileShards({ onOpen, setNodeRef }) {
   return (
     <>
       {mobileShards.map((shard, i) => {
@@ -83,7 +68,9 @@ function MobileShards({ onOpen }) {
               }}
               whileTap={{ scale: 0.92 }}
             >
+              {/* ref'd — this is the node the connector line snaps to */}
               <img
+                ref={(el) => setNodeRef(i, el)}
                 src={`/assets/green_piece_${shard.id}.png`}
                 alt=""
                 className="w-full select-none"
@@ -192,14 +179,22 @@ function MobileStars({ onSelect }) {
 /**
  * Phone-width map: a proportional, generative layout (see the `mobileHub` /
  * `mobileShards` / `mobileStars` comment in projects.js) instead of the
- * desktop's pixel-1:1 1440x900 stage. Everything fits one screen — no pinch
- * or pan required — using the same art (shard PNGs, lime nav words, carousel,
- * star icon), just re-anchored as percentages so it fills a portrait screen.
+ * desktop's pixel-1:1 1440x900 stage. The hub sits mid-screen with the 4
+ * shards fanned around it; connector lines are drawn by useHubLines.js,
+ * which snaps both endpoints to each element's live on-screen center — the
+ * lines can't drift out of alignment no matter how the % anchors are tuned.
  */
 export default function MobileMap({ onOpen, onSelectWork }) {
+  const containerRef = useRef(null)
+  const hubRef = useRef(null)
+  const nodeRefs = useRef(mobileShards.map(() => ({ current: null })))
+  const setNodeRef = (i, el) => {
+    nodeRefs.current[i].current = el
+  }
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <MobileLines />
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+      <MobileLines containerRef={containerRef} hubRef={hubRef} nodeRefs={nodeRefs.current} />
 
       <div
         className="pointer-events-none absolute z-30"
@@ -216,6 +211,7 @@ export default function MobileMap({ onOpen, onSelectWork }) {
       </div>
 
       <div
+        ref={hubRef}
         className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2"
         style={{
           left: `${mobileHub.xPct}%`,
@@ -228,7 +224,7 @@ export default function MobileMap({ onOpen, onSelectWork }) {
       </div>
 
       <MobileStars onSelect={onSelectWork} />
-      <MobileShards onOpen={onOpen} />
+      <MobileShards onOpen={onOpen} setNodeRef={setNodeRef} />
     </div>
   )
 }

@@ -192,20 +192,24 @@ export const pickRandomWork = () => works[Math.floor(Math.random() * works.lengt
 // assets (shard art, lime nav PNGs, carousel, star icon), new arrangement.
 // rot is kept purely as a cosmetic tilt (matches the desktop shards' spirit).
 // ---------------------------------------------------------------------------
-export const mobileHub = { xPct: 50, yPct: 27, wVw: 60 }
+// Hub sits mid-screen (not up top) with the 4 shards fanned around it in a
+// diamond, per the user's reference sketch — connector lines are drawn by
+// useHubLines.js, which snaps to each element's LIVE center at render time,
+// so these percentages only need to be "roughly right"; they don't have to
+// hand-align with a hardcoded line endpoint.
+export const mobileHub = { xPct: 50, yPct: 53, wVw: 50 }
 
 export const mobileShards = [
-  { id: 1, section: 'contact', xPct: 26, yPct: 58, wVw: 28, rot: -3.19 },
-  { id: 2, section: 'works', xPct: 74, yPct: 58, wVw: 26, rot: 7.35 },
-  { id: 3, section: 'about', xPct: 26, yPct: 81, wVw: 26, rot: 18.79 },
-  { id: 4, section: 'manifesto', xPct: 74, yPct: 81, wVw: 28, rot: 1.23 },
+  { id: 1, section: 'contact', xPct: 30, yPct: 24, wVw: 26, rot: -3.19 },
+  { id: 2, section: 'works', xPct: 71, yPct: 29, wVw: 24, rot: 7.35 },
+  { id: 3, section: 'about', xPct: 27, yPct: 64, wVw: 24, rot: 18.79 },
+  { id: 4, section: 'manifesto', xPct: 71, yPct: 73, wVw: 26, rot: 1.23 },
 ]
 
 export const mobileStars = [
-  { xPct: 50, yPct: 18, size: 24 },
-  { xPct: 13, yPct: 25, size: 22 },
-  { xPct: 87, yPct: 25, size: 22 },
-  { xPct: 13, yPct: 46, size: 22 },
-  { xPct: 87, yPct: 46, size: 22 },
-  { xPct: 50, yPct: 70, size: 20 },
+  { xPct: 72, yPct: 18, size: 22 },
+  { xPct: 26, yPct: 33, size: 20 },
+  { xPct: 18, yPct: 38, size: 18 },
+  { xPct: 71, yPct: 58, size: 20 },
+  { xPct: 40, yPct: 74, size: 20 },
 ]
