@@ -237,6 +237,32 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   one the user meant to click. Fixing the padding likely fixed some of the
   perceived click failures too, on top of the event wiring already being
   fine.
+- **Follow-up, definitively closed: a naive full-canvas click-sweep test can
+  itself look exactly like a "some pictures never click" bug — it isn't
+  one.** The user reported it again after the padding fix, this time citing
+  *specific* pictures that never respond. A grid-sweep test kept finding
+  only 1–2 of the 6 unique pictures ever fired `onSelect`, consistently,
+  across many reruns — looked damning. Root cause of the TEST result (not
+  the app): the instant any click actually lands on a card, `onSelect`
+  correctly fires and the app navigates away from the archive; every
+  further click in that same sweep loop is now hitting the work-detail page
+  instead, which obviously never logs a hit. A sweep can therefore only
+  ever record the *one* picture it happened to hit first, no matter how
+  healthy the other five are — this looks identical to "5 pictures are
+  broken" if you don't control for it. Proven with a corrected test:
+  expose `slotsByPicture`/`archiveWorks` and the `OrbitControls` instance
+  on `window` for debugging, directly set `controls.object.position` /
+  `controls.target` to aim precisely at each picture's own slot in turn
+  (re-entering the archive fresh before each one, so a prior success can't
+  contaminate the next test), then click screen-center — every picture
+  tested this way opened correctly. If this comes up again, reproduce with
+  that fresh-entry-per-target methodology before touching the raycasting
+  code; a bare click-sweep will lie to you. (Also bumped `Y_COMPRESS = 0.45`
+  in `useArchiveLayout` in the same pass — the *uncompressed* sphere put
+  some cards as high as y=+13 against a camera sitting at y=3, so those
+  cards genuinely needed an extreme upward tilt to even see, which is a
+  real reachability problem distinct from the test artifact above; look
+  for both if this is reported a third time.)
 - **Full upfront preload, not per-card lazy load** (a deliberate reversal of
   an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
   `Promise.all`s every picture through `THREE.TextureLoader` before the

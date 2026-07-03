@@ -252,6 +252,18 @@ const RADIUS_JITTER = 4 // +/- radial jitter so it's a shell, not a perfect sphe
 const MIN_CARD_DISTANCE = 5.5
 const CARD_MIN_Y = FLOOR_Y + 1.1 // clearance above the floor — see FLOOR_Y's comment
 const MIN_CENTER_CLEARANCE = 3.5 // keeps cards clear of the glass sphere (radius 1.15)
+// A full unit-sphere Y range (-1..1) times SPHERE_RADIUS/JITTER put some
+// cards as high as y=+13 — WAY above the default camera's natural framing
+// (camera sits at y=3). Those cards were only reachable by tilting the
+// camera almost straight up, which nobody does instinctively; clicking them
+// read as "this specific picture never responds" when really the user
+// never orbited far enough to bring it into frame. Compressing Y before the
+// radius scale turns the distribution into an oblate spheroid — full 360°
+// horizontal spread (X/Z unaffected) but a much shorter, camera-reachable
+// vertical range (~-0.3 to +6 instead of -0.3 to +13). Verified with the
+// same standalone layout script: MIN_CARD_DISTANCE/MIN_CENTER_CLEARANCE
+// still converge exactly at their targets with this compression applied.
+const Y_COMPRESS = 0.45
 
 /** Both constraints (floor clearance + sphere clearance) get re-applied
  *  after EVERY relaxation nudge, not just once at the end — clamping only
@@ -291,7 +303,7 @@ function useArchiveLayout() {
       const radiusAtY = Math.sqrt(Math.max(0, 1 - yUnit * yUnit))
       const theta = goldenAngle * i
       const r = SPHERE_RADIUS + (rand() - 0.5) * 2 * RADIUS_JITTER
-      const p = new THREE.Vector3(Math.cos(theta) * radiusAtY, yUnit, Math.sin(theta) * radiusAtY).multiplyScalar(r)
+      const p = new THREE.Vector3(Math.cos(theta) * radiusAtY, yUnit * Y_COMPRESS, Math.sin(theta) * radiusAtY).multiplyScalar(r)
       clampArchivePoint(p)
       return p
     })
