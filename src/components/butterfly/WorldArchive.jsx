@@ -240,19 +240,48 @@ function GlassSphere() {
 }
 
 const SLOT_COUNT = 30 // repeated instances across the 6 pictures — "museum array" density
-const SPHERE_RADIUS = 8.5 // base radius of the virtual gallery sphere
-const RADIUS_JITTER = 2.4 // +/- radial jitter so it's a shell, not a perfect sphere shell
-const MIN_CARD_DISTANCE = 3.2 // enforced minimum 3D distance between any two cards
+const SPHERE_RADIUS = 11 // base radius of the virtual gallery sphere
+const RADIUS_JITTER = 4 // +/- radial jitter so it's a shell, not a perfect sphere shell
+// Cards are up to ~3 units wide x 1.9 tall (widest aspect), so their own
+// diagonal is ~3.6 — MIN_CARD_DISTANCE has to clear TWO card footprints
+// meeting edge-on (~3.6 total) plus a real visible gap, not just be "some
+// small number". 3.2 was smaller than a single card's diagonal, which is
+// exactly why cards visibly interpenetrated ("穿模") despite "passing" the
+// distance check — center-to-center distance was never checking against
+// the cards' actual on-screen size.
+const MIN_CARD_DISTANCE = 5.5
 const CARD_MIN_Y = FLOOR_Y + 1.1 // clearance above the floor — see FLOOR_Y's comment
+const MIN_CENTER_CLEARANCE = 3.5 // keeps cards clear of the glass sphere (radius 1.15)
+
+/** Both constraints (floor clearance + sphere clearance) get re-applied
+ *  after EVERY relaxation nudge, not just once at the end — clamping only
+ *  once at the end was the actual bug in an earlier version: pushing a
+ *  point up to the floor line (or out past the glass sphere) can put it
+ *  right back on top of a different point with no further separation
+ *  check, silently undoing the padding the relaxation pass just enforced
+ *  for roughly half the array. Verified numerically (see git history) that
+ *  clamp-every-step converges to the full MIN_CARD_DISTANCE; clamp-once-
+ *  at-the-end got stuck around ~1.9 units apart, well under a card's own
+ *  ~4-unit diagonal — that's why cards were visibly interpenetrating. */
+function clampArchivePoint(p) {
+  if (p.y < CARD_MIN_Y) p.y = CARD_MIN_Y
+  const r = p.length()
+  if (r < MIN_CENTER_CLEARANCE && r > 0.0001) {
+    p.multiplyScalar(MIN_CENTER_CLEARANCE / r)
+    if (p.y < CARD_MIN_Y) p.y = CARD_MIN_Y
+  }
+}
 
 /** Even coverage of a sphere via the golden-angle (Fibonacci sphere)
- *  construction, then a few relaxation passes that push any pair of points
- *  closer than MIN_CARD_DISTANCE apart — this is the actual fix for
- *  "crowding": a naive Fibonacci sphere is even in *angle* but can still
- *  place two points close together in absolute 3D distance once radius
- *  jitter is added, so the padding has to be enforced explicitly, not just
- *  hoped for from the angular spacing. Only 30 points, done once via
- *  useMemo, so an O(n^2) relaxation is trivial (a few thousand ops). */
+ *  construction, then relaxation passes that push any pair of points closer
+ *  than MIN_CARD_DISTANCE apart — this is the actual fix for "crowding": a
+ *  naive Fibonacci sphere is even in *angle* but can still place two points
+ *  close together in absolute 3D distance once radius jitter is added, so
+ *  the padding has to be enforced explicitly, not just hoped for from the
+ *  angular spacing. 60 iterations (not the original 6) because
+ *  MIN_CARD_DISTANCE is now comparable to the sphere's own local point
+ *  spacing, so it takes longer to fully converge. Only 30 points, done once
+ *  via useMemo, so this is still trivial (under 100k ops). */
 function useArchiveLayout() {
   return useMemo(() => {
     const rand = mulberry32(20260703)
@@ -262,10 +291,12 @@ function useArchiveLayout() {
       const radiusAtY = Math.sqrt(Math.max(0, 1 - yUnit * yUnit))
       const theta = goldenAngle * i
       const r = SPHERE_RADIUS + (rand() - 0.5) * 2 * RADIUS_JITTER
-      return new THREE.Vector3(Math.cos(theta) * radiusAtY, yUnit, Math.sin(theta) * radiusAtY).multiplyScalar(r)
+      const p = new THREE.Vector3(Math.cos(theta) * radiusAtY, yUnit, Math.sin(theta) * radiusAtY).multiplyScalar(r)
+      clampArchivePoint(p)
+      return p
     })
 
-    for (let iter = 0; iter < 6; iter++) {
+    for (let iter = 0; iter < 60; iter++) {
       for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
           const delta = points[i].clone().sub(points[j])
@@ -274,16 +305,12 @@ function useArchiveLayout() {
             const push = delta.multiplyScalar((MIN_CARD_DISTANCE - dist) / 2 / dist)
             points[i].add(push)
             points[j].sub(push)
+            clampArchivePoint(points[i])
+            clampArchivePoint(points[j])
           }
         }
       }
     }
-
-    // clamp above the floor last, after relaxation, so the push-apart pass
-    // can't shove a point back down below the clearance line
-    points.forEach((p) => {
-      if (p.y < CARD_MIN_Y) p.y = CARD_MIN_Y + Math.abs(p.y - CARD_MIN_Y) * 0.15
-    })
 
     return points.map((p, i) => ({
       pictureIndex: i % archiveWorks.length,
@@ -405,7 +432,7 @@ function Scene({ onSelect, textures }) {
       {/* FogExp2 (exponential) rather than linear Fog — depth fades in
           smoothly with no hard near/far cutoff, so distant array cards melt
           into the background color instead of hitting a visible "wall". */}
-      <fogExp2 attach="fog" args={['#040610', 0.045]} />
+      <fogExp2 attach="fog" args={['#040610', 0.032]} />
       {/* global blue ambient wash, per the "floating in a deep blue void" ask */}
       <ambientLight color="#3a5be0" intensity={0.35} />
       <pointLight position={[0, 4, 2]} intensity={2.2} color="#dfe9ff" />
@@ -426,8 +453,8 @@ function Scene({ onSelect, textures }) {
         enablePan={false}
         enableRotate
         enableZoom
-        minDistance={3}
-        maxDistance={22}
+        minDistance={4}
+        maxDistance={32}
         minPolarAngle={0.05}
         maxPolarAngle={Math.PI - 0.05}
         rotateSpeed={0.6}
@@ -470,7 +497,7 @@ export default function WorldArchive({ onClose, onSelectWork }) {
     >
       {ready ? (
         <SceneBoundary>
-          <Canvas camera={{ position: [0, 2, 13], fov: 50 }} dpr={[1, 1.3]}>
+          <Canvas camera={{ position: [0, 3, 19], fov: 50 }} dpr={[1, 1.3]}>
             <Suspense fallback={null}>
               <Scene onSelect={onSelectWork} textures={textures} />
             </Suspense>

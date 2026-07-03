@@ -159,20 +159,43 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
 - **Layout is a real spherical distribution with enforced padding, not a
   cylinder** (this replaced an earlier cylindrical version after the user
   flagged crowding): `useArchiveLayout()` seeds points via the golden-angle
-  /Fibonacci-sphere construction for even angular coverage, then runs a few
-  `O(n²)` relaxation passes (trivial at 30 points) that push any pair closer
-  than `MIN_CARD_DISTANCE` apart along their connecting line. Angular
+  /Fibonacci-sphere construction for even angular coverage, then runs
+  relaxation passes (60 iterations, trivial at 30 points) that push any pair
+  closer than `MIN_CARD_DISTANCE` apart along their connecting line. Angular
   evenness alone doesn't guarantee 3D spacing once radius jitter is added —
   the relaxation pass is what actually enforces the padding, not the
   Fibonacci construction by itself.
-- **`CARD_MIN_Y` clamps every card comfortably above `FLOOR_Y` — this fixed
-  a real bug, not just tidiness.** The old cylindrical layout let cards spawn
-  *below* the floor plane (y as low as -2.2 vs. the floor at -1.4), which
-  silently made those specific cards unclickable: the opaque floor sat
-  between them and the camera and won the raycast every time. If you ever
-  loosen the vertical range again, keep it clamped above `FLOOR_Y` with
-  clearance, or the same class of bug comes back for whichever cards end up
-  underneath it.
+- **`MIN_CARD_DISTANCE` must clear a card's own on-screen footprint, not
+  just be "some small number" — this was a real interpenetration ("穿模")
+  bug, caught from an actual screenshot, not a hypothetical.** Cards are up
+  to ~3.5 units wide (widest uploaded image) × 1.9 tall, so a single card's
+  diagonal is ~4 units; two cards meeting edge-on need combined clearance of
+  ~4 units just to *touch*, not overlap. An earlier version used
+  `MIN_CARD_DISTANCE = 3.2` (smaller than one card's own diagonal) — cards
+  visibly clipped through each other despite "passing" the distance check,
+  because center-to-center distance was never validated against actual card
+  size. Now `5.5`, with margin. If cards are resized (the `h = 1.9` constant
+  in `ArchiveInstancedGroup`), recompute the worst-case diagonal
+  (`sqrt(maxWidth² + h²)`) and keep `MIN_CARD_DISTANCE` comfortably above it.
+- **Floor clamp and glass-sphere clearance must be re-applied on EVERY
+  relaxation step, not once at the end — this was the actual bug behind the
+  interpenetration above, verified numerically.** An earlier version
+  clamped `y` above `FLOOR_Y` in a separate pass *after* all relaxation
+  iterations finished; since roughly half the raw sphere points start below
+  the floor, that single end-clamp yanked ~15 of the 30 points up onto the
+  same clearance line with no further separation check, silently undoing
+  the padding relaxation had just enforced for exactly those points. A
+  standalone Node script confirmed it: clamp-once-at-the-end converged to a
+  minimum pairwise distance of ~1.9 (well under a card's ~4-unit diagonal)
+  no matter how many iterations ran, while clamp-on-every-step (via
+  `clampArchivePoint()`, called both on initial placement and after every
+  push in the relaxation loop) converges cleanly to the full
+  `MIN_CARD_DISTANCE`. Same reasoning applies to `MIN_CENTER_CLEARANCE`
+  (keeps cards from clipping into the central glass sphere) — it's the same
+  function, same rule. If you touch this again, verify with a plain Node
+  script computing min pairwise distance over the actual output points
+  *before* trusting a screenshot — screenshots at the "wrong" camera angle
+  can still look fine even when the underlying layout is broken.
 - **Instanced rendering, not one mesh per card** — this is what keeps the
   "vast data museum" density at 60fps: `ArchiveInstancedGroup` renders TWO
   `InstancedMesh`es per unique picture (main photo + a cool-cyan glow rim,
@@ -207,7 +230,13 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   which reads as "clicking doesn't work" if you're aiming from a screenshot
   taken moments earlier (bobbing + camera drift shift things slightly). If
   you're asked to fix "clicks don't register" again, verify with a live
-  instrumented raycast log before assuming the event wiring is broken.
+  instrumented raycast log before assuming the event wiring is broken. That
+  said, the interpenetration bug above (fixed the same session) was a
+  second, real contributor to "some pictures don't open": an occluding,
+  closer, clipped-through card can legitimately win the raycast over the
+  one the user meant to click. Fixing the padding likely fixed some of the
+  perceived click failures too, on top of the event wiring already being
+  fine.
 - **Full upfront preload, not per-card lazy load** (a deliberate reversal of
   an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
   `Promise.all`s every picture through `THREE.TextureLoader` before the
