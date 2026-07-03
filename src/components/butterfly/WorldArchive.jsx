@@ -1,5 +1,5 @@
 import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, MeshTransmissionMaterial, MeshReflectorMaterial, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette, Noise, ChromaticAberration } from '@react-three/postprocessing'
 import { motion } from 'framer-motion'
@@ -150,7 +150,10 @@ function SkyDome() {
   )
 }
 
-/** Procedural black/white checker pattern, tiled, fed into MeshReflectorMaterial as a color map. */
+/** Procedural black/white checker pattern, tiled, fed into MeshReflectorMaterial
+ *  as a color map. Deliberately dim/desaturated (not stark white) so it reads
+ *  as a shadowy suggestion of a floor floating in the void, not a bright
+ *  boundary plane — the user explicitly asked to tone this down. */
 function useCheckerTexture() {
   return useMemo(() => {
     const size = 512
@@ -161,7 +164,7 @@ function useCheckerTexture() {
     const cell = size / cells
     for (let y = 0; y < cells; y++) {
       for (let x = 0; x < cells; x++) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#eef1fb' : '#04050d'
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#1c2650' : '#050611'
         ctx.fillRect(x * cell, y * cell, cell, cell)
       }
     }
@@ -173,25 +176,37 @@ function useCheckerTexture() {
   }, [])
 }
 
-/** Infinite floor: checker pattern + a real (blurred) reflection of the scene. */
+/** FLOOR_Y is the single source of truth for the floor plane's height — the
+ *  archive layout clamps every card comfortably above it (see CARD_MIN_Y in
+ *  useArchiveLayout) so a card can never end up spatially behind/inside the
+ *  floor. That overlap was a real bug: cards below the floor were occluded
+ *  from the raycaster by the (closer, opaque) floor plane, which is why some
+ *  pictures silently failed to open on click. Keep FLOOR_Y and CARD_MIN_Y in
+ *  sync if either one changes. */
+const FLOOR_Y = -1.4
+
+/** Floor: dim checker pattern + a real (blurred) reflection of the scene,
+ *  now double-sided since full free-orbit (no polar-angle clamp) lets the
+ *  camera swing under it. */
 function CheckerFloor() {
   const checkerMap = useCheckerTexture()
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.4, 0]}>
-      <planeGeometry args={[100, 100]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, FLOOR_Y, 0]}>
+      <planeGeometry args={[120, 120]} />
       <MeshReflectorMaterial
         map={checkerMap}
-        mirror={0.3}
+        mirror={0.18}
         blur={[160, 60]}
         mixBlur={6}
-        mixStrength={1.1}
+        mixStrength={0.7}
         resolution={256}
         depthScale={1}
         minDepthThreshold={0.8}
         maxDepthThreshold={1.4}
-        roughness={0.9}
-        metalness={0.15}
-        color="#0a0e1e"
+        roughness={0.95}
+        metalness={0.1}
+        color="#04060f"
+        side={THREE.DoubleSide}
       />
     </mesh>
   )
@@ -225,21 +240,55 @@ function GlassSphere() {
 }
 
 const SLOT_COUNT = 30 // repeated instances across the 6 pictures — "museum array" density
+const SPHERE_RADIUS = 8.5 // base radius of the virtual gallery sphere
+const RADIUS_JITTER = 2.4 // +/- radial jitter so it's a shell, not a perfect sphere shell
+const MIN_CARD_DISTANCE = 3.2 // enforced minimum 3D distance between any two cards
+const CARD_MIN_Y = FLOOR_Y + 1.1 // clearance above the floor — see FLOOR_Y's comment
 
-/** Slot positions for the whole array (cylindrical, seeded so it's stable
- *  across re-renders): evenly spaced bins around the circle with jitter on
- *  angle/radius/height, cycling through the 6 pictures for a rhythmic,
- *  gallery-rotunda repeat rather than a random scatter. */
+/** Even coverage of a sphere via the golden-angle (Fibonacci sphere)
+ *  construction, then a few relaxation passes that push any pair of points
+ *  closer than MIN_CARD_DISTANCE apart — this is the actual fix for
+ *  "crowding": a naive Fibonacci sphere is even in *angle* but can still
+ *  place two points close together in absolute 3D distance once radius
+ *  jitter is added, so the padding has to be enforced explicitly, not just
+ *  hoped for from the angular spacing. Only 30 points, done once via
+ *  useMemo, so an O(n^2) relaxation is trivial (a few thousand ops). */
 function useArchiveLayout() {
   return useMemo(() => {
     const rand = mulberry32(20260703)
-    return Array.from({ length: SLOT_COUNT }, (_, i) => {
-      const pictureIndex = i % archiveWorks.length
-      const angle = (i / SLOT_COUNT) * Math.PI * 2 + (rand() - 0.5) * 0.35
-      const radius = 3.6 + rand() * 5.2
-      const y = -2.2 + rand() * 7.2
-      return { pictureIndex, position: [Math.cos(angle) * radius, y, Math.sin(angle) * radius] }
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5))
+    const points = Array.from({ length: SLOT_COUNT }, (_, i) => {
+      const yUnit = 1 - (i / Math.max(SLOT_COUNT - 1, 1)) * 2 // 1 → -1
+      const radiusAtY = Math.sqrt(Math.max(0, 1 - yUnit * yUnit))
+      const theta = goldenAngle * i
+      const r = SPHERE_RADIUS + (rand() - 0.5) * 2 * RADIUS_JITTER
+      return new THREE.Vector3(Math.cos(theta) * radiusAtY, yUnit, Math.sin(theta) * radiusAtY).multiplyScalar(r)
     })
+
+    for (let iter = 0; iter < 6; iter++) {
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const delta = points[i].clone().sub(points[j])
+          const dist = delta.length()
+          if (dist > 0.0001 && dist < MIN_CARD_DISTANCE) {
+            const push = delta.multiplyScalar((MIN_CARD_DISTANCE - dist) / 2 / dist)
+            points[i].add(push)
+            points[j].sub(push)
+          }
+        }
+      }
+    }
+
+    // clamp above the floor last, after relaxation, so the push-apart pass
+    // can't shove a point back down below the clearance line
+    points.forEach((p) => {
+      if (p.y < CARD_MIN_Y) p.y = CARD_MIN_Y + Math.abs(p.y - CARD_MIN_Y) * 0.15
+    })
+
+    return points.map((p, i) => ({
+      pictureIndex: i % archiveWorks.length,
+      position: [p.x, p.y, p.z],
+    }))
   }, [])
 }
 
@@ -248,18 +297,16 @@ function useArchiveLayout() {
  *  constant (2 per unique picture) no matter how many repeated slots exist,
  *  which is what keeps this scalable/60fps instead of one draw call per card.
  *
- *  Billboarding is done by hand per instance: camera position is converted
- *  into the group's LOCAL space (worldToLocal), then a scratch Object3D
- *  computes lookAt/position/scale entirely in that local space and its
- *  matrix is written via setMatrixAt. This is the instanced equivalent of
- *  the parent-aware billboard trick used for single meshes — a naive
- *  world-space lookAt would ignore the rotating parent group entirely. */
+ *  Billboarding: the array group itself never rotates any more (see the
+ *  Scene-level comment — navigation is now real OrbitControls orbiting the
+ *  camera, not a spun group), so each instance can look at the camera's
+ *  world position directly with a scratch Object3D, no local-space
+ *  conversion needed. */
 function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
   const mainRef = useRef(null)
   const rimRef = useRef(null)
   const [hovered, setHovered] = useState(false)
   const dummy = useMemo(() => new THREE.Object3D(), [])
-  const localCam = useMemo(() => new THREE.Vector3(), [])
   const seeds = useMemo(() => slots.map(() => Math.random() * Math.PI * 2), [slots])
 
   const aspect = texture?.image ? texture.image.width / texture.image.height : 1
@@ -275,17 +322,14 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
   useFrame(({ clock, camera }) => {
     const main = mainRef.current
     const rim = rimRef.current
-    if (!main || !main.parent) return
-    main.parent.updateWorldMatrix(true, false)
-    localCam.copy(camera.position)
-    main.parent.worldToLocal(localCam)
+    if (!main) return
 
     const t = clock.getElapsedTime()
     const scale = hovered ? 1.08 : 1
     slots.forEach((slot, i) => {
       const bobY = slot.position[1] + Math.sin(t * 0.5 + seeds[i]) * 0.16
       dummy.position.set(slot.position[0], bobY, slot.position[2])
-      dummy.lookAt(localCam)
+      dummy.lookAt(camera.position)
       dummy.scale.set(scale, scale, scale)
       dummy.updateMatrix()
       main.setMatrixAt(i, dummy.matrix)
@@ -332,10 +376,11 @@ function ArchiveInstancedGroup({ work, texture, slots, onSelect }) {
   )
 }
 
-/** The whole repeated picture field, grouped by unique picture (one
- *  instanced pair per picture) so a hover/click naturally applies to every
- *  duplicate of that picture at once — they're all the same work. */
-function ArchiveField({ textures, onSelect, groupRef }) {
+/** The whole repeated picture field — a `GalleryGroup` grouping every
+ *  instanced-mesh pair so it's raycast (and drag-rotated, in the old scheme)
+ *  as one coherent unit. Navigation itself is now real 3D OrbitControls (see
+ *  Scene below), so this group has no rotation logic of its own any more. */
+function GalleryGroup({ textures, onSelect }) {
   const layout = useArchiveLayout()
   const slotsByPicture = useMemo(() => {
     const buckets = archiveWorks.map(() => [])
@@ -344,7 +389,7 @@ function ArchiveField({ textures, onSelect, groupRef }) {
   }, [layout])
 
   return (
-    <group ref={groupRef}>
+    <group name="GalleryGroup">
       {archiveWorks.map((work, i) =>
         slotsByPicture[i].length ? (
           <ArchiveInstancedGroup key={work.id} work={work} texture={textures[i]} slots={slotsByPicture[i]} onSelect={onSelect} />
@@ -354,67 +399,15 @@ function ArchiveField({ textures, onSelect, groupRef }) {
   )
 }
 
-/** Drag-to-rotate the archive field (not the camera) so the sphere/floor
- *  stay put as a fixed parallax anchor while the picture array swirls
- *  around it. Includes a little inertia so a flick keeps spinning and
- *  decays, plus a slow idle drift when untouched. */
-function useDragRotate(groupRef) {
-  const { gl } = useThree()
-  const dragging = useRef(false)
-  const lastX = useRef(0)
-  const velocity = useRef(0)
-
-  useEffect(() => {
-    const el = gl.domElement
-    const onDown = (e) => {
-      dragging.current = true
-      lastX.current = e.clientX
-      velocity.current = 0
-    }
-    const onMove = (e) => {
-      if (!dragging.current) return
-      const dx = e.clientX - lastX.current
-      lastX.current = e.clientX
-      const delta = dx * 0.004
-      velocity.current = delta
-      if (groupRef.current) groupRef.current.rotation.y += delta
-    }
-    const onUp = () => {
-      dragging.current = false
-    }
-    el.addEventListener('pointerdown', onDown)
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    return () => {
-      el.removeEventListener('pointerdown', onDown)
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gl])
-
-  useFrame(() => {
-    if (dragging.current || !groupRef.current) return
-    if (Math.abs(velocity.current) > 0.0001) {
-      groupRef.current.rotation.y += velocity.current
-      velocity.current *= 0.94
-    } else {
-      groupRef.current.rotation.y += 0.0006
-    }
-  })
-}
-
-function DragRotatedField({ textures, onSelect }) {
-  const groupRef = useRef(null)
-  useDragRotate(groupRef)
-  return <ArchiveField textures={textures} onSelect={onSelect} groupRef={groupRef} />
-}
-
 function Scene({ onSelect, textures }) {
   return (
     <>
-      <fog attach="fog" args={['#020208', 10, 34]} />
-      <ambientLight intensity={0.25} />
+      {/* FogExp2 (exponential) rather than linear Fog — depth fades in
+          smoothly with no hard near/far cutoff, so distant array cards melt
+          into the background color instead of hitting a visible "wall". */}
+      <fogExp2 attach="fog" args={['#040610', 0.045]} />
+      {/* global blue ambient wash, per the "floating in a deep blue void" ask */}
+      <ambientLight color="#3a5be0" intensity={0.35} />
       <pointLight position={[0, 4, 2]} intensity={2.2} color="#dfe9ff" />
       <pointLight position={[-4, 1, -3]} intensity={1.2} color="#4060ff" />
       <spotLight position={[0, 6, 0]} intensity={1.5} angle={0.6} penumbra={1} color="#ffffff" />
@@ -424,11 +417,21 @@ function Scene({ onSelect, textures }) {
 
       <CheckerFloor />
       <GlassSphere />
-      <DragRotatedField textures={textures} onSelect={onSelect} />
+      <GalleryGroup textures={textures} onSelect={onSelect} />
 
-      {/* rotation lives on the picture field (see useDragRotate); OrbitControls
-          is kept only for scroll-to-dolly so the sphere stays a fixed depth anchor */}
-      <OrbitControls enablePan={false} enableRotate={false} enableZoom minDistance={3.5} maxDistance={14} />
+      {/* Real 3D orbit, not a 2D drag-the-group hack: full spherical
+          coordinates, free look in every direction (only just short of the
+          poles, to dodge the OrbitControls gimbal singularity), plus zoom. */}
+      <OrbitControls
+        enablePan={false}
+        enableRotate
+        enableZoom
+        minDistance={3}
+        maxDistance={22}
+        minPolarAngle={0.05}
+        maxPolarAngle={Math.PI - 0.05}
+        rotateSpeed={0.6}
+      />
 
       <EffectComposer>
         <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} />
@@ -467,7 +470,7 @@ export default function WorldArchive({ onClose, onSelectWork }) {
     >
       {ready ? (
         <SceneBoundary>
-          <Canvas camera={{ position: [0, 1.2, 7.5], fov: 45 }} dpr={[1, 1.3]}>
+          <Canvas camera={{ position: [0, 2, 13], fov: 50 }} dpr={[1, 1.3]}>
             <Suspense fallback={null}>
               <Scene onSelect={onSelectWork} textures={textures} />
             </Suspense>

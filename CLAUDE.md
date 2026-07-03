@@ -123,11 +123,16 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   retro-futurist scene: a `SkyDome` (large inverted sphere, vertical-gradient
   shader — rich midnight blue at top AND bottom, near-black at the horizon
   band, `fog:false` so it stays the backdrop fog fades into rather than
-  getting fogged itself) instead of a flat background color, a checkerboard
-  floor (`MeshReflectorMaterial` — canvas-drawn checker texture + blurred
-  mirror, real soft reflection of the sphere/cards), a refractive glass
-  sphere (`MeshTransmissionMaterial`, the fixed depth/parallax anchor),
-  `drei/Stars`, and `@react-three/postprocessing` (Bloom/ChromaticAberration/
+  getting fogged itself) instead of a flat background color, `fogExp2`
+  (exponential, not linear `fog`) so distant cards melt smoothly into the
+  background instead of hitting a visible far-clip "wall", a deliberately
+  dim checkerboard floor (`MeshReflectorMaterial` — canvas-drawn checker
+  texture in muted navy tones + a soft blurred mirror, `side={DoubleSide}`
+  since free-orbit lets the camera swing under it; kept dim/desaturated on
+  purpose per the "floating in a void, not a bright boundary plane" ask), a
+  global blue-tinted `ambientLight`, a refractive glass sphere
+  (`MeshTransmissionMaterial`, the fixed depth/parallax anchor), `drei/
+  Stars`, and `@react-three/postprocessing` (Bloom/ChromaticAberration/
   Noise/Vignette). Replaced the original `ArchiveWorld.jsx` (a pale "misty
   card-cloud" — deleted, don't resurrect it).
 - **The floating pictures are the 6 uploaded `world_archive_pictures/*.png`**
@@ -147,12 +152,27 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
 - **"Museum array" layout — repetition is deliberate, not a placeholder.**
   With only 6 real pictures, the user explicitly asked for the *shock of
   repetition* ("我们追求重复带来的震撼感") rather than 6 lonely cards: 30
-  slots (`SLOT_COUNT`) are laid out on a seeded (`mulberry32`) cylindrical
-  array (radius 3.6–8.8, height -2.2–5) cycling through the 6 pictures
-  (`i % 6`) for a rhythmic gallery-rotunda repeat. If she uploads more real
-  pictures later, add them to the `PICTURES` array and either raise
-  `SLOT_COUNT` or let the existing slots redistribute — don't hardcode
-  "6" anywhere else.
+  slots (`SLOT_COUNT`) cycle through the 6 pictures (`i % 6`). If she
+  uploads more real pictures later, add them to the `PICTURES` array and
+  either raise `SLOT_COUNT` or let the existing slots redistribute — don't
+  hardcode "6" anywhere else.
+- **Layout is a real spherical distribution with enforced padding, not a
+  cylinder** (this replaced an earlier cylindrical version after the user
+  flagged crowding): `useArchiveLayout()` seeds points via the golden-angle
+  /Fibonacci-sphere construction for even angular coverage, then runs a few
+  `O(n²)` relaxation passes (trivial at 30 points) that push any pair closer
+  than `MIN_CARD_DISTANCE` apart along their connecting line. Angular
+  evenness alone doesn't guarantee 3D spacing once radius jitter is added —
+  the relaxation pass is what actually enforces the padding, not the
+  Fibonacci construction by itself.
+- **`CARD_MIN_Y` clamps every card comfortably above `FLOOR_Y` — this fixed
+  a real bug, not just tidiness.** The old cylindrical layout let cards spawn
+  *below* the floor plane (y as low as -2.2 vs. the floor at -1.4), which
+  silently made those specific cards unclickable: the opaque floor sat
+  between them and the camera and won the raycast every time. If you ever
+  loosen the vertical range again, keep it clamped above `FLOOR_Y` with
+  clearance, or the same class of bug comes back for whichever cards end up
+  underneath it.
 - **Instanced rendering, not one mesh per card** — this is what keeps the
   "vast data museum" density at 60fps: `ArchiveInstancedGroup` renders TWO
   `InstancedMesh`es per unique picture (main photo + a cool-cyan glow rim,
@@ -161,26 +181,33 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   draw-call count is constant at 12 total (6 pictures × 2 meshes) no matter
   how many of the 30 slots exist. Bumping `SLOT_COUNT` for more density is
   cheap; adding more *unique* pictures adds 2 draw calls each.
-- **Billboarding an InstancedMesh needs the local-space version of the
-  parent-aware trick**, not a plain per-object `.lookAt()` (there's no
-  single "the object" — each instance is just a matrix). Each frame:
-  `parent.worldToLocal(camera.position → localCam)`, then a scratch
-  `THREE.Object3D` (`dummy`) does `dummy.position.set(slot...); dummy.lookAt(localCam)`
-  entirely in that local space, and its matrix is written via
-  `mesh.setMatrixAt(i, dummy.matrix)`. Because `dummy` is parentless and
-  `localCam` was already pre-transformed into the correct frame, this is
-  mathematically equivalent to the single-mesh save/restore/slerp technique
-  used elsewhere — don't "simplify" it to a world-space `lookAt`, it'll be
-  correct standing still and visibly wrong the instant the group rotates.
-- **Dragging rotates the picture array `<group>`, not the camera** —
-  `OrbitControls` only handles scroll-to-zoom (`enableRotate={false}`). This
-  was explicit: the glass sphere + floor need to read as a *fixed*
-  depth/parallax anchor while the array swirls around it. Drag handling
-  lives in `useDragRotate()` — plain `pointerdown/move/up` listeners on
-  `gl.domElement`/`window` (**must be a `useEffect`, not `useMemo`** —
-  `useMemo`'s return value is never used for cleanup, so a `useMemo` with an
-  addEventListener + return-cleanup silently never removes the listeners),
-  with a small velocity-decay inertia and a slow idle drift when untouched.
+- **Navigation is real 3D `OrbitControls` (`enableRotate` + wide polar
+  range), not a drag-the-group hack.** An earlier version kept the camera
+  fixed and rotated the picture group on drag (to keep the glass sphere
+  "anchored"); the user explicitly asked for that to be replaced with actual
+  spherical-coordinate camera orbiting — full horizontal freedom, polar
+  angle clamped only a hair short of the poles (`0.05` / `π-0.05`) to dodge
+  OrbitControls' gimbal singularity, not to restrict the user. Because the
+  camera moves now instead of the array, each `ArchiveInstancedGroup`'s
+  per-instance billboard can `dummy.lookAt(camera.position)` directly in
+  world space — no local-space conversion needed any more (the group itself
+  never rotates), which is simpler than the old parent-aware version. Don't
+  reintroduce group rotation on drag; if a "fixed anchor" feel is wanted
+  again, that has to come from elsewhere (e.g. keeping the sphere large/
+  central), not from freezing the camera.
+- **Raycasting/click-to-navigate was investigated end-to-end and is
+  correct — don't re-diagnose this as a bug without fresh evidence.** A
+  session once suspected "pictures don't all open" and instrumented a
+  manual `raycaster.intersectObjects(scene.children, true)` alongside the
+  real click handler: every single click that actually intersected an
+  instance correctly fired `onSelect` (100% of ~11 hits in one grid-sweep
+  test); the "many clicks do nothing" impression came from the array being
+  visually sparse against a large fogged/dome background at this camera
+  distance — most of the canvas legitimately has no card under the cursor,
+  which reads as "clicking doesn't work" if you're aiming from a screenshot
+  taken moments earlier (bobbing + camera drift shift things slightly). If
+  you're asked to fix "clicks don't register" again, verify with a live
+  instrumented raycast log before assuming the event wiring is broken.
 - **Full upfront preload, not per-card lazy load** (a deliberate reversal of
   an earlier viewport-frustum lazy-load approach) — `useArchiveTextures()`
   `Promise.all`s every picture through `THREE.TextureLoader` before the
