@@ -1,10 +1,10 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
 import NumberBadge from './NumberBadge'
 import ProjectModal from './ProjectModal'
 import SafeMount from './butterfly/SafeMount'
-import { works } from '../data/projects'
+import { works, categories } from '../data/projects'
 
 // 3D scenes — lazy so three.js stays out of the main bundle
 const ButterflyEgg = lazy(() => import('./butterfly/ButterflyEgg'))
@@ -24,6 +24,18 @@ export default function Page({ view, onClose }) {
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
   const [entering, setEntering] = useState(false) // brief white "fall" flash
   const [archiveOpen, setArchiveOpen] = useState(false) // 3D world archive
+  const [worksFilter, setWorksFilter] = useState('all') // Works list category chip
+
+  // keep each work's ORIGINAL array index (drives its bottle-cap number via
+  // workNumber-equivalent positioning) even after filtering, so a piece's
+  // number never changes depending on which chip is active
+  const filteredWorks = useMemo(
+    () =>
+      works
+        .map((w, i) => ({ w, i }))
+        .filter(({ w }) => worksFilter === 'all' || w.category === worksFilter),
+    [worksFilter],
+  )
 
   // butterfly clicked → flash white, then drop into the 3D archive world
   const enterArchiveWorld = () => {
@@ -85,11 +97,32 @@ export default function Page({ view, onClose }) {
 
         {/* ---- WORKS SECTION: list every piece ---- */}
         {section?.kind === 'works' && (
-          <div className="flex flex-col gap-24 md:gap-36">
-            {works.map((w, i) => (
-              <WorkBlock key={w.id} work={w} index={i} onOpenCase={setCaseProject} />
-            ))}
-          </div>
+          <>
+            {/* category filter chips — filtering never renumbers a piece;
+                each WorkBlock keeps the index from the full `works` array */}
+            <div className="mb-14 flex flex-wrap gap-2 md:mb-20">
+              {categories.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setWorksFilter(c.key)}
+                  className={`rounded-full border px-4 py-1.5 font-body text-xs uppercase tracking-[0.15em] transition ${
+                    worksFilter === c.key
+                      ? 'border-lime-grass bg-lime-grass/15 text-ink'
+                      : 'border-ink/20 text-ink/60 hover:border-ink/40 hover:text-ink/80'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-24 md:gap-36">
+              {filteredWorks.map(({ w, i }) => (
+                <WorkBlock key={w.id} work={w} index={i} onOpenCase={setCaseProject} />
+              ))}
+            </div>
+          </>
         )}
 
         {/* ---- SINGLE WORK (Gachapon) ---- */}

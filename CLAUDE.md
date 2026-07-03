@@ -27,19 +27,27 @@ Shiya the Player — a Figma-matched, React/Vite immersive portfolio. The design
 source of truth is the user's Figma file; we match it **1:1**.
 
 ## Golden rules
-- **All content lives in `src/data/projects.js`.** Adding a work, editing copy,
-  remapping a shard/section/background — do it there, not in components.
-- **`works[]` array order IS display order — there is no separate ordering
-  field.** Want a piece to appear earlier? Move its object up in the array.
-  The bottle-cap `number` badge is never stored on a work; it's always
-  derived from array position via `workNumber(id)` (exported from
-  `projects.js`, used by `WorkBlock.jsx` via its `index` prop and by
-  `ProjectModal.jsx`). This was a deliberate switch from hand-maintained
-  `number: N` fields specifically so inserting/reordering a work never
-  requires renumbering any other entry. A work's optional `date` field (if
-  you add one later) is purely informational/shown-to-the-reader — it must
-  never drive sort order; the user was explicit that "most proud of" beats
-  "most recent" for a portfolio's ordering.
+- **Site content (sections/shards/stars/mobile map) lives in
+  `src/data/projects.js`; each individual WORK lives in its own file under
+  `src/data/works/`** (added once the count passed 10, heading toward 60+ —
+  see "Works data scaling" below for the full rationale). Adding a work,
+  editing copy, remapping a shard/section/background — do it in the right
+  one of those, not in components.
+- **`src/data/works/NN-slug.js` filename prefix IS display order — there is
+  no separate ordering field.** `projects.js` collects every file via
+  `import.meta.glob('./works/*.js', { eager: true })` and sorts by filename,
+  so it's the zero-padded `NN-` prefix (not array position in a hand-edited
+  list) that controls order now. Want a piece to appear earlier? Rename its
+  file's prefix (neighbors don't need to stay contiguous — they just sort in
+  whatever order you leave the prefixes in). The bottle-cap `number` badge is
+  still never stored on a work; it's always derived from the resulting
+  `works` array position via `workNumber(id)` (exported from `projects.js`,
+  used by `WorkBlock.jsx` via its `index` prop and by `ProjectModal.jsx`) —
+  inserting/reordering a work never requires renumbering any other entry. A
+  work's optional `date` field (if you add one later) is purely
+  informational/shown-to-the-reader — it must never drive sort order; the
+  user was explicit that "most proud of" beats "most recent" for a
+  portfolio's ordering.
 - **A work can have multiple outbound links — `links: [{label,href}, …]`
   (plural array), not the old singular `link: {label,href}`.** Several real
   pieces post to both Instagram and Xiaohongshu. `WorkBlock.jsx` only makes
@@ -442,14 +450,47 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
 - **The works list is now 10 real pieces the user wrote copy for** (replacing
   the earlier `andromeda-freckles` + `carousel` placeholder pair — note
   `andromeda-freckles` was **removed entirely**, not kept alongside the new
-  ones; ask before re-adding it if that ever seems wrong). Array order (=
-  display order) is: `heart-of-empire`, `carousel` ("between two
-  infinites"), `limited-night`, `the-world-is-my-playground`, `blue-lava`,
-  `the-vanishing-tree`, `vocalize`, `star-girl`, `see-you-in-spring`,
-  `fake-touch`. Most of their images (`public/assets/works/works_p0N_*.png`)
-  are **not uploaded yet** — this is expected, not a bug; `WorkBlock`'s
-  `onError` fallback shows the title as text instead of a broken image.
-  Nudge the user for them when it's relevant, don't fabricate placeholders.
+  ones; ask before re-adding it if that ever seems wrong). Display order (=
+  `src/data/works/` filename prefix order, see "Works data scaling" below) is:
+  `heart-of-empire`, `carousel` ("between two infinites"), `limited-night`,
+  `the-world-is-my-playground`, `blue-lava`, `the-vanishing-tree`, `vocalize`,
+  `star-girl`, `see-you-in-spring`, `fake-touch`. Most of their images
+  (`public/assets/works/works_p0N_*.png`) are **not uploaded yet** — this is
+  expected, not a bug; `WorkBlock`'s `onError` fallback shows the title as
+  text instead of a broken image. Nudge the user for them when it's relevant,
+  don't fabricate placeholders.
+- **Works data scaling — the user said she has 60+ real pieces in the
+  pipeline with no upper bound (this is a long-term-maintained portfolio for
+  grad-school applications), so three changes landed together ahead of that
+  growth instead of waiting for the single-array/single-scroll approach to
+  become unworkable:**
+  1. **One file per work** (`src/data/works/NN-slug.js`, see the Golden
+     Rules bullet above) instead of one growing array in `projects.js` —
+     adding a work is "add one file", not "scroll a few-thousand-line array
+     to find the right spot."
+  2. **Category filter chips** on the Works page (`categories` array in
+     `projects.js`, rendered in `Page.jsx` above the works list). Each work
+     gets a `category` field — one of `'ai-art' | '3d-animation' |
+     'motion-vfx' | 'realtime-generative' | 'illustration'` — assigned by
+     **creation medium/tool** (matches `caseStudy.tools`), not mood/theme;
+     the user picked this dimension explicitly over a theme-based taxonomy
+     because it's stable (a new work's medium is obvious immediately,
+     doesn't require re-judging as the collection grows). Filtering preserves
+     each work's ORIGINAL array index (and thus its bottle-cap number) via
+     `Page.jsx`'s `filteredWorks = works.map((w,i)=>({w,i})).filter(...)` —
+     a piece's number must never change depending on which chip is active.
+     If you add a new category, add it to the `categories` array too (chip
+     order = array order) and to the JSDoc comment above `workModules` in
+     `projects.js` documenting the valid values.
+  3. **Lazy-loaded media in `WorkBlock.jsx`** — images get native
+     `loading="lazy" decoding="async"`; videos (the `work.video` field, not
+     currently used by any real work but supported) have no native lazy
+     equivalent and autoplay immediately once mounted, so they're gated
+     behind a `videoInView` state set by an `IntersectionObserver`
+     (`rootMargin: '600px 0px'`, disconnects after first trigger) — the
+     `<video>` element itself doesn't mount/fetch until scrolled near. Both
+     share the same placeholder background (the existing broken-image
+     gradient box) while not yet loaded, so there's no layout jump.
 - **Branch history was a real, repeated source of confusion (multiple
   sessions built work on the wrong/stale branch and lost it) — this was
   fixed at the root on 2026-07-03, not just patched around.** Five branches

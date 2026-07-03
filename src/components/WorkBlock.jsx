@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import NumberBadge from './NumberBadge'
 
@@ -31,6 +31,30 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
   const [imgOk, setImgOk] = useState(true)
   const flip = index % 2 === 1 // alternate sides for rhythm
   const links = work.links || []
+
+  // Videos have no native lazy-load equivalent (unlike <img loading="lazy">
+  // below) and autoplay immediately once mounted — with 60+ works on one
+  // page that's 60+ simultaneous video downloads. Only mount the <video>
+  // (and let it start fetching/playing) once it's within 600px of the
+  // viewport; before that render the same placeholder background the
+  // broken-image state uses, so there's no layout jump.
+  const [videoInView, setVideoInView] = useState(false)
+  useEffect(() => {
+    if (!work.video || videoInView) return
+    const el = mediaRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVideoInView(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '600px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [work.video, videoInView])
 
   const onTilt = (e) => {
     const el = mediaRef.current
@@ -67,18 +91,22 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             // (a portrait piece stays portrait, a wide one stays wide) instead
             // of being center-cropped into a uniform frame.
             style={
-              !imgOk && !work.video
+              (!imgOk && !work.video) || (work.video && !videoInView)
                 ? { aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }
                 : undefined
             }
           >
             {work.video ? (
-              <video className="block h-auto w-full" src={work.video} autoPlay loop muted playsInline />
+              videoInView && (
+                <video className="block h-auto w-full" src={work.video} autoPlay loop muted playsInline />
+              )
             ) : imgOk ? (
               <img
                 src={work.image}
                 alt={work.title}
                 className="block h-auto w-full"
+                loading="lazy"
+                decoding="async"
                 onError={() => setImgOk(false)}
                 draggable={false}
               />
