@@ -51,6 +51,7 @@ export default function Page({ view, onClose }) {
 
       {/* sticky top bar */}
       <div
+        id="page-header"
         className="sticky top-0 z-10 flex items-center justify-between px-6 py-5 md:px-12"
         style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}
       >
@@ -67,11 +68,13 @@ export default function Page({ view, onClose }) {
       </div>
 
       <div
+        id="page-content-col"
         className="relative mx-auto max-w-5xl px-6 pt-[4vh] md:px-12"
         style={{ paddingBottom: 'max(18vh, calc(4vh + env(safe-area-inset-bottom)))' }}
       >
         {/* big title */}
         <motion.h1
+          id="page-title"
           className="mb-12 font-serif text-4xl lowercase text-ink sm:text-5xl md:mb-20 md:text-7xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}

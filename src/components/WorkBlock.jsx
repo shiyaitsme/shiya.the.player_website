@@ -108,11 +108,16 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
 
       {/* copy */}
       <div className="w-full font-serif text-ink md:w-[48%]">
-        <h3 className="text-3xl leading-tight md:text-[34px]">
-          {work.title} <span aria-hidden>{work.emoji}</span>
-        </h3>
+        {/* Single-work (Gachapon star) view already shows the title as the
+            page's big <h1> in Page.jsx — repeating it here as a small <h3>
+            read as a duplicated heading, so it's only shown in the works list. */}
+        {!single && (
+          <h3 className="text-3xl leading-tight md:text-[34px]">
+            {work.title} <span aria-hidden>{work.emoji}</span>
+          </h3>
+        )}
         {work.body.map((para, i) => (
-          <p key={i} className="mt-4 text-[16px] leading-relaxed md:text-[18px]">
+          <p key={i} className={i === 0 && single ? 'text-[16px] leading-relaxed md:text-[18px]' : 'mt-4 text-[16px] leading-relaxed md:text-[18px]'}>
             {para}
           </p>
         ))}

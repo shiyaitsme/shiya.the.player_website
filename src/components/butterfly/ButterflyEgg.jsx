@@ -10,7 +10,10 @@ import useIsMobile from '../../hooks/useIsMobile'
  *
  * Behaviour (intentionally calm, easy to click):
  *   1. FLY IN  — drifts in from a random off-screen direction (no trail).
- *   2. DOCK    — eases to a quiet resting spot in an upper corner and stops.
+ *   2. DOCK    — eases to a quiet resting spot that avoids the page's text/
+ *                images (see findSafeRestScreenPos — prefers the empty
+ *                margin outside #page-content-col; falls back to dodging
+ *                #page-title on narrow viewports) and stops.
  *   3. IDLE    — slow "breathing" wing-flap; the DOM hotspot behind it grows
  *                on dock so it stays an easy click target (no glow).
  *   4. HOVER   — wing-flap accelerates to a "startled" flutter and a thin
@@ -34,6 +37,58 @@ const TEXTURE_URL = encodeURI(
 )
 const FLY_IN = 2.2 // seconds to glide in and dock
 const easeOutCubic = (p) => 1 - Math.pow(1 - p, 3)
+
+const BFLY_FOOTPRINT = 110 // rough on-screen radius (px) the docked butterfly + hotspot need clear
+const MARGIN_BUFFER = 24 // extra breathing room inside a margin/gap before we trust it
+
+/**
+ * Picks a resting spot (screen px, viewport space) that stays off the page's
+ * actual text/images instead of a fixed corner fraction — the Works page's
+ * content lives in a centered `#page-content-col` column, so anything
+ * outside that column is guaranteed empty background at ANY scroll position
+ * (nothing in the layout ever grows past the column). We prefer that margin;
+ * it's the only zone that's safe regardless of scroll. If the viewport is too
+ * narrow to have one (mobile/tablet), we fall back to dodging the big
+ * `#page-title` heading specifically, since that's what's on screen when the
+ * butterfly docks (right after the Works page opens, at scroll top).
+ */
+function findSafeRestScreenPos(size) {
+  const header = document.getElementById('page-header')
+  const content = document.getElementById('page-content-col')
+  const headerBottom = header ? header.getBoundingClientRect().bottom : 0
+  const yMin = headerBottom + MARGIN_BUFFER + BFLY_FOOTPRINT * 0.5
+  const yMax = Math.max(yMin, size.height * 0.6)
+  const y = THREE.MathUtils.clamp(yMin + Math.random() * (yMax - yMin), 0, size.height)
+
+  if (content) {
+    const c = content.getBoundingClientRect()
+    const leftMargin = c.left
+    const rightMargin = size.width - c.right
+    const need = BFLY_FOOTPRINT + MARGIN_BUFFER
+    const sides = []
+    if (rightMargin >= need) sides.push(c.right + rightMargin / 2)
+    if (leftMargin >= need) sides.push(c.left / 2)
+    if (sides.length > 0) {
+      return { x: sides[Math.floor(Math.random() * sides.length)], y }
+    }
+  }
+
+  // no side margin — dodge the title's own rect instead (best-effort; only
+  // exact at the top-of-page scroll position the butterfly docks at)
+  const title = document.getElementById('page-title')
+  if (title) {
+    const t = title.getBoundingClientRect()
+    const roomRight = size.width - t.right
+    const roomLeft = t.left
+    const need = BFLY_FOOTPRINT + MARGIN_BUFFER
+    if (roomRight >= need) return { x: t.right + roomRight / 2, y: Math.max(y, (t.top + t.bottom) / 2) }
+    if (roomLeft >= need) return { x: roomLeft / 2, y: Math.max(y, (t.top + t.bottom) / 2) }
+  }
+
+  // last resort — tuck it near the top screen edge, away from center where
+  // wide images are most likely to sit once the page is scrolled
+  return { x: size.width * (Math.random() < 0.5 ? 0.12 : 0.88), y: yMin }
+}
 
 /** Soft IBL so the glass reflects like glass, not flat plastic. */
 function GlassEnvironment() {
@@ -91,13 +146,20 @@ function Butterfly({ hotspotRef, hoverRef, targetSize }) {
     return { model: root, longAxis, baseScale: s }
   }, [fbx, baseColor, targetSize])
 
-  // pick a random off-screen entry and an upper-corner resting spot (once)
+  // pick a random off-screen entry and a resting spot that avoids the page's
+  // text/images (once per size change — see findSafeRestScreenPos below)
   const { start, rest } = useMemo(() => {
     const aspect = size.width / size.height
     const halfH = Math.tan((50 * Math.PI) / 180 / 2) * 9 // camera fov 50 @ z=9
     const halfW = halfH * aspect
-    const cornerX = (Math.random() < 0.5 ? -1 : 1) * halfW * 0.62
-    const restV = new THREE.Vector3(cornerX, halfH * 0.55, 0) // upper corner
+
+    const { x: restScreenX, y: restScreenY } = findSafeRestScreenPos(size)
+    // screen px → NDC → world units on the z=0 plane (inverse of the
+    // project() call below that drives the DOM hotspot)
+    const ndcX = (restScreenX / size.width) * 2 - 1
+    const ndcY = -(restScreenY / size.height) * 2 + 1
+    const restV = new THREE.Vector3(ndcX * halfW, ndcY * halfH, 0)
+
     const ang = Math.random() * Math.PI * 2
     const startV = new THREE.Vector3(
       restV.x + Math.cos(ang) * (halfW + 6),
