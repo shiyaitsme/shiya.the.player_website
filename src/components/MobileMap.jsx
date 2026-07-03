@@ -3,19 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { mobileHub, mobileShards, mobileStars, sections, pickRandomWork } from '../data/projects'
 import NavLabel from './NavLabel'
 import HeroCarousel from './HeroCarousel'
-import { useHubLines, useBleedLines } from '../hooks/useHubLines'
+import { useMobileLines } from '../hooks/useMobileLines'
 
-/** Renders every connector line: the 4 hub→shard spokes, plus two lines that
- * bleed out to the screen edge (matching the desktop's "lines run off the
- * page" language) — a straight line through about+works, and a smooth arc
- * from contact down through the hub and back up past it. All endpoints are
- * snapped to LIVE element centers (see useHubLines.js) — nothing here is
- * hand-coordinated, so it can't drift out of sync with the layout.
- * `nodeRefs` order matches mobileShards: [contact, works, about, manifesto]. */
-function MobileLines({ containerRef, hubRef, nodeRefs }) {
-  const { paths, size } = useHubLines(hubRef, nodeRefs, containerRef)
-  const bleed = useBleedLines(hubRef, nodeRefs[0], nodeRefs[1], nodeRefs[2], containerRef)
+/** Renders exactly the 5 connector lines the user asked for (see
+ * useMobileLines.js) — no other lines. Every endpoint is snapped to a LIVE
+ * element center (getBoundingClientRect), never a hand-picked coordinate,
+ * so nothing can drift out of sync with the layout. */
+function MobileLines({ refs, containerRef }) {
+  const { through, arc, triCM, triMW, triWC, size } = useMobileLines(refs, containerRef)
   if (!size.w || !size.h) return null
+  const line = (d) => d && <path d={d} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
   return (
     <svg
       className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
@@ -23,14 +20,11 @@ function MobileLines({ containerRef, hubRef, nodeRefs }) {
       fill="none"
       aria-hidden="true"
     >
-      {paths.map(
-        (d, i) =>
-          d && (
-            <path key={mobileShards[i].id} d={d} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-          )
-      )}
-      {bleed.through && <path d={bleed.through} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.85" />}
-      {bleed.arc && <path d={bleed.arc} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.85" />}
+      {line(through)}
+      {line(arc)}
+      {line(triCM)}
+      {line(triMW)}
+      {line(triWC)}
     </svg>
   )
 }
@@ -187,21 +181,30 @@ function MobileStars({ onSelect }) {
  * Phone-width map: a proportional, generative layout (see the `mobileHub` /
  * `mobileShards` / `mobileStars` comment in projects.js) instead of the
  * desktop's pixel-1:1 1440x900 stage. The hub sits mid-screen with the 4
- * shards fanned around it; connector lines are drawn by useHubLines.js,
- * which snaps both endpoints to each element's live on-screen center — the
- * lines can't drift out of alignment no matter how the % anchors are tuned.
+ * shards fanned around it; the 5 connector lines are drawn by
+ * useMobileLines.js, which snaps every endpoint to each element's live
+ * on-screen center — they can't drift out of alignment no matter how the %
+ * anchors are tuned.
  */
 export default function MobileMap({ onOpen, onSelectWork }) {
   const containerRef = useRef(null)
   const hubRef = useRef(null)
+  // mobileShards order is [contact, works, about, manifesto] — index 0..3
   const nodeRefs = useRef(mobileShards.map(() => ({ current: null })))
   const setNodeRef = (i, el) => {
     nodeRefs.current[i].current = el
   }
+  const lineRefs = {
+    hub: hubRef,
+    contact: nodeRefs.current[0],
+    works: nodeRefs.current[1],
+    about: nodeRefs.current[2],
+    manifesto: nodeRefs.current[3],
+  }
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
-      <MobileLines containerRef={containerRef} hubRef={hubRef} nodeRefs={nodeRefs.current} />
+      <MobileLines refs={lineRefs} containerRef={containerRef} />
 
       <div
         className="pointer-events-none absolute z-30"

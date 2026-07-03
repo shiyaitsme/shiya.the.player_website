@@ -193,10 +193,10 @@ export const pickRandomWork = () => works[Math.floor(Math.random() * works.lengt
 // rot is kept purely as a cosmetic tilt (matches the desktop shards' spirit).
 // ---------------------------------------------------------------------------
 // Hub sits mid-screen (not up top) with the 4 shards fanned around it in a
-// diamond, per the user's reference sketch — connector lines are drawn by
-// useHubLines.js, which snaps to each element's LIVE center at render time,
-// so these percentages only need to be "roughly right"; they don't have to
-// hand-align with a hardcoded line endpoint.
+// diamond, per the user's reference sketch — the 5 connector lines are drawn
+// by useMobileLines.js, which snaps to each element's LIVE center at render
+// time, so these percentages only need to be "roughly right"; they don't
+// have to hand-align with a hardcoded line endpoint.
 export const mobileHub = { xPct: 50, yPct: 53, wVw: 50 }
 
 export const mobileShards = [
