@@ -10,6 +10,48 @@ source of truth is the user's Figma file; we match it **1:1**.
 ## Golden rules
 - **All content lives in `src/data/projects.js`.** Adding a work, editing copy,
   remapping a shard/section/background — do it there, not in components.
+- **`works[]` array order IS display order — there is no separate ordering
+  field.** Want a piece to appear earlier? Move its object up in the array.
+  The bottle-cap `number` badge is never stored on a work; it's always
+  derived from array position via `workNumber(id)` (exported from
+  `projects.js`, used by `WorkBlock.jsx` via its `index` prop and by
+  `ProjectModal.jsx`). This was a deliberate switch from hand-maintained
+  `number: N` fields specifically so inserting/reordering a work never
+  requires renumbering any other entry. A work's optional `date` field (if
+  you add one later) is purely informational/shown-to-the-reader — it must
+  never drive sort order; the user was explicit that "most proud of" beats
+  "most recent" for a portfolio's ordering.
+- **A work can have multiple outbound links — `links: [{label,href}, …]`
+  (plural array), not the old singular `link: {label,href}`.** Several real
+  pieces post to both Instagram and Xiaohongshu. `WorkBlock.jsx` only makes
+  the whole poster image itself clickable (`MediaWrap`) when there's
+  *exactly one* link — with two or more it's ambiguous which one the image
+  should open, so multiple links always render as separate labeled buttons
+  under the copy instead.
+- **`ProjectModal`'s `caseStudy` has two shapes now** — check `Array.isArray
+  (cs.tools)` to tell them apart:
+  - **simple** `{ tools:[], image?, body:[] }` — a short, plain "made with X,
+    Y, Z" writeup for process-based pieces (3D/AI-generation/video-editing
+    tools, not code). **Use this shape for all new work entries.** The user
+    is an intern, not applying to a top creative-tech studio — keep these
+    genuinely brief and modest, not jargon-stacked. `image` is optional (a
+    node-graph screenshot, an effects breakdown, etc.) and fails silently
+    (`DeepDiveImage` component) if not uploaded yet.
+  - **code** `{ goal, architecture:{caption,nodes[]}, code:{language,snippet},
+    analysis:[] }` — the original shape, kept only for the two pre-existing
+    pieces that are actually code/shader work (`carousel`). Don't use this
+    shape for new AI-art/video-edit pieces; it renders an `ArchDiagram` +
+    `CodeBlock` that don't make sense without real source code.
+- **All copy across the site is English, deliberately — the user asked for
+  zero Chinese anywhere in `projects.js` for internationalization.** Even
+  though she writes to Claude in Chinese, translate/compose everything that
+  ends up in `body`/`caseStudy`/etc. into English; double-check with a CJK
+  regex (`/[一-鿿]/`) before considering a content pass done.
+- **Deep-dive writeups should read humble, not like a studio pitch deck.**
+  The user was explicit: she's an intern, this isn't an application to a
+  top-tier creative-technology studio, so case-study copy should be
+  concise and matter-of-fact ("modeled in X, animated in Y") rather than
+  stacking buzzwords or over-explaining a simple tool chain.
 - **Coordinates are in 1440×900 Figma space.** `useStageScale` scales the
   `.stage` with **COVER** (`Math.max`) and the stage is anchored **dead-center**
   (`top/left:50%` + `translate(-50%,-50%)` + `transform-origin:center center`),
@@ -345,6 +387,17 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   user's real Mac GPU** — ask for feedback and expect to tune on it.
 
 ## Status / next ideas
+- **The works list is now 10 real pieces the user wrote copy for** (replacing
+  the earlier `andromeda-freckles` + `carousel` placeholder pair — note
+  `andromeda-freckles` was **removed entirely**, not kept alongside the new
+  ones; ask before re-adding it if that ever seems wrong). Array order (=
+  display order) is: `heart-of-empire`, `carousel` ("between two
+  infinites"), `limited-night`, `the-world-is-my-playground`, `blue-lava`,
+  `the-vanishing-tree`, `vocalize`, `star-girl`, `see-you-in-spring`,
+  `fake-touch`. Most of their images (`public/assets/works/works_p0N_*.png`)
+  are **not uploaded yet** — this is expected, not a bug; `WorkBlock`'s
+  `onError` fallback shows the title as text instead of a broken image.
+  Nudge the user for them when it's relevant, don't fabricate placeholders.
 - **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work,
   even though this is less likely to bite you now.** The repo's actual
   default branch (`git remote show origin` → "HEAD branch") is

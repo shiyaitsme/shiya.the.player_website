@@ -6,66 +6,58 @@
 //   shards   — shard positions on the 1440x900 map, mapped to a section
 //   stars    — black-asterisk Gachapon node positions
 
+// Array order IS display order — no separate ordering field to maintain.
+// Want a piece to show up earlier? Move its object up in this array. `date`
+// (where present) is purely informational (shown to the reader), it does not
+// drive sort order. The bottle-cap `number` badge is never stored — it's
+// always derived from array position via `workNumber()` below, so inserting
+// a new work anywhere never requires renumbering anything else.
 export const works = [
   {
-    id: 'andromeda-freckles',
-    number: 1,
-    title: 'andromeda freckles',
-    emoji: '✨',
-    image: '/assets/work_andromeda_freckles.png',
+    id: 'heart-of-empire',
+    title: 'heart of empire',
+    emoji: '',
+    image: '/assets/works/works_p01_heart-of-empire.png',
     body: [
-      'In Cosmos, Carl Sagan said the nitrogen in our DNA, the calcium in our bones, the iron in our blood, the carbon in our apple pies — all these atoms were forged inside ancient stars. We are a way for the universe to know itself.',
-      'And mapped across her face is Andromeda, born 10 billion years ago. Read her closely and you can read the countless secrets of the cosmos — countless stars that lived, and died. Everyone’s freckles are galaxies; everyone‘s own constellation of moles makes them who they are, and no one else.',
+      'Footprints across the plains, the snow mountains at her back—she stands at the summit of the world, her colors unchanged.',
+      'Her blade can cleave through snowstorms, or become the corner where a butterfly rests.',
+      'People crave oxygen only when they’re suffocating; she craves the thinness of the air, the life force surging up like molten lava. A new order is being born, and she stands as its last watcher.',
+      'The heart of the empire still beats—for the last frozen blue rose and emerald on earth.',
+    ],
+    links: [
+      {
+        label: 'watch on instagram',
+        href: 'https://www.instagram.com/reel/DZ-4QVtTp1T/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+      },
+      {
+        label: 'watch on xiaohongshu',
+        href: 'https://www.xiaohongshu.com/discovery/item/6a3e61ba000000000702dc72?source=webshare&xhsshare=pc_web&xsec_token=AB2Q5foZcFczdXNL5tWbC7p2lEw0LP7u9edWDZuqZ0y6g=&xsec_source=pc_share',
+      },
     ],
     caseStudy: {
-      goal: 'Can a face become a star map? Andromeda Freckles treats each freckle as a catalogued star and fits the Andromeda galaxy onto a live portrait, so skin reads as a navigable sky rather than a surface.',
-      architecture: {
-        nodes: ['Webcam', 'Face Landmarks', 'UV Remap', 'Star Shader', 'Composite'],
-        caption:
-          'Real-time face landmarks anchor a UV remap that pins a star catalogue to the skin; a GPU fragment shader scatters and twinkles the constellation before compositing it back over the portrait.',
-      },
-      code: {
-        language: 'glsl',
-        snippet: `// fragment: scatter twinkling stars along remapped skin UVs
-uniform sampler2D uFace;
-uniform float uTime;
-varying vec2 vUv;
-
-float star(vec2 p, float s) {
-  float d = length(fract(p) - 0.5);
-  return smoothstep(s, 0.0, d);
-}
-
-void main() {
-  vec3 skin = texture2D(uFace, vUv).rgb;
-  float tw = 0.5 + 0.5 * sin(uTime * 2.0);
-  float s = star(vUv * 40.0, 0.08 * tw);
-  vec3 lime = vec3(0.71, 1.0, 0.0);
-  gl_FragColor = vec4(skin + lime * s, 1.0);
-}`,
-      },
-      analysis: [
-        'Landmark jitter was the hard constraint: raw detections wobble a couple of pixels, which made the whole constellation crawl across the face. A one-euro filter on the UV anchors traded a little latency for a sky that finally held still.',
-        'Mapping a real catalogue instead of random noise turned out to be the point — viewers who recognised Andromeda stopped reading it as a filter and started reading it as a claim: that they are, literally, made of stars.',
+      tools: ['Tripo AI 3D modeling', 'Blender animation', 'DaVinci Resolve color grading', 'CapCut editing'],
+      body: [
+        'Modeled in Tripo AI, then brought into Blender for animation and lighting. Color graded in DaVinci Resolve and cut together in CapCut.',
       ],
     },
   },
   {
     id: 'carousel',
-    number: 2,
     title: 'between two infinites',
     emoji: '🎠',
     // This piece is a video; embedding/autoplaying it on the page is heavy, so
     // we show its Instagram cover and link out to the reel instead.
-    image: '/assets/work_carousel_between_two_infinites_ig_cover.png',
+    image: '/assets/works/works_p02_between-two-infinites.png',
     body: [
       'Where the desert ends, the sea begins. Between two infinities, a carousel stands — pointing the lost toward a way forward, though we both know every road is long. So walk it as a pilgrimage.',
       'Don’t linger here. This is just one stop in the vast playground of the world. Ahead, the sands and the waves are waiting.',
     ],
-    link: {
-      label: 'watch on instagram',
-      href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
-    },
+    links: [
+      {
+        label: 'watch on instagram',
+        href: 'https://www.instagram.com/reel/DZ0yKRXTXtL/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+      },
+    ],
     caseStudy: {
       goal: 'Between Two Infinites stages a carousel at the seam of desert and sea — a waypoint for the lost. The research question: can a looping ride encode "keep moving" without a single word of text?',
       architecture: {
@@ -92,7 +84,152 @@ function onRotation(angle) {
       ],
     },
   },
+  {
+    id: 'limited-night',
+    title: 'limited night',
+    emoji: '',
+    image: '/assets/works/works_p03_deep-dive_limited-night.png',
+    body: [
+      'That she wrote, "Speech to the Young: Speech to the Progress Toward"',
+      'Say to them, say to the down-keepers, the sun-slappers, the self-soilers, the harmony-hushers',
+      'Even if you are not ready for the day, it cannot always be night',
+      'Darkness sweeps across the entire cliff face lit by moonlight. The wings still carry the salt of seawater, its taste soaked deep into every feather. Petals are scattered by the midnight ocean wind, falling from the highlands down into the drifting surface of the sea.',
+      'Is the night endless? She prays for a limited night.',
+    ],
+    links: [
+      {
+        label: 'watch on instagram',
+        href: 'https://www.instagram.com/reel/DXSSWkYkkXQ/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+      },
+      {
+        label: 'watch on xiaohongshu',
+        href: 'https://www.xiaohongshu.com/discovery/item/69f88aac000000001a02c054?source=webshare&xhsshare=pc_web&xsec_token=ABnlM4ORKJobEAdr8OyjHBzQuj1PrUzgYIpQDKkDyWAtk=&xsec_source=pc_share',
+      },
+    ],
+    caseStudy: {
+      tools: ['TouchDesigner'],
+      image: '/assets/works/works_p03_deep-dive_limited-night.png',
+      body: [
+        'A real-time TouchDesigner network that turns 2D video into a field of 3D particles — each pixel\'s brightness pushed into height, so the image slowly rebuilds itself as geometry.',
+        'The pipeline reads a video\'s color into a flat array, merges it with a grid of positions, and uses that to drive instanced geometry: brightness becomes depth and scale. A feedback loop adds a bit of trailing, ghost-like motion, and bloom in the render pass gives the particles a soft, overloaded glow.',
+        'The main challenge was performance — feeding a full-resolution image straight into this pipeline crushed the frame rate. Downsampling the source before converting it to data kept the silhouette readable while getting things back to a steady 60fps. A little noise and a few LFOs on top keep the whole field breathing instead of sitting still.',
+      ],
+    },
+  },
+  {
+    id: 'the-world-is-my-playground',
+    title: 'the world is my playground',
+    emoji: '',
+    image: '/assets/works/works_p04_the-world-is-my-playground.png',
+    body: [
+      'I imagine an oyster that holds not a pearl, but an entire Earth.',
+      '"The world is my oyster" feels less like conquest, and more like a playground.',
+      'When I open the oyster, I become both the explorer and the visitor—the one who enters a world made for curiosity.',
+      'Without curiosity, an oyster is just an oyster. With it, the inside could be a whole planet, a place to play, to discover, to live differently.',
+      'The "amusement park" isn\'t a place but a mindset. When we choose wonder over routine, the entire Earth turns into a playground.',
+      'And maybe weightlessness is simply the mind reacting to scale—the way a tiny oyster can suddenly hold a world, breaking reality for a moment, letting us drift.',
+    ],
+    caseStudy: {
+      tools: ['Adobe Illustrator', 'Photoshop'],
+      body: ['Illustrated in Illustrator, then composited and finished in Photoshop.'],
+    },
+  },
+  {
+    id: 'blue-lava',
+    title: 'blue lava',
+    emoji: '',
+    image: '/assets/works/works_p05_blue-lava.png',
+    body: [
+      'Somewhere between memory and malfunction, the screen starts to bleed blue. Old signals don’t fade quietly — they melt, glow, and leave color scars across the dark.',
+      'Call it static as lava: slow, hot, and hard to look away from.',
+    ],
+    links: [
+      {
+        label: 'watch on instagram',
+        href: 'https://www.instagram.com/reel/DRrY6KhkeNI/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+      },
+      {
+        label: 'watch on xiaohongshu',
+        href: 'https://www.xiaohongshu.com/discovery/item/692c2123000000001e02b3ff?source=webshare&xhsshare=pc_web&xsec_token=ABKud05yrbfiTf10y7-tpCnNH4_XiM8nze7GtlR5f3Jzg=&xsec_source=pc_share',
+      },
+    ],
+    caseStudy: {
+      tools: ['After Effects'],
+      image: '/assets/works/works_p05_deep-dive_blue-lava.png',
+      body: [
+        'A CRT-glitch look built entirely from After Effects\' own built-in tools, no third-party plugins.',
+        'Card Wipe slices the type into thin vertical strips to mimic an old CRT\'s phosphor grille. Separating and offsetting the RGB channels gives that classic red/blue fringing at the edges. A displacement map driven by noise pushes those strips apart for the glitchy break-up moments, and Glow blends the separated colors back into a warm, overloaded halo.',
+        'Sticking to stock effects instead of a plugin kept the project light and easy to reuse — and meant actually understanding what a displacement map or a channel shift does, instead of dragging a preset onto the timeline.',
+      ],
+    },
+  },
+  {
+    id: 'the-vanishing-tree',
+    title: 'the vanishing tree',
+    emoji: '',
+    image: '/assets/works/works_p06_the-vanishing-tree.png',
+    body: [
+      'Spring is coming, I think. The trees are budding again — the same trees I’ve walked past every day for years, the same ones that will keep budding long after I’m gone. There’s something quietly devastating about that. Not loss exactly, but the slow realization that what I called "forever" was really just "for now, without noticing."',
+      'My grandmother’s hair turned white. I don’t know when. My grandfather started walking smaller. I missed the moment it happened — there was no moment, that’s the point. The world doesn’t announce its changes. It just keeps going, and one day you look back and the light is completely different.',
+      'The tree will outlast my time here. That feels both impossible and inevitable — which is maybe the only honest thing I can say about anything I’ve ever taken for granted.',
+      'Made with Midjourney, AIGC art.',
+    ],
+  },
+  {
+    id: 'vocalize',
+    title: 'vocalize',
+    emoji: '',
+    image: '/assets/works/works_p07_vocalize.png',
+    body: [
+      'I suddenly thought of The Taste of Tea while brainstorming—tracks extending from the neck, a train like the words she speaks, like the precious thoughts she leaves behind.',
+      'She could be Beauvoir, Woolf… or you, or me.',
+      'The tracks and the running train are a kind of voice. The wind, the waves—they batter her, they wear her down, yet she keeps choosing to speak, even if the next moment she might vanish.',
+      'We are no longer trapped subjects; we are those who speak for collective rights. Even when the tracks are uneven, even when we risk falling into the sea, we still let the train run toward the horizon, letting words reach far-off shores.',
+      'Made with Midjourney, AIGC art.',
+    ],
+  },
+  {
+    id: 'star-girl',
+    title: 'star girl',
+    emoji: '',
+    image: '/assets/works/works_p08_star-girl.png',
+    body: [
+      'Stars blooming across monotone black hair, carrying the Milky Way inside the body — a quiet rebellion against the dullness of living.',
+      'Made with Midjourney, AIGC art.',
+    ],
+  },
+  {
+    id: 'see-you-in-spring',
+    title: 'see you in spring',
+    emoji: '',
+    image: '/assets/works/works_p09_see-you-in-spring.png',
+    body: [
+      'Hong Kong, spring of the nineties — humid, salt-tinged air, the far-off ring of a tram bell. In the flower field, all she can hear is her own heartbeat and petals moving in the wind.',
+      'She had watched him fall once, on a rainy street lit pink by neon. He looked toward her hiding place, just for a moment — the way you’d glance at something by accident. He had always known: months before, he’d found her out, put the document back in its drawer, and simply said, "go." He spent everything he had to buy her one spring.',
+      'She remembers a jazz bar, winter, a glance across the room that meant nothing at the time. Years later she understands: the whole weight of it was folded into that one look.',
+      '"See you in spring," he’d written once, carelessly, inside the cover of an old book — maybe already knowing neither of them would get one. She opens her eyes now, hears the wind move through the field, and says it back.',
+      'Made with Midjourney, AIGC art.',
+    ],
+  },
+  {
+    id: 'fake-touch',
+    title: 'fake touch',
+    emoji: '',
+    image: '/assets/works/works_p10_fake-touch.png',
+    body: [
+      'The touch may not be real.',
+      'But the warmth between them, the wind over the grass, the light — all of it is.',
+      'Fake Touch.',
+      'A android. A lamb. A moment that never needed to be real to matter.',
+      'Made with Midjourney, AIGC art.',
+    ],
+  },
 ]
+
+// The bottle-cap badge number is always derived from array position — never
+// stored on the work itself — so reordering `works[]` (the only thing that
+// controls display order) never requires touching any other entry.
+export const workNumber = (id) => works.findIndex((w) => w.id === id) + 1
 
 export const sections = {
   works: {
@@ -113,14 +250,15 @@ export const sections = {
     title: 'about',
     badge: 0,
     body: [
-      'Shiya the Player — a creative technologist and immersive-media designer building interactive worlds where wonder becomes a way of knowing.',
-      'I design installations and narrative rides at the seam of art and engineering: real-time graphics, spatial sound, and physical space choreographed into one breathing thing.',
+      'Shiya the Player — a visual creator working across 3D, motion, and AI-assisted image-making, turning short pieces into small worlds you can step into.',
+      'Each project starts from a feeling or a line of text, then moves through whatever tools actually fit it — sometimes a generated 3D model, sometimes an illustration, sometimes a node graph pushing pixels into particles.',
     ],
     skills: [
-      'WebGL · Three.js · GLSL',
-      'GSAP · Framer Motion',
-      'TouchDesigner · Blender · Houdini',
-      'spatial audio · creative direction',
+      'Blender · Tripo AI 3D modeling',
+      'TouchDesigner · node-based real-time visuals',
+      'After Effects · DaVinci Resolve · CapCut',
+      'Adobe Illustrator · Photoshop',
+      'Midjourney · AI-assisted image-making',
     ],
   },
   contact: {
@@ -141,6 +279,11 @@ export const sections = {
         value: '@shiya.the.player',
         href: 'https://www.instagram.com/shiya.the.player?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
       },
+      {
+        label: 'xiaohongshu',
+        value: '@shiya.the.player',
+        href: 'https://www.xiaohongshu.com/user/profile/62530962000000001000a493',
+      },
     ],
   },
   manifesto: {
@@ -152,9 +295,10 @@ export const sections = {
     title: 'manifesto',
     badge: 8,
     body: [
-      'I make playgrounds because I believe wonder is a form of knowledge — that a room can teach you something a sentence never could.',
-      'My creative language is collision: retro Americana against acid graphics, analog warmth against digital impossibility, the sacred against the silly. I want the work to feel hand-made and faintly impossible at once.',
-      'The vision is a digital 桃花源 — a utopia you stumble into, where strangers quietly leave light for people they will never meet. Every project is one stop on that map. Don’t linger. Ahead, the sands and the waves are waiting.',
+      'The purest emotion, the most forward-looking image — that’s the whole ambition. Let’s have fun together: explore every form art can take, and the strange, infinite shapes a life can take too. Just make some interesting stuff.',
+      'On the subway once, I noticed my nail polish had chipped from a solid coat into scattered fragments — bathwater and air were its authors. Walking back to the office, I saw a chalk figure drawn on the pavement, made by some kid I’ll never meet. Who says a writer only counts if they’re hunched over a desk? Who says a poet needs perfect meter, or an artist needs expensive materials?',
+      'Creation doesn’t only move from nothing to something. It can move from many to few, from now to later, from never-existed to existing. Time is a creator too — it turns a child into an adult, the small into the strong. In some sense, everything creates. As people, we should hold onto that ability, and that chance.',
+      'I call myself, simply, a visual creator. To formalize, to memorize. That’s it.',
     ],
   },
 }

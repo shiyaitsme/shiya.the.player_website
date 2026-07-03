@@ -7,7 +7,10 @@ import NumberBadge from './NumberBadge'
  * Playfair copy + optional link. Reveals on scroll; the media gets a soft
  * cursor-tilt (a small, performant touch of craft). Fully responsive.
  */
-/** Wraps the media in a link (new tab) when the piece points out somewhere. */
+/** Wraps the media in a link (new tab) when there's exactly one place to send
+ *  people — with two+ links (e.g. an Instagram reel AND a Xiaohongshu post)
+ *  it's ambiguous which one the poster itself should open, so those render
+ *  as separate labeled links under the copy instead (see below). */
 function MediaWrap({ link, children }) {
   if (!link) return children
   return (
@@ -27,6 +30,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
   const mediaRef = useRef(null)
   const [imgOk, setImgOk] = useState(true)
   const flip = index % 2 === 1 // alternate sides for rhythm
+  const links = work.links || []
 
   const onTilt = (e) => {
     const el = mediaRef.current
@@ -50,9 +54,9 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
       viewport={{ once: true, margin: '-15%' }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* media — a clickable poster when the piece links out (e.g. an IG reel) */}
+      {/* media — a clickable poster only when there's a single, unambiguous link out */}
       <div className="w-full md:w-[52%]">
-        <MediaWrap link={work.video ? null : work.link}>
+        <MediaWrap link={work.video || links.length !== 1 ? null : links[0]}>
           <div
             ref={mediaRef}
             onMouseMove={onTilt}
@@ -84,7 +88,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             )}
 
             {/* play affordance over a linked poster (reads as "watch the reel") */}
-            {!work.video && work.link && imgOk && (
+            {!work.video && links.length > 0 && imgOk && (
               <span className="pointer-events-none absolute inset-0 grid place-items-center">
                 <span className="grid h-14 w-14 place-items-center rounded-full bg-black/45 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 md:h-16 md:w-16">
                   <span className="ml-1 border-y-[10px] border-l-[16px] border-y-transparent border-l-white md:border-y-[12px] md:border-l-[19px]" />
@@ -92,9 +96,10 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
               </span>
             )}
 
-            {/* number badge tucked on the media corner */}
+            {/* number badge tucked on the media corner — derived from array
+                position (see workNumber in data/projects.js), never stored */}
             <div className="absolute -left-3 -top-3 md:-left-4 md:-top-4">
-              <NumberBadge n={work.number} size={single ? 60 : 52} />
+              <NumberBadge n={index + 1} size={single ? 60 : 52} />
             </div>
           </div>
         </MediaWrap>
@@ -111,16 +116,17 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
           </p>
         ))}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-          {work.link && (
+          {links.map((l) => (
             <a
-              href={work.link.href}
+              key={l.href}
+              href={l.href}
               target="_blank"
               rel="noreferrer"
               className="nav-label inline-block lowercase"
             >
-              ↗ {work.link.label}
+              ↗ {l.label}
             </a>
-          )}
+          ))}
           {work.caseStudy && onOpenCase && (
             <button
               type="button"

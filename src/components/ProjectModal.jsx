@@ -1,15 +1,21 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import ArchDiagram from './ArchDiagram'
 import CodeBlock from './CodeBlock'
+import { workNumber } from '../data/projects'
 
 /**
  * ProjectModal — the "project deep-dive" / case-study overlay opened from a
  * work in the Works page.
  *
  * Props:
- *   project : a work object; its `caseStudy` drives the body
- *             { goal, architecture:{caption,nodes[]}, code:{language,snippet}, analysis:[] }
+ *   project : a work object; its `caseStudy` drives the body. Two shapes:
+ *     - simple  { tools:[], image?, body:[] } — a short, plain "what I made
+ *       it with" writeup for process-based pieces (3D/AI/video-edit tools,
+ *       not code). This is the shape new work entries should use.
+ *     - code    { goal, architecture:{caption,nodes[]}, code:{language,snippet},
+ *       analysis:[] } — the older, code-project shape (kept for the two
+ *       existing pieces that actually are code/shader work).
  *   onClose : close handler (also bound to Esc + backdrop click)
  *
  * Style — frosted "glassmorphism" tuned to the site's iridescent gradient, so
@@ -22,6 +28,7 @@ const EASE = [0.22, 1, 0.36, 1] // gentle, flowing ease-out
 
 export default function ProjectModal({ project, onClose }) {
   const cs = project?.caseStudy || {}
+  const isSimple = Array.isArray(cs.tools)
 
   // Esc to close + lock body scroll while open
   useEffect(() => {
@@ -85,7 +92,7 @@ export default function ProjectModal({ project, onClose }) {
           {/* [Header] title + research goal */}
           <header>
             <span className="font-body text-[11px] uppercase tracking-[0.4em] text-ink/55">
-              case study · {String(project.number).padStart(2, '0')}
+              case study · {String(workNumber(project.id)).padStart(2, '0')}
             </span>
             <h2 className="mt-2 font-serif text-3xl lowercase text-ink md:text-5xl">
               {project.title} <span aria-hidden>{project.emoji}</span>
@@ -100,32 +107,64 @@ export default function ProjectModal({ project, onClose }) {
             )}
           </header>
 
-          {/* [Section 1] technical architecture */}
-          <Section label="01 · technical architecture">
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 md:p-6">
-              <ArchDiagram nodes={cs.architecture?.nodes} />
-            </div>
-            {cs.architecture?.caption && (
-              <p className="mt-3 font-body text-[13px] leading-relaxed text-ink/60">
-                {cs.architecture.caption}
-              </p>
-            )}
-          </Section>
+          {isSimple ? (
+            <>
+              {/* [Section] tools */}
+              <Section label="made with">
+                <div className="flex flex-wrap gap-2">
+                  {cs.tools.map((tool) => (
+                    <span
+                      key={tool}
+                      className="rounded-full border border-ink/20 bg-white/20 px-3 py-1 font-body text-xs uppercase tracking-[0.15em] text-ink/70"
+                    >
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              </Section>
 
-          {/* [Section 2] core code */}
-          <Section label="02 · core code">
-            <CodeBlock code={cs.code?.snippet} language={cs.code?.language} />
-          </Section>
+              {/* [Section] process image, if there is one */}
+              {cs.image && <DeepDiveImage src={cs.image} alt={`${project.title} process`} />}
 
-          {/* [Section 3] critical analysis */}
-          {cs.analysis?.length > 0 && (
-            <Section label="03 · critical analysis">
-              <div className="flex flex-col gap-4 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
-                {cs.analysis.map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
-              </div>
-            </Section>
+              {/* [Section] short writeup */}
+              {cs.body?.length > 0 && (
+                <div className="mt-6 flex flex-col gap-4 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                  {cs.body.map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* [Section 1] technical architecture */}
+              <Section label="01 · technical architecture">
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 md:p-6">
+                  <ArchDiagram nodes={cs.architecture?.nodes} />
+                </div>
+                {cs.architecture?.caption && (
+                  <p className="mt-3 font-body text-[13px] leading-relaxed text-ink/60">
+                    {cs.architecture.caption}
+                  </p>
+                )}
+              </Section>
+
+              {/* [Section 2] core code */}
+              <Section label="02 · core code">
+                <CodeBlock code={cs.code?.snippet} language={cs.code?.language} />
+              </Section>
+
+              {/* [Section 3] critical analysis */}
+              {cs.analysis?.length > 0 && (
+                <Section label="03 · critical analysis">
+                  <div className="flex flex-col gap-4 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                    {cs.analysis.map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))}
+                  </div>
+                </Section>
+              )}
+            </>
           )}
         </div>
       </motion.div>
@@ -141,5 +180,18 @@ function Section({ label, children }) {
       </h3>
       {children}
     </section>
+  )
+}
+
+/** A deep-dive process screenshot (e.g. a node graph or an effects
+ *  breakdown) — quietly disappears on load failure instead of showing a
+ *  broken-image icon, since these assets may not be uploaded yet. */
+function DeepDiveImage({ src, alt }) {
+  const [ok, setOk] = useState(true)
+  if (!ok) return null
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl border border-white/15">
+      <img src={src} alt={alt} className="w-full object-cover" onError={() => setOk(false)} />
+    </div>
   )
 }

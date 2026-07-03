@@ -120,7 +120,12 @@ export default function Page({ view, onClose, onSelectWork }) {
 
         {/* ---- SINGLE WORK (Gachapon) ---- */}
         {view.type === 'work' && (
-          <WorkBlock work={view.work} single onOpenCase={setCaseProject} />
+          <WorkBlock
+            work={view.work}
+            index={works.findIndex((w) => w.id === view.work.id)}
+            single
+            onOpenCase={setCaseProject}
+          />
         )}
 
         {/* ---- TEXT SECTIONS: about / contact / manifesto ---- */}
