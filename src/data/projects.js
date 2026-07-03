@@ -181,3 +181,31 @@ export const stars = [
 
 export const workById = (id) => works.find((w) => w.id === id)
 export const pickRandomWork = () => works[Math.floor(Math.random() * works.length)]
+
+// ---------------------------------------------------------------------------
+// MOBILE MAP — a separate, proportional (%-of-viewport) layout for phones.
+// Not a scaled-down copy of the 1440x900 Figma stage (that either shrinks to
+// a centered strip or requires pinch/pan to reach every element — both
+// rejected). Instead every anchor is a % position generated to fill a
+// portrait screen edge-to-edge; connector lines are drawn at runtime between
+// the hub and each shard (see MobileMap.jsx) instead of a baked SVG. Same
+// assets (shard art, lime nav PNGs, carousel, star icon), new arrangement.
+// rot is kept purely as a cosmetic tilt (matches the desktop shards' spirit).
+// ---------------------------------------------------------------------------
+export const mobileHub = { xPct: 50, yPct: 27, wVw: 60 }
+
+export const mobileShards = [
+  { id: 1, section: 'contact', xPct: 26, yPct: 58, wVw: 28, rot: -3.19 },
+  { id: 2, section: 'works', xPct: 74, yPct: 58, wVw: 26, rot: 7.35 },
+  { id: 3, section: 'about', xPct: 26, yPct: 81, wVw: 26, rot: 18.79 },
+  { id: 4, section: 'manifesto', xPct: 74, yPct: 81, wVw: 28, rot: 1.23 },
+]
+
+export const mobileStars = [
+  { xPct: 50, yPct: 18, size: 24 },
+  { xPct: 13, yPct: 25, size: 22 },
+  { xPct: 87, yPct: 25, size: 22 },
+  { xPct: 13, yPct: 46, size: 22 },
+  { xPct: 87, yPct: 46, size: 22 },
+  { xPct: 50, yPct: 70, size: 20 },
+]

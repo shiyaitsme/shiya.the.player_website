@@ -50,7 +50,10 @@ export default function Page({ view, onClose }) {
       <div className="grain" />
 
       {/* sticky top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-5 md:px-12">
+      <div
+        className="sticky top-0 z-10 flex items-center justify-between px-6 py-5 md:px-12"
+        style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}
+      >
         <button
           type="button"
           onClick={onClose}
@@ -63,10 +66,13 @@ export default function Page({ view, onClose }) {
         </span>
       </div>
 
-      <div className="relative mx-auto max-w-5xl px-6 pb-[18vh] pt-[4vh] md:px-12">
+      <div
+        className="relative mx-auto max-w-5xl px-6 pt-[4vh] md:px-12"
+        style={{ paddingBottom: 'max(18vh, calc(4vh + env(safe-area-inset-bottom)))' }}
+      >
         {/* big title */}
         <motion.h1
-          className="mb-12 font-serif text-5xl lowercase text-ink md:mb-20 md:text-7xl"
+          className="mb-12 font-serif text-4xl lowercase text-ink sm:text-5xl md:mb-20 md:text-7xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.7 }}

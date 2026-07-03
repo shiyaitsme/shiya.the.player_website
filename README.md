@@ -26,6 +26,11 @@ npm run preview
 - **Click a `*` star** → "Gachapon": a random **work** opens.
 - **Content pages** (`works / about / contact / manifesto`) are editorial
   Playfair-serif layouts over a soft section background, fully responsive.
+- **Mobile (`<768px`) gets a different home map**, not a shrunk copy of the
+  desktop one: `MobileMap.jsx` re-anchors the same art as `%`-of-viewport
+  positions (`mobileHub`/`mobileShards`/`mobileStars` in `projects.js`) with
+  connector lines computed at runtime, so the whole map fits one screen with
+  no pinch/pan. Desktop is untouched. See "Mobile map" below.
 
 ---
 
@@ -39,13 +44,17 @@ src/
 ├─ data/projects.js      ← ★ ALL CONTENT lives here (works, sections, shards, stars)
 ├─ hooks/
 │  ├─ useMouseParallax.js ← mouse → CSS vars (--mx/--my) for background drift
-│  └─ useStageScale.js   ← scales the 1440×900 stage to COVER the viewport
+│  ├─ useStageScale.js   ← scales the 1440×900 stage to COVER the viewport (desktop)
+│  └─ useIsMobile.js     ← matchMedia(max-width:767px), live-updating
 └─ components/
    ├─ Background.jsx      ← bg.png + halftone.png (+ CSS fallbacks), parallax
-   ├─ MapLines.jsx       ← renders /assets/lines.svg (the lime lines)
-   ├─ HeroCarousel.jsx   ← hero-carousel.webm, GSAP 3D tilt
-   ├─ ShardGrid.jsx      ← the 4 shards + lime nav labels (positions from Figma)
-   ├─ StarField.jsx      ← black-asterisk Gachapon nodes
+   ├─ MapLines.jsx       ← renders /assets/lines.svg (desktop lime lines)
+   ├─ HeroCarousel.jsx   ← carousel_hero_v2.webm, GSAP 3D tilt, `mobile` prop,
+   │                        iOS/Safari alpha-webm poster fallback
+   ├─ ShardGrid.jsx      ← desktop: the 4 shards + lime nav labels (Figma coords)
+   ├─ StarField.jsx      ← desktop: black-asterisk Gachapon nodes
+   ├─ NavLabel.jsx       ← the lime nav-word PNG (shared by desktop + mobile)
+   ├─ MobileMap.jsx      ← phone-width home map (see "Mobile map" below)
    ├─ ShardZoom.jsx      ← the click→zoom-in→hold→zoom-out clip transition
    ├─ Page.jsx           ← content page (works list / about / contact / manifesto / single work)
    ├─ WorkBlock.jsx      ← one work: number badge + media + Playfair copy + link + deep-dive
@@ -54,6 +63,21 @@ src/
    ├─ CodeBlock.jsx      ← tiny dependency-free syntax highlighter (for the modal)
    └─ NumberBadge.jsx    ← bottle-cap number_N.png
 ```
+
+### Mobile map (`<768px`)
+`App.jsx` swaps the whole desktop `.stage` tree for `MobileMap.jsx` below that
+breakpoint — not a scaled/panned copy of the 1440×900 composition, but a
+separate proportional layout so everything is reachable with a normal tap,
+no pinch or pan:
+- **Anchors are `%`-of-viewport**, not Figma px: `mobileHub` / `mobileShards`
+  / `mobileStars` in `projects.js`. Tune those numbers to reflow the layout.
+- **Lines are computed at runtime** (`bowPath()` in `MobileMap.jsx`, a
+  quadratic curve from the carousel hub to each shard) instead of a baked SVG.
+- Same art as desktop (shard PNGs, lime nav-word PNGs via the shared
+  `NavLabel.jsx`, the carousel, `star.svg`) — only the arrangement differs.
+- If you add a 5th shard/section, add its entry to `mobileShards` too (it
+  won't appear on mobile otherwise — desktop's `shards` array and mobile's
+  `mobileShards` are independent).
 
 ### Project deep-dive modal (case study)
 Each work can carry a `caseStudy` block in `projects.js`

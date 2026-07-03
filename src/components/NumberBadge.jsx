@@ -1,5 +1,10 @@
 /**
  * Retro bottle-cap number badge using the real /assets/number_N.png art.
+ *
+ * NO filter: drop-shadow — same class of bug as the nav-label text-shadow
+ * (see index.css): a soft offset shadow around a small alpha-edged PNG reads
+ * as a dirty/un-transparent box on some engines (reported on iOS Safari)
+ * instead of a subtle shadow. Keep this flat/clean like the home shards.
  */
 export default function NumberBadge({ n = 1, size = 58, className = '' }) {
   return (
@@ -8,7 +13,7 @@ export default function NumberBadge({ n = 1, size = 58, className = '' }) {
       alt={`number ${n}`}
       width={size}
       height={size}
-      className={`select-none drop-shadow-[0_3px_6px_rgba(40,30,60,0.35)] ${className}`}
+      className={`select-none ${className}`}
       style={{ width: size, height: size, objectFit: 'contain' }}
       draggable={false}
     />

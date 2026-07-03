@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { shards, sections } from '../data/projects'
+import NavLabel from './NavLabel'
 
 /**
  * The 4 nav clusters (contact / works / about / manifesto). Each cluster is a
@@ -15,25 +15,8 @@ import { shards, sections } from '../data/projects'
  *
  * Coordinates (piece.left/top/w) are the Figma image positions on the 1440x900
  * stage. Clicking anywhere on the cluster opens that section via the zoom.
- *
- * The lime nav word is the user's PNG artwork (`/assets/<key>_lime_green.png`);
- * if it isn't uploaded yet it falls back to styled `.nav-label` text.
+ * (Desktop only — see MobileMap.jsx for the phone-width layout.)
  */
-function NavLabel({ section }) {
-  const [imgOk, setImgOk] = useState(true)
-  return imgOk ? (
-    <img
-      src={`/assets/${section.key}_lime_green.png`}
-      alt={section.nav}
-      onError={() => setImgOk(false)}
-      draggable={false}
-      className="pointer-events-none h-[26px] w-auto select-none"
-    />
-  ) : (
-    <span className="nav-label lowercase">{section.nav}</span>
-  )
-}
-
 export default function ShardGrid({ onOpen }) {
   return (
     <>

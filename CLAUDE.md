@@ -126,6 +126,12 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   tune material/flap/scene on feedback.
 
 ## Status / next ideas
+- **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work.**
+  A session built the mobile branch straight off stale `main` once and
+  silently lost the butterfly/ArchiveWorld/PNG-nav/de-duped-lines work that
+  lives only on `busy-maxwell-kzpt97` — `main` (`wonderful-shannon-9rdua0`) is
+  *only* the user's raw asset uploads, never merged with the real code
+  branches. `git branch -a`/`git fetch` before assuming you're on the latest.
 - **Live working branch: `claude/busy-maxwell-kzpt97`** = the good
   `pensive-goodall-749qae` base (3D butterfly, ArchiveWorld, glass ProjectModal,
   lime PNG nav, de-duped `lines.svg`) + this session's home-map polish. ⚠️ It was
@@ -151,14 +157,51 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   shards/stars (z-30) and the mid-line segments hide beneath the opaque images.
 - **manifesto shard** nudged right to `left:1197.41` so its left edge clears the
   converging lines/asterisk (it used to sit on top of them).
-- **Big open idea — responsive / mobile** (discussed, NOT started): the site is
-  a fixed 1440×900 art board scaled-to-fit; on phones it shrinks to a centered
-  strip. The user likes the idea of a "formula/generative" layout — proportional
-  anchor points per viewport + lines computed at runtime between them + labels
-  always attached to their image — so any screen fills nicely. Tradeoff she
-  accepted in principle: that is NOT pixel-1:1 to Figma anymore. One URL serves
-  desktop + mobile via responsive rules (no separate mobile site). She wants a
-  prototype when ready.
+- **Responsive / mobile — IMPLEMENTED** (branch `claude/mobile-responsive-design-j4zpzc`,
+  built on top of this branch). Desktop (`≥768px`, `useIsMobile.js`) is
+  **100% untouched** — still the pixel-1:1 1440×900 stage. Phone-width
+  viewports render `MobileMap.jsx` instead of `.stage`/`ShardGrid`/`StarField`/
+  `MapLines` — a proportional generative layout per the idea above:
+  - `mobileHub` / `mobileShards` / `mobileStars` in `projects.js` are **%-of-
+    viewport** anchors (not the 1440×900 px space), hand-tuned to fill a
+    portrait screen with no pinch/pan/scroll needed.
+  - Lines are computed at runtime (`bowPath()` in `MobileMap.jsx`, a quadratic
+    bezier from the hub to each shard) instead of a baked SVG.
+  - The label PNG is reused via a shared `NavLabel.jsx` (extracted out of
+    `ShardGrid.jsx` so desktop + mobile can't drift apart).
+  - **Framer Motion gotcha hit twice building this**: `motion.*` components
+    write their own inline `transform` (and appear to silently drop `margin*`
+    too) for whatever's in `animate`/`style`, which clobbers a Tailwind
+    `-translate-x-1/2` class OR a `marginLeft` used for %-based centering. Fix:
+    put the centering `left/top/marginLeft` on a **plain, non-motion** wrapper
+    div, and let the `motion.*` child own only the entrance/hover/tap
+    animation with no positioning styles of its own. All three mobile pieces
+    (logo, shards, stars) use this split — don't collapse them back into one
+    element.
+  - **Nav-label squish bug (latent on desktop too, just not reported)**: an
+    `<img>` inside a narrower flex parent gets capped by Tailwind preflight's
+    `img{max-width:100%}`, squishing the label horizontally to the shard's
+    `piece.w`/`wVw` instead of its true aspect-correct width (verified:
+    desktop's own labels are already ~10–20% squished this way). Left desktop
+    alone (not reported, don't fix what wasn't asked), but `MobileMap`'s
+    `NavLabel` passes `style={{ maxWidth: 'none' }}` so labels like
+    "manifesto" (173×20 source, very wide relative to its shard) render at
+    full width instead of getting crushed unreadable.
+  - Carousel poster fallback (see below) is reused via `<HeroCarousel mobile />`.
+  - `NumberBadge.jsx` had its `drop-shadow-[...]` filter removed — same defect
+    class as the nav-label `text-shadow` fixed earlier (`7bae901`): a small
+    offset shadow on a small alpha-edged PNG reads as a dirty/un-transparent
+    box on some engines (user-reported on iOS Safari), not a subtle shadow.
+  - **iOS/Safari carousel fix**: desktop Safari + every iOS browser (forced
+    WebKit) don't composite the alpha channel of `carousel_hero_v2.webm` — you
+    get a solid black box. No reliable feature-detect exists, so
+    `HeroCarousel.jsx` UA-sniffs (`NEEDS_POSTER_FALLBACK`) and swaps to
+    `carousel_hero_v2_poster.png`, a real transparent frame extracted with
+    `ffmpeg -c:v libvpx-vp9 -i carousel_hero_v2.webm -update 1 -frames:v 1
+    -pix_fmt rgba out.png` — **you must force the `libvpx-vp9` decoder**; the
+    default `vp9` decoder ffmpeg picks silently drops the alpha plane and
+    every frame comes out opaque even though `ffprobe` reports
+    `alpha_mode: 1`.
 - Project deep-dive modal (`ProjectModal` + `CodeBlock` hand-rolled highlighter +
   `ArchDiagram`) opens from each work; `caseStudy` content is in `projects.js`.
 - Figma has empty `Frame 3–5` reserved for future sections.

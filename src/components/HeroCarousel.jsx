@@ -2,12 +2,35 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
 /**
+ * Safari/WebKit (desktop Safari + every iOS browser, since iOS forces
+ * WebKit's video pipeline) doesn't composite the alpha channel in a
+ * transparent VP9 .webm — it just shows the opaque RGB plane, which reads as
+ * a solid black box behind the carousel. There's no reliable feature-detect
+ * for "can this engine composite webm alpha", so we UA-sniff and swap to a
+ * pre-baked transparent PNG frame (extracted via `ffmpeg -c:v libvpx-vp9`,
+ * the ONLY decoder path that actually surfaces the alpha plane) instead of
+ * the video on those engines.
+ */
+const NEEDS_POSTER_FALLBACK = (() => {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  const isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(ua)
+  return isIOS || isSafari
+})()
+
+/**
  * Transparent central carousel (carousel_hero_v2.webm, VP9 + alpha; falls back
  * to the original hero-carousel.webm if v2 isn't present). Sits in the Figma
  * carousel slot on the 1440x900 stage; minor GSAP 3D tilt follows the cursor
  * for a soft spatial drift. Soft + desaturated to match the dreamy palette.
+ *
+ * `mobile` swaps the outer box from the fixed 1440-space absolute position to
+ * a plain relative box that fills whatever percentage-sized wrapper MobileMap
+ * gives it — everything else (poster fallback, tilt, error recovery) is
+ * identical on both layouts.
  */
-export default function HeroCarousel() {
+export default function HeroCarousel({ mobile = false }) {
   const wrapRef = useRef(null)
   const videoRef = useRef(null)
 
@@ -42,28 +65,40 @@ export default function HeroCarousel() {
     }
   }
 
+  const scale = mobile ? 1.9 : 2.55
+
   return (
     <div
-      className="pointer-events-none absolute z-20"
-      style={{ left: 469, top: 170, width: 511, height: 631, perspective: 1000 }}
+      className={mobile ? 'pointer-events-none relative h-full w-full' : 'pointer-events-none absolute z-20'}
+      style={mobile ? { perspective: 1000 } : { left: 469, top: 170, width: 511, height: 631, perspective: 1000 }}
     >
       <div
         ref={wrapRef}
         className="h-full w-full animate-floaty"
         style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
       >
-        <video
-          ref={videoRef}
-          className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
-          style={{ transform: 'scale(2.55)', transformOrigin: 'center center' }}
-          src="/assets/carousel_hero_v2.webm"
-          autoPlay
-          loop
-          muted
-          playsInline
-          onCanPlay={ensurePlay}
-          onError={onError}
-        />
+        {NEEDS_POSTER_FALLBACK ? (
+          <img
+            className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
+            style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+            src="/assets/carousel_hero_v2_poster.png"
+            alt=""
+            draggable={false}
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
+            style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+            src="/assets/carousel_hero_v2.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
+            onCanPlay={ensurePlay}
+            onError={onError}
+          />
+        )}
       </div>
     </div>
   )
