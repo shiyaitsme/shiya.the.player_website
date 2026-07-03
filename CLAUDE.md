@@ -431,37 +431,31 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   are **not uploaded yet** — this is expected, not a bug; `WorkBlock`'s
   `onError` fallback shows the title as text instead of a broken image.
   Nudge the user for them when it's relevant, don't fabricate placeholders.
-- **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work,
-  even though this is less likely to bite you now.** The repo's actual
-  default branch (`git remote show origin` → "HEAD branch") is
-  `claude/wonderful-shannon-9rdua0`, confusingly *not* named `main` — for a
-  long time it only had the user's raw asset uploads, never merged with the
-  real code branches. A session once built the mobile branch straight off
-  it and silently lost the butterfly/ArchiveWorld/PNG-nav/de-duped-lines
-  work that only lived on `busy-maxwell-kzpt97`. **This has now been fixed
-  at the root** — the default branch was merged up to full parity with the
-  live branch (see below) — but a *second*, independent session made the
-  identical mistake in parallel before that fix landed (built a whole
-  parallel `WorldArchive` off the stale default, branch
-  `claude/world-archive-redesign-vdf9o6` — that work has since been
-  ported in, see the Works-page 3D section; the branch itself is now stale/
-  absorbed, don't pull from it again). **Moral: still `git branch -a` /
-  `git fetch` and sanity-check you're not on some *third* orphaned branch
-  before assuming the default is current** — nothing stops another session
-  from repeating this pattern on a brand-new branch name.
-- **Keep the default branch (`claude/wonderful-shannon-9rdua0`) in sync.**
-  Whenever you push meaningful work to the live branch, also
-  `git push origin HEAD:claude/wonderful-shannon-9rdua0` so a fresh session
-  that (reasonably) trusts the default branch actually lands on current
-  code instead of history repeating itself a third time.
-- **Live working branch: `claude/mobile-responsive-design-j4zpzc`** (rebuilt
-  from `busy-maxwell-kzpt97`, which is now just its stale parent — don't
-  branch from `busy-maxwell-kzpt97` again, branch from *this* one). Has
-  everything `busy-maxwell-kzpt97` had (3D butterfly, ArchiveWorld, glass
-  ProjectModal, lime PNG nav, de-duped `lines.svg`) **plus** the full mobile
-  implementation below. Other branches: `pensive-goodall-749qae` (older),
-  `wonderful-shannon-9rdua0` (the user's raw asset uploads only — pull new
-  assets from whichever branch she uploaded them to, usually this one).
+- **Branch history was a real, repeated source of confusion (multiple
+  sessions built work on the wrong/stale branch and lost it) — this was
+  fixed at the root on 2026-07-03, not just patched around.** Five branches
+  (`claude/wonderful-shannon-9rdua0`, `claude/mobile-responsive-design-j4zpzc`,
+  `claude/world-archive-redesign-vdf9o6`, `claude/pensive-goodall-749qae`,
+  `claude/busy-maxwell-kzpt97`) had all diverged at different points, and it
+  turned out every one of them was already a pure ancestor of one HEAD (verified
+  with `git merge-base --is-ancestor` for each pair — zero unique commits on
+  any of them) — so instead of continuing to hand-sync N branches after every
+  push, all five were **fast-forwarded to point at that same single commit**.
+  **Going forward: don't reintroduce a multi-branch workflow.** Do all work
+  on the branch this session/task was assigned, push once, done — no manual
+  "also push to the other branches" step needed *unless a future session
+  independently branches off again* (which would recreate exactly this
+  problem). If you ever see these branches point to different commits again,
+  that means someone branched off instead of continuing on the shared one —
+  treat it as a bug to fix (fast-forward/merge back together), not a new
+  permanent multi-branch reality.
+  - **The user still has to flip the GitHub repo's default branch by hand**
+    (Settings → Branches → Default branch) — no tool available to a coding
+    session can do this via the API used here. Until she does, `git remote
+    show origin` will keep reporting `claude/wonderful-shannon-9rdua0` as
+    default, which is harmless now (it's the same commit as every other
+    branch) but still worth pointing at the actual intended branch, e.g.
+    `claude/mobile-responsive-design-j4zpzc`, for a cleaner GitHub UI default.
 - **Home-map nav clusters (`ShardGrid.jsx`) are now ONE container each.** The
   shard image + its lime nav label are packed in a single absolutely-positioned
   `flex flex-col items-center` div anchored at the Figma image coords
