@@ -50,7 +50,9 @@ src/
    ├─ Background.jsx      ← bg.png + halftone.png (+ CSS fallbacks), parallax
    ├─ MapLines.jsx       ← renders /assets/lines.svg (desktop lime lines)
    ├─ HeroCarousel.jsx   ← carousel_hero_v2.webm, GSAP 3D tilt, `mobile` prop,
-   │                        iOS/Safari alpha-webm poster fallback
+   │                        iOS/Safari fall back to an animated alpha WebP
+   │                        (carousel_hero_v2_mobile.webp; still PNG is a
+   │                        last-resort fallback if even that fails to load)
    ├─ ShardGrid.jsx      ← desktop: the 4 shards + lime nav labels (Figma coords)
    ├─ StarField.jsx      ← desktop: black-asterisk Gachapon nodes
    ├─ NavLabel.jsx       ← the lime nav-word PNG (shared by desktop + mobile)
@@ -70,9 +72,15 @@ breakpoint — not a scaled/panned copy of the 1440×900 composition, but a
 separate proportional layout so everything is reachable with a normal tap,
 no pinch or pan:
 - **Anchors are `%`-of-viewport**, not Figma px: `mobileHub` / `mobileShards`
-  / `mobileStars` in `projects.js`. Tune those numbers to reflow the layout.
-- **Lines are computed at runtime** (`bowPath()` in `MobileMap.jsx`, a
-  quadratic curve from the carousel hub to each shard) instead of a baked SVG.
+  / `mobileStars` in `projects.js`. Only need to be roughly right — see below.
+- **Exactly 5 connector lines, computed at runtime from LIVE element
+  positions** (`src/hooks/useMobileLines.js`, not a baked SVG): a straight
+  line through about+works bled to both screen edges; one smooth bezier arc
+  from contact, cradling under the carousel, out to the right edge; and a
+  contact–manifesto–works triangle. Endpoints are `getBoundingClientRect()`
+  centers, not the raw `%` numbers, so the layout can't drift out of sync —
+  see `CLAUDE.md` for the (surprisingly involved) history of getting the arc
+  to read as one smooth curve instead of a polyline.
 - Same art as desktop (shard PNGs, lime nav-word PNGs via the shared
   `NavLabel.jsx`, the carousel, `star.svg`) — only the arrangement differs.
 - If you add a 5th shard/section, add its entry to `mobileShards` too (it

@@ -127,19 +127,19 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
 
 ## Status / next ideas
 - **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work.**
-  A session built the mobile branch straight off stale `main` once and
+  A session once built the mobile branch straight off stale `main` and
   silently lost the butterfly/ArchiveWorld/PNG-nav/de-duped-lines work that
-  lives only on `busy-maxwell-kzpt97` — `main` (`wonderful-shannon-9rdua0`) is
+  only lived on `busy-maxwell-kzpt97` — `main` (`wonderful-shannon-9rdua0`) is
   *only* the user's raw asset uploads, never merged with the real code
-  branches. `git branch -a`/`git fetch` before assuming you're on the latest.
-- **Live working branch: `claude/busy-maxwell-kzpt97`** = the good
-  `pensive-goodall-749qae` base (3D butterfly, ArchiveWorld, glass ProjectModal,
-  lime PNG nav, de-duped `lines.svg`) + this session's home-map polish. ⚠️ It was
-  rebuilt by `git reset --hard` onto pensive-goodall, so it diverged from the
-  stale `87304b5` lineage. Other branches: `pensive-goodall-749qae` (older good
-  base), `wonderful-shannon-9rdua0` (the user's raw asset uploads — this is where
-  `carousel_hero_v2.webm` came from; pull new assets from whichever branch she
-  uploaded them to).
+  branches. `git branch -a` / `git fetch` before assuming you're on the latest.
+- **Live working branch: `claude/mobile-responsive-design-j4zpzc`** (rebuilt
+  from `busy-maxwell-kzpt97`, which is now just its stale parent — don't
+  branch from `busy-maxwell-kzpt97` again, branch from *this* one). Has
+  everything `busy-maxwell-kzpt97` had (3D butterfly, ArchiveWorld, glass
+  ProjectModal, lime PNG nav, de-duped `lines.svg`) **plus** the full mobile
+  implementation below. Other branches: `pensive-goodall-749qae` (older),
+  `wonderful-shannon-9rdua0` (the user's raw asset uploads only — pull new
+  assets from whichever branch she uploaded them to, usually this one).
 - **Home-map nav clusters (`ShardGrid.jsx`) are now ONE container each.** The
   shard image + its lime nav label are packed in a single absolutely-positioned
   `flex flex-col items-center` div anchored at the Figma image coords
@@ -157,27 +157,60 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   shards/stars (z-30) and the mid-line segments hide beneath the opaque images.
 - **manifesto shard** nudged right to `left:1197.41` so its left edge clears the
   converging lines/asterisk (it used to sit on top of them).
-- **Responsive / mobile — IMPLEMENTED** (branch `claude/mobile-responsive-design-j4zpzc`,
-  built on top of this branch). Desktop (`≥768px`, `useIsMobile.js`) is
-  **100% untouched** — still the pixel-1:1 1440×900 stage. Phone-width
-  viewports render `MobileMap.jsx` instead of `.stage`/`ShardGrid`/`StarField`/
-  `MapLines` — a proportional generative layout per the idea above:
+- **Responsive / mobile — IMPLEMENTED**, several rounds of user feedback deep.
+  Desktop (`≥768px`, `useIsMobile.js`) is **100% untouched** — still the
+  pixel-1:1 1440×900 stage. Phone-width viewports render `MobileMap.jsx`
+  instead of `.stage`/`ShardGrid`/`StarField`/`MapLines` — a proportional
+  layout, hub (carousel) roughly mid-screen with the 4 shards fanned around
+  it in a diamond, not a scaled/panned copy of the desktop composition.
   - `mobileHub` / `mobileShards` / `mobileStars` in `projects.js` are **%-of-
-    viewport** anchors (not the 1440×900 px space), hand-tuned to fill a
-    portrait screen with no pinch/pan/scroll needed.
-  - Lines are computed at runtime (`bowPath()` in `MobileMap.jsx`, a quadratic
-    bezier from the hub to each shard) instead of a baked SVG.
+    viewport** anchors (not the 1440×900 px space). Only need to be "roughly
+    right" — see the line-drawing note below for why.
+  - **`src/hooks/useMobileLines.js`** draws the connector lines — this went
+    through several iterations, keep the lesson even if you touch it again:
+    - Endpoints/waypoints are **always** the elements' LIVE
+      `getBoundingClientRect()` centers (or edges — see `edgesOf`), never the
+      raw `%` numbers from `projects.js`. That's why the `%` anchors only need
+      to be approximate.
+    - The user asked for exactly 5 lines, nothing else (an earlier hub→every-
+      shard "spoke" version was deleted for being "太混乱" / too busy):
+      1. `through` — straight line through `about` + `works`, bled past BOTH
+         ends to the screen edge (`rayToEdge()` clips a ray to the container
+         rect — same "lines run off the page" language as desktop).
+      2. `arc` — contact → a "cradle" point (x = works.x, y = midpoint of the
+         carousel's live bottom edge and about's live top edge, so it cradles
+         the carousel from underneath instead of cutting through its center)
+         → a fixed exit point on the right edge just below mid-height.
+      3–5. A **triangle** directly connecting contact–manifesto,
+         manifesto–works, works–contact (`about` is deliberately NOT part of
+         this triangle).
+    - **The `arc` specifically ate 4 failed attempts before landing** —
+      worth reading `bumpThrough()`'s doc comment in the file, but briefly:
+      (a) two bezier pieces stitched at the cradle point, even
+      tangent-matched (C1-continuous) — still read as a polyline to the human
+      eye, because *curvature* (not just tangent) jumped at the seam; (b) the
+      true circumcircle through all 3 points — genuinely constant curvature,
+      but whichever of its 2 possible arcs actually passes through the
+      cradle point can be the **major** arc (>180°), which produced a huge
+      unwanted loop off the edge of the screen for this layout; (c) landed on
+      `bumpThrough()` — ONE unbroken cubic bezier (no seam anywhere, so no
+      curvature jump possible), both control points offset from the
+      contact→edge chord by the cradle's own perpendicular deviation, scaled
+      by a `factor` (currently 1.35) that directly dials how tight/tensioned
+      it looks. If asked to make it rounder/tighter again, tune that one
+      number first before re-architecting.
   - The label PNG is reused via a shared `NavLabel.jsx` (extracted out of
-    `ShardGrid.jsx` so desktop + mobile can't drift apart).
-  - **Framer Motion gotcha hit twice building this**: `motion.*` components
-    write their own inline `transform` (and appear to silently drop `margin*`
-    too) for whatever's in `animate`/`style`, which clobbers a Tailwind
-    `-translate-x-1/2` class OR a `marginLeft` used for %-based centering. Fix:
-    put the centering `left/top/marginLeft` on a **plain, non-motion** wrapper
-    div, and let the `motion.*` child own only the entrance/hover/tap
-    animation with no positioning styles of its own. All three mobile pieces
-    (logo, shards, stars) use this split — don't collapse them back into one
-    element.
+    `ShardGrid.jsx` so desktop + mobile can't drift apart). Accepts a `style`
+    prop — `MobileMap` passes `maxWidth:'none'` (see the squish bug below).
+  - **Framer Motion gotcha hit repeatedly building this**: `motion.*`
+    components write their own inline `transform` (and appear to silently
+    drop `margin*` too) for whatever's in `animate`/`style`, which clobbers a
+    Tailwind `-translate-x-1/2` class OR a `marginLeft` used for %-based
+    centering. Fix: put the centering `left/top/marginLeft` on a **plain,
+    non-motion** wrapper div, and let the `motion.*` child own only the
+    entrance/hover/tap animation with no positioning styles of its own. All
+    mobile pieces (logo, shards, stars) use this split — don't collapse them
+    back into one element.
   - **Nav-label squish bug (latent on desktop too, just not reported)**: an
     `<img>` inside a narrower flex parent gets capped by Tailwind preflight's
     `img{max-width:100%}`, squishing the label horizontally to the shard's
@@ -187,21 +220,52 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
     `NavLabel` passes `style={{ maxWidth: 'none' }}` so labels like
     "manifesto" (173×20 source, very wide relative to its shard) render at
     full width instead of getting crushed unreadable.
-  - Carousel poster fallback (see below) is reused via `<HeroCarousel mobile />`.
   - `NumberBadge.jsx` had its `drop-shadow-[...]` filter removed — same defect
     class as the nav-label `text-shadow` fixed earlier (`7bae901`): a small
     offset shadow on a small alpha-edged PNG reads as a dirty/un-transparent
     box on some engines (user-reported on iOS Safari), not a subtle shadow.
-  - **iOS/Safari carousel fix**: desktop Safari + every iOS browser (forced
-    WebKit) don't composite the alpha channel of `carousel_hero_v2.webm` — you
-    get a solid black box. No reliable feature-detect exists, so
-    `HeroCarousel.jsx` UA-sniffs (`NEEDS_POSTER_FALLBACK`) and swaps to
-    `carousel_hero_v2_poster.png`, a real transparent frame extracted with
-    `ffmpeg -c:v libvpx-vp9 -i carousel_hero_v2.webm -update 1 -frames:v 1
-    -pix_fmt rgba out.png` — **you must force the `libvpx-vp9` decoder**; the
-    default `vp9` decoder ffmpeg picks silently drops the alpha plane and
-    every frame comes out opaque even though `ffprobe` reports
-    `alpha_mode: 1`.
+  - **Butterfly on mobile** (`ButterflyEgg.jsx`): `.bfly-glow` (the lime
+    "breathing halo" under the docked butterfly) was **removed entirely** —
+    user called it ugly, don't reintroduce it. The 3D model itself is 1/3 size
+    on phones (`targetSize` prop, `0.8` vs desktop's `2.4`, gated on
+    `useIsMobile()`) — desktop untouched.
+  - **iOS/Safari carousel — two layered problems, both fixed:**
+    1. *Black box*: desktop Safari + every iOS browser (forced WebKit) don't
+       composite the alpha channel of `carousel_hero_v2.webm` at all — solid
+       black box. No reliable feature-detect exists, so `HeroCarousel.jsx`
+       UA-sniffs (`NEEDS_POSTER_FALLBACK`) and swaps to a pre-baked asset
+       instead of the `<video>` on those engines.
+    2. *That pre-baked asset must be animated, not a single frame* — a static
+       PNG poster "fixes" the black box but the carousel visibly stops
+       spinning, which was reported as a bug in its own right. The real fix
+       is **`carousel_hero_v2_mobile.webp`** — an *animated* WebP with alpha
+       (Safari/iOS have supported alpha WebP since v14). `carousel_hero_v2_
+       poster.png` (single frame) is kept only as a last-resort `onError`
+       fallback if the animated webp itself fails to load.
+    3. **Both of those assets must go through an "unpremultiply" pass or you
+       get a black fringe around every edge.** `ffmpeg -c:v libvpx-vp9` is
+       the only decoder that surfaces alpha at all (the default `vp9`
+       decoder silently drops it, opaque frames despite `ffprobe` reporting
+       `alpha_mode: 1`) — but even with that decoder, ffmpeg's raw
+       frame-extraction hands back the source's **premultiplied** alpha as
+       if it were straight alpha. Diagnostic: sample a partial-alpha edge
+       pixel and divide its RGB by its own alpha — if that lands on a
+       plausible color (it did: near-black edge pixels unpremultiplied into
+       normal pink/cream carousel tones), the source is premultiplied and
+       every edge pixel needs `rgb = clamp(rgb * 255 / alpha, 0, 255)`
+       applied per-pixel before re-encoding. (Desktop never showed this
+       because Chrome's native WebM/VP9 *video* decode path is
+       alpha-spec-compliant; only ffmpeg's still-frame dump isn't.) Redo
+       both assets this way if you ever regenerate them from the source
+       `.webm` — see git history around commit `07f099c` for the exact
+       Python un-premultiply + re-encode script (extract RGBA PNG frames →
+       numpy `rgb*255/alpha` per pixel → Pillow `save_all=True` animated
+       webp). Also: `quality=90`, `560x315`, `15fps` was the size/crispness
+       balance that stuck — an earlier `quality=50, 420x236` pass visibly
+       fuzzed and speckled the alpha edges (reported as "blurry, dirty
+       edges"). Pillow's animated-webp `method=6` encode is **slow** (~4min
+       for 150 frames here) — run it via a background task, don't block on it
+       inline.
 - Project deep-dive modal (`ProjectModal` + `CodeBlock` hand-rolled highlighter +
   `ArchDiagram`) opens from each work; `caseStudy` content is in `projects.js`.
 - Figma has empty `Frame 3–5` reserved for future sections.
