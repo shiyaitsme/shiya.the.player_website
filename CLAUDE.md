@@ -120,24 +120,83 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   1/3 on mobile via `targetSize` prop (`useIsMobile`), desktop untouched.
   Click → `enterArchiveWorld` (in `Page.jsx`).
 - `components/butterfly/WorldArchive.jsx` — black/blue retro-futurist scene:
-  procedural checkerboard floor, refractive glass sphere
-  (`MeshTransmissionMaterial` from `@react-three/drei`), starfield, works as
-  blue-tinted floating planes with a lime bloom rim, `@react-three/
-  postprocessing` (Bloom/ChromaticAberration/Noise/Vignette). Replaced the
-  original `ArchiveWorld.jsx` (a pale "misty card-cloud" — deleted, don't
-  resurrect it) — see the Status entry below for why/how. Clicking a
-  floating work calls `onSelectWork`, wired up through `Page.jsx` to
-  `App.jsx`'s `openWork`, same as the star Gachapon.
+  procedural checkerboard floor (now `MeshReflectorMaterial` — a canvas-drawn
+  checker texture + blurred mirror, so the floor shows a real soft reflection
+  of the sphere/cards), refractive glass sphere (`MeshTransmissionMaterial`),
+  starfield, `@react-three/postprocessing` (Bloom/ChromaticAberration/Noise/
+  Vignette). Replaced the original `ArchiveWorld.jsx` (a pale "misty
+  card-cloud" — deleted, don't resurrect it).
+- **The floating pictures are the 6 uploaded `world_archive_pictures/*.png`**
+  (extracted from her `world_archive_pictures.zip`, kept alongside it — the
+  zip is the source upload, the extracted folder is what the app actually
+  fetches; one filename has a trailing space (`See_you_in_spring .png`) so
+  every reference goes through `encodeURI`, same reasoning as the butterfly
+  FBX path). These are declared inline in `WorldArchive.jsx` (`PICTURES` /
+  `archiveWorks`), **not** in `projects.js` `works[]` — she hasn't written
+  copy for them yet, so `body: []` and no `caseStudy`. Clicking one still
+  calls `onSelectWork` → the normal work-detail `Page`, same plumbing as the
+  star Gachapon; it'll just render an almost-empty detail page until she
+  adds real copy for these pieces in `projects.js` (expected, not a bug).
+- **Layout/interaction, several specific asks baked in:**
+  - Cards sit on a loose cylinder around the sphere (radius 3.6–5.4, height
+    -0.4–2.2, seeded `mulberry32` so it's stable across renders, not
+    re-shuffled every mount).
+  - Each card **billboards toward the camera every frame** — but the
+    correct way for a card nested inside a rotating group: call
+    `.lookAt()` on the object itself (which is parent-aware via
+    `updateWorldMatrix`), save/restore the quaternion, then `slerp` toward
+    it. A detached dummy `Object3D.lookAt()` (the naive approach) computes
+    an orientation with NO parent, and just copying that quaternion onto a
+    nested child ignores the parent's rotation — looks fine standing still,
+    visibly wrong the instant the group spins. If you touch the billboard
+    logic again, keep it as save-quat → `ref.current.lookAt()` → copy-target
+    → restore-quat → slerp, not a standalone lookAt helper object.
+  - **Dragging rotates the picture-cloud `<group>`, not the camera** —
+    `OrbitControls` only handles scroll-to-zoom (`enableRotate={false}`).
+    This was explicit: the glass sphere + floor need to read as a *fixed*
+    depth/parallax anchor while the cards swirl around it, which camera-
+    orbiting the whole scene together wouldn't give. Drag handling lives in
+    `useDragRotate()` — plain `pointerdown/move/up` listeners on
+    `gl.domElement`/`window` (**must be a `useEffect`, not `useMemo`** —
+    `useMemo`'s return value is never used for cleanup, so a `useMemo` with
+    an addEventListener + return-cleanup silently never removes the
+    listeners), with a small velocity-decay inertia and a slow idle drift
+    when untouched.
+  - **Lazy-load gate**: each card is wrapped in `LazyWorkPlane`, which
+    checks `camera` frustum-vs-world-position every frame and only mounts
+    the real `useLoader(TextureLoader, …)` component the first time the
+    card's point enters the frustum (a `THREE.Frustum` built from
+    `camera.projectionMatrix * camera.matrixWorldInverse`). Before that (and
+    as the error-boundary fallback) it renders `FallbackPlane`, an
+    untextured tinted plane so the composition doesn't have holes.
+  - Hover brightens the card tint (`#9fc2ff` → `#e3edff`), bumps the rim
+    opacity (0.32 → 0.75), and scales up slightly (1.0 → 1.08, lerped) as
+    the "selected" highlight the user asked for.
 - **Pin `@react-three/drei` to `^9.122.0` and `@react-three/postprocessing`
   to `^2.19.1`** if you ever reinstall — a bare `npm install @react-three/
   drei` grabs v10, which requires `@react-three/fiber@^9` and conflicts with
   our fiber@8. `three` stays at `^0.169.0`; no need to downgrade to 0.160
   despite what you might see referenced elsewhere.
-- FBX path has spaces/`+` → `encodeURI`. **All 3D scenes are UNVERIFIED
-  visually** (no WebGL here) — ask the user how they actually look and expect
-  to tune material/flap/scene on feedback. Headless verification is limited
-  to confirming the shell/HUD mounts (SafeMount + SceneBoundary degrade
-  gracefully instead of crashing when WebGL context creation fails).
+- FBX path has spaces/`+` → `encodeURI`.
+- **Headless WebGL here is possible but fragile — don't trust it past a
+  sanity check.** `puppeteer.launch({ args: [...,
+  '--enable-unsafe-swiftshader'] })` *does* get a software GL context here
+  (contradicts the old "cannot be rendered here" note — that session likely
+  didn't pass this flag), and it's enough to confirm the scene graph is
+  wired correctly (billboarded cards, lazy-loaded textures, glass sphere all
+  rendered in a captured screenshot). But stacking `MeshReflectorMaterial` +
+  `MeshTransmissionMaterial` + the full `EffectComposer` reliably triggers
+  `THREE.WebGLRenderer: Context Lost` under this swiftshader path, and a
+  second render-target-heavy interaction (mouse-wheel zoom) after that can
+  crash the whole headless tab (`TargetCloseError: Target closed`). This is
+  a sandbox software-rasterizer ceiling, not a code bug — but it's also a
+  genuine signal: those two materials are the most expensive things in the
+  scene, so real-hardware perf headroom is smaller than it looks. Current
+  mitigations (don't undo without reason): reflector `resolution={256}`
+  `blur={[160,60]}`, transmission `resolution={256} samples={4}`, Canvas
+  `dpr={[1,1.3]}`, `Stars count={1400}`. **Full interactive verification
+  (does dragging stay smooth, does it look right) still has to happen on
+  the user's real Mac GPU** — ask for feedback and expect to tune on it.
 
 ## Status / next ideas
 - **⚠️ ALWAYS `git fetch origin` and check ALL branches before starting work,
