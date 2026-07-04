@@ -47,16 +47,15 @@ export default function ScrollGallery() {
         {/* title graphic sits fixed and centered IN FRONT of the photos,
             closer to the viewer than anything else in this section — never
             animated, just sitting over the flight of tiles for the whole
-            pinned scroll */}
+            pinned scroll. Inverted to white + mix-blend-difference instead
+            of a drop-shadow glow: it self-inverts against whatever's behind
+            it (dark over light photos, light over dark ones) with no
+            halo/shadow artifact. */}
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <img
             src="/assets/scroll_gallery_luminous-flight_v2.svg"
             alt=""
-            className="max-h-[75vh] max-w-[75vw] object-contain"
-            style={{
-              filter:
-                'drop-shadow(0 0 6px rgba(255,255,255,0.85)) drop-shadow(0 0 16px rgba(255,255,255,0.55))',
-            }}
+            className="invert mix-blend-difference max-h-[75vh] max-w-[75vw] object-contain"
           />
         </div>
       </div>
