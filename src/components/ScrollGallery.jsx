@@ -32,15 +32,28 @@ export default function ScrollGallery() {
   return (
     <section ref={trackRef} className="relative z-20 h-[300vh] w-full">
       <div className="sticky top-0 h-dvh w-full overflow-hidden">
-        {reduceMotion ? (
-          <StaticGrid />
-        ) : (
-          <SafeMount>
-            <Suspense fallback={<StaticGrid />}>
-              <ScrollGalleryScene trackRef={trackRef} />
-            </Suspense>
-          </SafeMount>
-        )}
+        {/* title graphic sits fixed and centered behind the photos for the
+            whole pinned section — never animated, just the flight of tiles
+            passing in front of/around it */}
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
+          <img
+            src="/assets/scorll_gallery_luminous-flight.png"
+            alt=""
+            className="max-h-[50vh] max-w-[50vw] object-contain"
+          />
+        </div>
+
+        <div className="relative z-10 h-full w-full">
+          {reduceMotion ? (
+            <StaticGrid />
+          ) : (
+            <SafeMount>
+              <Suspense fallback={<StaticGrid />}>
+                <ScrollGalleryScene trackRef={trackRef} />
+              </Suspense>
+            </SafeMount>
+          )}
+        </div>
       </div>
     </section>
   )
