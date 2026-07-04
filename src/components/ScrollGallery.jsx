@@ -12,14 +12,18 @@ function StaticGrid() {
   return (
     <div className="grid h-full w-full grid-cols-3 grid-rows-4 place-items-center gap-3 p-6 md:grid-cols-4 md:grid-rows-3 md:gap-4 md:p-10">
       {Array.from({ length: PHOTO_COUNT }, (_, i) => (
-        <img
-          key={i}
-          src={`/assets/scroll_gallery/scroll_gallery_${String(i + 1).padStart(2, '0')}.jpg`}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="aspect-square h-full w-full rounded-sm object-cover shadow-[0_18px_40px_rgba(20,16,31,0.18)]"
-        />
+        <div key={i} className="relative aspect-square h-full w-full">
+          <img
+            src={`/assets/scroll_gallery/scroll_gallery_${String(i + 1).padStart(2, '0')}.jpg`}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full rounded-sm object-cover shadow-[0_18px_40px_rgba(20,16,31,0.18)]"
+          />
+          {/* 35% black scrim so the white title text reads consistently
+              over every photo, light or dark */}
+          <div className="absolute inset-0 rounded-sm bg-black/35" />
+        </div>
       ))}
     </div>
   )
@@ -47,15 +51,15 @@ export default function ScrollGallery() {
         {/* title graphic sits fixed and centered IN FRONT of the photos,
             closer to the viewer than anything else in this section — never
             animated, just sitting over the flight of tiles for the whole
-            pinned scroll. Inverted to white + mix-blend-difference instead
-            of a drop-shadow glow: it self-inverts against whatever's behind
-            it (dark over light photos, light over dark ones) with no
-            halo/shadow artifact. */}
+            pinned scroll. It's a plain white-fill/white-stroke asset now,
+            rendered as-is — legibility over the photos comes from the 35%
+            black scrim on every tile (see Tile/StaticGrid), not from any
+            filter/blend-mode trick on the title itself. */}
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <img
-            src="/assets/scroll_gallery_luminous-flight_v2.svg"
+            src="/assets/scroll_gallery_luminous-flight_white-fill_white-stroke.svg"
             alt=""
-            className="invert mix-blend-difference max-h-[75vh] max-w-[75vw] object-contain"
+            className="max-h-[75vh] max-w-[75vw] object-contain"
           />
         </div>
       </div>

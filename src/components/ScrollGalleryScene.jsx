@@ -157,7 +157,11 @@ function Tile({ tile, texture, progressRef }) {
   return (
     <mesh ref={ref} position={[tile.startX, tile.startY, tile.startZ]}>
       <planeGeometry args={[UNIT, UNIT]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} />
+      {/* color tints the map multiplicatively — a flat 0.65 gray here is the
+          same math as a 35% black scrim composited over an opaque photo
+          (base * (1 - 0.35)), so every tile reads consistently darker for
+          the white title text without a second overlay plane/draw call */}
+      <meshBasicMaterial map={texture} color={[0.65, 0.65, 0.65]} transparent toneMapped={false} />
     </mesh>
   )
 }
