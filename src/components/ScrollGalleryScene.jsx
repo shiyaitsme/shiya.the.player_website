@@ -9,8 +9,22 @@ const UNIT = 2 // each square is 2x2 world units
 const GAP = 0.35
 const STEP = UNIT + GAP
 
-/** Deterministic pseudo-random (mulberry32) so the scatter doesn't reshuffle
- *  on every re-render/reload — same approach as WorldArchive's layout seed. */
+// How far the initial scatter sits outside each tile's final grid slot —
+// >1 pushes tiles out toward/past the viewport edge so the opening frame
+// reads as "surrounded by art," not a shrunk-down thumbnail array.
+const SPREAD_XY = 1.5
+const JITTER_XY = 0.45
+// Camera only pulls back a little from the exact-fit distance at rest —
+// combined with SPREAD_XY this is what keeps the opening frame full-bodied
+// instead of a tiny distant cluster.
+const CAMERA_START_MULT = 1.2
+
+const smoothstep = (t) => t * t * (3 - 2 * t)
+const deg = (d) => (d * Math.PI) / 180
+
+/** Deterministic pseudo-random (mulberry32) so the scatter/wobble seeds
+ *  don't reshuffle on every re-render/reload — same approach as
+ *  WorldArchive's layout seed. */
 function mulberry32(seed) {
   let a = seed
   return () => {
@@ -22,57 +36,122 @@ function mulberry32(seed) {
   }
 }
 
-/** Base grid position (fixed, never animated) + each tile's initial depth
- *  offset and tilt (animated to 0 as its own local scroll window completes).
- *  Depth directly drives the reveal window: tiles seeded further back
- *  (more negative z) get a later window, so the camera "reaches" shallow
- *  tiles first and deep ones last — the async, staggered pass-by. */
+const rand01 = (rand) => rand()
+const randRange = (rand, min, max) => min + rand() * (max - min)
+const randSign = (rand) => (rand() < 0.5 ? -1 : 1)
+
+/** Each tile's fixed final grid slot (x, y — never animated), its initial
+ *  scattered pose (position/scale/opacity it starts from), and its own
+ *  "kite" wobble signature (amplitude/frequency/phase per axis, all
+ *  different, so 12 tiles never sway in lockstep). The reveal window
+ *  (start/end) is derived from how far back a tile starts, so shallower
+ *  tiles settle into the grid first and deeper ones catch up later. */
 function useTileLayout() {
   return useMemo(() => {
     const rand = mulberry32(20260704)
-    const deg = (d) => (d * Math.PI) / 180
 
     return Array.from({ length: COLS * ROWS }, (_, i) => {
       const col = i % COLS
       const row = Math.floor(i / COLS)
-      const x = (col - (COLS - 1) / 2) * STEP
-      const y = ((ROWS - 1) / 2 - row) * STEP
+      const gridX = (col - (COLS - 1) / 2) * STEP
+      const gridY = ((ROWS - 1) / 2 - row) * STEP
 
-      const depth = 1 + rand() * 4 // 1..5 world units behind the flat grid plane
-      const rotX = (rand() * 2 - 1) * deg(15)
-      const rotY = (rand() * 2 - 1) * deg(15)
-      const rotZ = (rand() * 2 - 1) * deg(5)
+      const startZ = -randRange(rand, 1, 4)
+      const startX = gridX * SPREAD_XY + (rand01(rand) * 2 - 1) * JITTER_XY
+      const startY = gridY * SPREAD_XY + (rand01(rand) * 2 - 1) * JITTER_XY
+      const startScale = randRange(rand, 0.88, 1.08)
+      const startOpacity = randRange(rand, 0.5, 0.7)
 
-      const lateness = (depth - 1) / 4 // 0 (shallow) .. 1 (deepest)
+      // base tilt + a wobble riding on top of it — both randomized per axis
+      const baseRotX = randSign(rand) * deg(randRange(rand, 10, 20))
+      const baseRotY = randSign(rand) * deg(randRange(rand, 10, 20))
+      const baseRotZ = randSign(rand) * deg(randRange(rand, 3, 7))
+      const wobbleAmpX = deg(randRange(rand, 4, 10))
+      const wobbleAmpY = deg(randRange(rand, 4, 10))
+      const wobbleAmpZ = deg(randRange(rand, 1.5, 4))
+      const freqX = randRange(rand, 0.4, 1.1)
+      const freqY = randRange(rand, 0.4, 1.1)
+      const freqZ = randRange(rand, 0.4, 1.1)
+      const phaseX = randRange(rand, 0, Math.PI * 2)
+      const phaseY = randRange(rand, 0, Math.PI * 2)
+      const phaseZ = randRange(rand, 0, Math.PI * 2)
+
+      const lateness = (-startZ - 1) / 3 // 0 (shallow) .. 1 (deepest)
       const start = lateness * 0.5
       const end = Math.min(1, start + 0.55)
 
-      return { x, y, depth, rotX, rotY, rotZ, start, end }
+      return {
+        gridX,
+        gridY,
+        startX,
+        startY,
+        startZ,
+        startScale,
+        startOpacity,
+        baseRotX,
+        baseRotY,
+        baseRotZ,
+        wobbleAmpX,
+        wobbleAmpY,
+        wobbleAmpZ,
+        freqX,
+        freqY,
+        freqZ,
+        phaseX,
+        phaseY,
+        phaseZ,
+        start,
+        end,
+      }
     })
   }, [])
+}
+
+/** Non-monotonic rotation envelope: through the first 70% of a tile's own
+ *  local journey the tilt actually GROWS past its resting amplitude (the
+ *  "brushing past at an angle" perspective swoop the reference site has),
+ *  holds near that peak through 70-85%, then rapidly smooths to dead flat
+ *  by 100% so every tile still docks cleanly into the grid. */
+function rotationEnvelope(local) {
+  if (local < 0.7) {
+    return 1 + 0.6 * smoothstep(local / 0.7)
+  }
+  if (local < 0.85) {
+    return THREE.MathUtils.lerp(1.6, 1.5, smoothstep((local - 0.7) / 0.15))
+  }
+  return THREE.MathUtils.lerp(1.5, 0, smoothstep((local - 0.85) / 0.15))
 }
 
 function Tile({ tile, texture, progressRef }) {
   const ref = useRef(null)
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     const mesh = ref.current
     if (!mesh) return
     const p = progressRef.current
     const local = THREE.MathUtils.clamp((p - tile.start) / (tile.end - tile.start), 0, 1)
-    const eased = local * local * (3 - 2 * local) // smoothstep — gentle ease, no overshoot
+    const posT = smoothstep(local)
+    const t = clock.elapsedTime
 
-    mesh.position.z = -tile.depth * (1 - eased)
-    mesh.rotation.x = tile.rotX * (1 - eased)
-    mesh.rotation.y = tile.rotY * (1 - eased)
-    mesh.rotation.z = tile.rotZ * (1 - eased)
-    const scale = 0.82 + 0.18 * eased
-    mesh.scale.setScalar(scale)
-    if (mesh.material) mesh.material.opacity = 0.08 + 0.92 * eased
+    mesh.position.set(
+      THREE.MathUtils.lerp(tile.startX, tile.gridX, posT),
+      THREE.MathUtils.lerp(tile.startY, tile.gridY, posT),
+      THREE.MathUtils.lerp(tile.startZ, 0, posT),
+    )
+
+    const envelope = rotationEnvelope(local)
+    mesh.rotation.set(
+      (tile.baseRotX + tile.wobbleAmpX * Math.sin(t * tile.freqX + tile.phaseX)) * envelope,
+      (tile.baseRotY + tile.wobbleAmpY * Math.sin(t * tile.freqY + tile.phaseY)) * envelope,
+      (tile.baseRotZ + tile.wobbleAmpZ * Math.sin(t * tile.freqZ + tile.phaseZ)) * envelope,
+    )
+
+    mesh.scale.setScalar(THREE.MathUtils.lerp(tile.startScale, 1, posT))
+    if (mesh.material) mesh.material.opacity = THREE.MathUtils.lerp(tile.startOpacity, 1, posT)
   })
 
   return (
-    <mesh ref={ref} position={[tile.x, tile.y, -tile.depth]}>
+    <mesh ref={ref} position={[tile.startX, tile.startY, tile.startZ]}>
       <planeGeometry args={[UNIT, UNIT]} />
       <meshBasicMaterial map={texture} transparent toneMapped={false} />
     </mesh>
@@ -109,7 +188,7 @@ function CameraRig({ trackRef, progressRef }) {
     const fitWidth = gridWidth / 2 / (Math.tan(vFov / 2) * aspect)
     const fitDistance = Math.max(fitHeight, fitWidth) * 1.15
 
-    const startZ = fitDistance * 3.4
+    const startZ = fitDistance * CAMERA_START_MULT
     camera.position.z = THREE.MathUtils.lerp(startZ, fitDistance, smoothed.current)
   })
 
