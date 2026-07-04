@@ -95,7 +95,7 @@ body {
 .nav-label {
   font-family: 'Butler Free Med St', Georgia, serif;
   color: #b6ff00;
-  font-size: clamp(15px, 1.4vw, 22px);
+  font-size: clamp(45px, 4.2vw, 66px);
   letter-spacing: 0.02em;
   /* NO text-shadow / drop-shadow — 100% clean, no doubled ghost layer */
   transition: transform 0.25s ease, filter 0.25s ease;
