@@ -11,6 +11,7 @@ import ShardGrid from './components/ShardGrid'
 import ShardZoom from './components/ShardZoom'
 import MobileMap from './components/MobileMap'
 import Page from './components/Page'
+import ScrollGallery from './components/ScrollGallery'
 import { sections } from './data/projects'
 
 /**
@@ -41,41 +42,45 @@ export default function App() {
   const openWork = (work) => setView({ type: 'work', work })
 
   return (
-    <main className="relative h-dvh w-screen overflow-hidden">
+    <main className="relative w-screen">
       <Background />
 
-      {isMobile ? (
-        <div
-          className="absolute inset-0 z-10"
-          style={{
-            paddingTop: 'env(safe-area-inset-top)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-          }}
-        >
-          <MobileMap onOpen={openSection} onSelectWork={openWork} />
-        </div>
-      ) : (
-        <div ref={stageRef} className="stage">
-          <MapLines />
-          <HeroCarousel />
+      <div className="relative h-dvh w-screen overflow-hidden">
+        {isMobile ? (
+          <div
+            className="absolute inset-0 z-10"
+            style={{
+              paddingTop: 'env(safe-area-inset-top)',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }}
+          >
+            <MobileMap onOpen={openSection} onSelectWork={openWork} />
+          </div>
+        ) : (
+          <div ref={stageRef} className="stage">
+            <MapLines />
+            <HeroCarousel />
 
-          <motion.img
-            src="/assets/logo_s.svg"
-            alt="Shiya the Player"
-            className="absolute z-30 animate-floaty"
-            style={{ left: 705, top: 115, width: 40, height: 55 }}
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          />
+            <motion.img
+              src="/assets/logo_s.svg"
+              alt="Shiya the Player"
+              className="absolute z-30 animate-floaty"
+              style={{ left: 705, top: 115, width: 40, height: 55 }}
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            />
 
-          {/* Feature A — random work Gachapon */}
-          <StarField onSelect={openWork} />
+            {/* Feature A — random work Gachapon */}
+            <StarField onSelect={openWork} />
 
-          {/* Feature B — green shards + lime nav */}
-          <ShardGrid onOpen={openSection} />
-        </div>
-      )}
+            {/* Feature B — green shards + lime nav */}
+            <ShardGrid onOpen={openSection} />
+          </div>
+        )}
+      </div>
+
+      <ScrollGallery />
 
       {/* content page (section or single work) */}
       <AnimatePresence>
