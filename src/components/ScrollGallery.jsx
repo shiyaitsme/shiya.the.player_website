@@ -10,7 +10,7 @@ const PHOTO_COUNT = 12
 
 function StaticGrid() {
   return (
-    <div className="grid h-full w-full grid-cols-4 grid-rows-3 place-items-center gap-3 p-6 md:gap-4 md:p-10">
+    <div className="grid h-full w-full grid-cols-3 grid-rows-4 place-items-center gap-3 p-6 md:grid-cols-4 md:grid-rows-3 md:gap-4 md:p-10">
       {Array.from({ length: PHOTO_COUNT }, (_, i) => (
         <img
           key={i}
@@ -53,6 +53,10 @@ export default function ScrollGallery() {
             src="/assets/scroll_gallery_luminous-flight_v2.svg"
             alt=""
             className="max-h-[75vh] max-w-[75vw] object-contain"
+            style={{
+              filter:
+                'drop-shadow(0 0 6px rgba(255,255,255,0.85)) drop-shadow(0 0 16px rgba(255,255,255,0.55))',
+            }}
           />
         </div>
       </div>
