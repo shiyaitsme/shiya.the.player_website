@@ -83,29 +83,39 @@ export default function HeroCarousel({ mobile = false }) {
         className="h-full w-full animate-floaty"
         style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
       >
-        {NEEDS_POSTER_FALLBACK ? (
-          <img
-            className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
-            style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-            src={webpFailed ? '/assets/carousel_hero_v2_poster.png' : '/assets/carousel_hero_v2_mobile.webp'}
-            onError={() => setWebpFailed(true)}
-            alt=""
-            draggable={false}
-          />
-        ) : (
-          <video
-            ref={videoRef}
-            className="h-full w-full object-contain drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]"
-            style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-            src="/assets/carousel_hero_v2.webm"
-            autoPlay
-            loop
-            muted
-            playsInline
-            onCanPlay={ensurePlay}
-            onError={onError}
-          />
-        )}
+        {/* drop-shadow lives on this unscaled wrapper, not the scaled media
+            element below — a filter is computed in the element's own local
+            space before its own transform is applied, so putting it on the
+            same node as `scale(2.55)` blew the 44px blur/24px offset up to
+            ~112px/~61px, a huge diffuse dark smudge bleeding well past the
+            carousel's silhouette. Applying it here instead shadows the
+            already-scaled result, so the blur/offset stay at their intended
+            on-screen size. */}
+        <div className="h-full w-full drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]">
+          {NEEDS_POSTER_FALLBACK ? (
+            <img
+              className="h-full w-full object-contain"
+              style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+              src={webpFailed ? '/assets/carousel_hero_v2_poster.png' : '/assets/carousel_hero_v2_mobile.webp'}
+              onError={() => setWebpFailed(true)}
+              alt=""
+              draggable={false}
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="h-full w-full object-contain"
+              style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+              src="/assets/carousel_hero_v2.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              onCanPlay={ensurePlay}
+              onError={onError}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
