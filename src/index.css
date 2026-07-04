@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Butler Free Med St';
+  src:
+    url('/assets/fonts/Butler-Free-Med-St.woff2') format('woff2'),
+    url('/assets/fonts/Butler-Free-Med-St.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* parallax offsets driven by GSAP (mouse) — unitless, px via calc() */
   --mx: 0;
@@ -83,7 +93,7 @@ body {
  * Typography — retro display nav + editorial serif
  * ------------------------------------------------------------------ */
 .nav-label {
-  font-family: 'Gravitas One', Georgia, serif;
+  font-family: 'Butler Free Med St', Georgia, serif;
   color: #b6ff00;
   font-size: clamp(15px, 1.4vw, 22px);
   letter-spacing: 0.02em;

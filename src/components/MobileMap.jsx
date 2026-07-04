@@ -78,11 +78,8 @@ function MobileShards({ onOpen, setNodeRef }) {
                 style={{ transform: `rotate(${shard.rot}deg)` }}
                 draggable={false}
               />
-              {/* maxWidth:none — the label renders at its true aspect-correct
-                  width (it can be wider than the shard photo, e.g. "manifesto")
-                  instead of being squashed to match the image's narrower box */}
               <span className="mt-2 block">
-                <NavLabel section={section} className="h-[19px] w-auto" style={{ maxWidth: 'none' }} />
+                <NavLabel section={section} />
               </span>
             </motion.button>
           </div>

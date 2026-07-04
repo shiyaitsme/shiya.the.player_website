@@ -50,7 +50,7 @@ export default function ScrollGallery() {
             pinned scroll */}
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <img
-            src="/assets/scorll_gallery_luminous-flight_v2.png"
+            src="/assets/scroll_gallery_luminous-flight_v2.svg"
             alt=""
             className="max-h-[75vh] max-w-[75vw] object-contain"
           />
