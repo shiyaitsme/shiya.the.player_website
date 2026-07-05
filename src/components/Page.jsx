@@ -1,7 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
-import NumberBadge from './NumberBadge'
 import ProjectModal from './ProjectModal'
 import ArrowIcon from './ArrowIcon'
 import SafeMount from './butterfly/SafeMount'
@@ -140,11 +139,6 @@ export default function Page({ view, onClose }) {
         {/* ---- TEXT SECTIONS: about / contact / manifesto ---- */}
         {section?.kind === 'text' && (
           <div className="max-w-2xl font-serif text-ink">
-            {section.badge != null && (
-              <div className="mb-8">
-                <NumberBadge n={section.badge} size={64} />
-              </div>
-            )}
             {section.body.map((para, i) => (
               <motion.p
                 key={i}

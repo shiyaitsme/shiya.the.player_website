@@ -63,7 +63,6 @@ export const sections = {
     bg: '/assets/bg_2.png',
     cover: '/assets/about_cover.png',
     title: 'about',
-    badge: 0,
     body: [
       'Shiya the Player — a visual creator working across 3D, motion, and AI-assisted image-making, turning short pieces into small worlds you can step into.',
       'Each project starts from a feeling or a line of text, then moves through whatever tools actually fit it — sometimes a generated 3D model, sometimes an illustration, sometimes a node graph pushing pixels into particles.',
@@ -83,7 +82,6 @@ export const sections = {
     bg: '/assets/bg_3.png',
     cover: '/assets/contact_roller_coaster.png',
     title: 'contact',
-    badge: 3,
     body: [
       'Let’s build something impossible together — installations, rides, and playgrounds for strangers to leave light for one another.',
     ],
@@ -108,7 +106,6 @@ export const sections = {
     bg: '/assets/bg_4.png',
     cover: '/assets/tools_manifesto_cover.png',
     title: 'manifesto',
-    badge: 8,
     body: [
       'The purest emotion, the most forward-looking image — that’s the whole ambition. Let’s have fun together: explore every form art can take, and the strange, infinite shapes a life can take too. Just make some interesting stuff.',
       'On the subway once, I noticed my nail polish had chipped from a solid coat into scattered fragments — bathwater and air were its authors. Walking back to the office, I saw a chalk figure drawn on the pavement, made by some kid I’ll never meet. Who says a writer only counts if they’re hunched over a desk? Who says a poet needs perfect meter, or an artist needs expensive materials?',

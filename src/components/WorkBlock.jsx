@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import NumberBadge from './NumberBadge'
 import ArrowIcon from './ArrowIcon'
 import useIsMobile from '../hooks/useIsMobile'
 
@@ -193,12 +192,6 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
                 </span>
               </span>
             )}
-
-            {/* number badge tucked on the media corner — derived from array
-                position (see workNumber in data/projects.js), never stored */}
-            <div className="absolute -left-3 -top-3 md:-left-4 md:-top-4">
-              <NumberBadge n={index + 1} size={single ? 60 : 52} />
-            </div>
           </div>
         </MediaWrap>
       </div>
