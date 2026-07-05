@@ -158,7 +158,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
               rel="noreferrer"
               className="nav-label inline-block lowercase"
             >
-              ↗ {l.label}
+              -&gt; {l.label}
             </a>
           ))}
           {work.caseStudy && onOpenCase && (
