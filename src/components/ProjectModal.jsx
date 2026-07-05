@@ -123,8 +123,11 @@ export default function ProjectModal({ project, onClose }) {
                 </div>
               </Section>
 
-              {/* [Section] process image, if there is one */}
-              {cs.image && <DeepDiveImage src={cs.image} alt={`${project.title} process`} />}
+              {/* [Section] process image(s), if there are any */}
+              {cs.image &&
+                (Array.isArray(cs.image) ? cs.image : [cs.image]).map((src, i) => (
+                  <DeepDiveImage key={src} src={src} alt={`${project.title} process ${i + 1}`} />
+                ))}
 
               {/* [Section] short writeup */}
               {cs.body?.length > 0 && (
