@@ -15,10 +15,16 @@ import useIsMobile from '../hooks/useIsMobile'
  *    skips :hover and circle() entirely: a tap sets `tapped`, which
  *    switches a plain inset() clip-path from "collapsed at the bottom
  *    edge" to "fully open" — a simple bottom-up wipe, no var() involved. */
+// how long the bottom-up wipe gets to play before the tap actually
+// navigates — long enough to read as an animation, short enough that the
+// tap still feels responsive (the fill's own transition is 0.85s total)
+const MOBILE_TAP_NAV_DELAY = 450
+
 function LinkPill({ href, label }) {
   const ref = useRef(null)
   const isMobile = useIsMobile()
   const [tapped, setTapped] = useState(false)
+  const navigating = useRef(false)
 
   const trackMouse = (e) => {
     const el = ref.current
@@ -26,6 +32,19 @@ function LinkPill({ href, label }) {
     const r = el.getBoundingClientRect()
     el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`)
     el.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`)
+  }
+
+  // on mobile, a real <a target="_blank"> navigates near-instantly — the
+  // tab switches away before the fill has any time to visibly play. So we
+  // hold the tap here, let the wipe animate, then open it ourselves.
+  const handleMobileTap = (e) => {
+    e.preventDefault()
+    setTapped(true)
+    if (navigating.current) return
+    navigating.current = true
+    window.setTimeout(() => {
+      window.open(href, '_blank', 'noopener,noreferrer')
+    }, MOBILE_TAP_NAV_DELAY)
   }
 
   return (
@@ -36,7 +55,7 @@ function LinkPill({ href, label }) {
       rel="noreferrer"
       onMouseEnter={isMobile ? undefined : trackMouse}
       onMouseMove={isMobile ? undefined : trackMouse}
-      onClick={isMobile ? () => setTapped(true) : undefined}
+      onClick={isMobile ? handleMobileTap : undefined}
       className={`link-pill lowercase ${isMobile ? 'link-pill-mobile' : ''} ${tapped ? 'is-filled' : ''}`}
       // real values from first paint — never rely on var(--mx, 50%)'s
       // fallback inside circle()'s position argument, which is unreliable
