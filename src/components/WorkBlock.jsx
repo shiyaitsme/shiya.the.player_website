@@ -2,11 +2,24 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import NumberBadge from './NumberBadge'
 import ArrowIcon from './ArrowIcon'
+import useIsMobile from '../hooks/useIsMobile'
 
-/** Outlined pill whose fill grows as a circle from wherever the cursor
- *  enters/moves (tracked via --mx/--my), instead of a flat hover swap. */
+/** Outlined pill with two different fill interactions:
+ *  - desktop: the fill grows as a circle from wherever the cursor
+ *    enters/moves (--mx/--my tracked on mousemove), via :hover.
+ *  - mobile: touch has no reliable :hover (and no mouseleave to clear a
+ *    "stuck" hover after a tap), and Safari/WebKit has also been seen to
+ *    fail parsing `circle(0% at var(--mx) var(--my))` — the var() inside
+ *    the position silently invalidates the whole clip-path, which then
+ *    defaults to "no clipping" = permanently fully filled. So mobile
+ *    skips :hover and circle() entirely: a tap sets `tapped`, which
+ *    switches a plain inset() clip-path from "collapsed at the bottom
+ *    edge" to "fully open" — a simple bottom-up wipe, no var() involved. */
 function LinkPill({ href, label }) {
   const ref = useRef(null)
+  const isMobile = useIsMobile()
+  const [tapped, setTapped] = useState(false)
+
   const trackMouse = (e) => {
     const el = ref.current
     if (!el) return
@@ -14,15 +27,21 @@ function LinkPill({ href, label }) {
     el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`)
     el.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`)
   }
+
   return (
     <a
       ref={ref}
       href={href}
       target="_blank"
       rel="noreferrer"
-      onMouseEnter={trackMouse}
-      onMouseMove={trackMouse}
-      className="link-pill lowercase"
+      onMouseEnter={isMobile ? undefined : trackMouse}
+      onMouseMove={isMobile ? undefined : trackMouse}
+      onClick={isMobile ? () => setTapped(true) : undefined}
+      className={`link-pill lowercase ${isMobile ? 'link-pill-mobile' : ''} ${tapped ? 'is-filled' : ''}`}
+      // real values from first paint — never rely on var(--mx, 50%)'s
+      // fallback inside circle()'s position argument, which is unreliable
+      // (see the note above the component)
+      style={{ '--mx': '50%', '--my': '50%' }}
     >
       <span className="link-pill-fill" aria-hidden="true" />
       <span className="link-pill-label">

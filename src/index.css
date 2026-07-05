@@ -129,20 +129,40 @@ body {
      move in lockstep, or there's a window where the fill is still mostly
      covering the pill but the text has already reverted to lime-on-lime
      (invisible) because color finished transitioning first */
-  transition: color 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .link-pill-fill {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: #b6ff00;
-  clip-path: circle(0% at var(--mx, 50%) var(--my, 50%));
-  transition: clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  /* --mx/--my always come pre-set (inline style="--mx:50%;--my:50%" plus
+     JS updates) — no var(..., fallback) here. That fallback form inside
+     circle()'s position turned out unreliable in testing (computed to
+     stray values like "0px 0px", or "none" once a transition ran through
+     it), which is exactly what made a never-hovered pill render fully
+     filled with no visible text for no apparent reason. */
+  clip-path: circle(0% at var(--mx) var(--my));
+  transition: clip-path 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.link-pill:hover .link-pill-fill {
-  clip-path: circle(140% at var(--mx, 50%) var(--my, 50%));
+/* :not(.link-pill-mobile) — the circle-at-cursor hover is desktop-only.
+   Mobile uses .is-filled (tap-driven, see below) instead: touch has no
+   reliable :hover/mouseleave to revert a "stuck" fill after a tap. */
+.link-pill:not(.link-pill-mobile):hover .link-pill-fill {
+  clip-path: circle(140% at var(--mx) var(--my));
 }
-.link-pill:hover {
+.link-pill:not(.link-pill-mobile):hover {
+  color: #14101f;
+}
+/* mobile: tap toggles a plain bottom-up wipe — no var() inside the shape
+   function, so it can't hit the WebKit parsing issue above. */
+.link-pill-mobile .link-pill-fill {
+  clip-path: inset(100% 0 0 0);
+}
+.link-pill-mobile.is-filled .link-pill-fill {
+  clip-path: inset(0 0 0 0);
+}
+.link-pill-mobile.is-filled {
   color: #14101f;
 }
 .link-pill-label {
