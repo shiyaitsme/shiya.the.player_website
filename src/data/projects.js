@@ -19,9 +19,10 @@
 //
 // `category` picks which filter chip (see `categories` below) a work shows
 // under on the Works page — one of: 'ai-art' | '3d-animation' |
-// 'realtime-generative' | 'motion-vfx' | 'illustration'. It's assigned by
-// creation medium/tool (what caseStudy.tools already says), not mood/theme —
-// keep new work entries consistent with that or add a new category below.
+// 'realtime-generative' | 'motion-vfx' | 'illustration' | 'product-ux'. It's
+// assigned by creation medium/tool (what caseStudy.tools already says), not
+// mood/theme — keep new work entries consistent with that or add a new
+// category below.
 const workModules = import.meta.glob('./works/*.js', { eager: true })
 export const works = Object.keys(workModules)
   .sort() // filenames sort numerically because of the zero-padded "NN-" prefix
@@ -36,7 +37,8 @@ export const categories = [
   { key: '3d-animation', label: '3D & animation' },
   { key: 'motion-vfx', label: 'motion & VFX' },
   { key: 'realtime-generative', label: 'real-time & generative' },
-  { key: 'illustration', label: 'illustration' },
+  { key: 'illustration', label: 'graphic design & illustration' },
+  { key: 'product-ux', label: 'product & UX' },
 ]
 
 // The bottle-cap badge number is always derived from array position — never

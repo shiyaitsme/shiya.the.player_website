@@ -129,12 +129,28 @@ export default function ProjectModal({ project, onClose }) {
                   <DeepDiveImage key={src} src={src} alt={`${project.title} process ${i + 1}`} />
                 ))}
 
-              {/* [Section] short writeup */}
+              {/* [Section] short writeup — a body entry is either a plain
+                  paragraph string, or {heading, text, image} for a longer,
+                  labeled deep-dive with its own inline screenshot. */}
               {cs.body?.length > 0 && (
-                <div className="mt-6 flex flex-col gap-4 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
-                  {cs.body.map((para, i) => (
-                    <p key={i}>{para}</p>
-                  ))}
+                <div className="mt-6 flex flex-col gap-5 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                  {cs.body.map((para, i) =>
+                    typeof para === 'string' ? (
+                      <p key={i}>{para}</p>
+                    ) : (
+                      <div key={i} className="flex flex-col gap-3">
+                        {para.heading && (
+                          <p className="font-body text-[11px] uppercase tracking-[0.3em] text-lime-grass">
+                            {para.heading}
+                          </p>
+                        )}
+                        <p>{para.text}</p>
+                        {para.image && (
+                          <DeepDiveImage src={para.image} alt={`${project.title} — ${para.heading}`} />
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               )}
             </>
