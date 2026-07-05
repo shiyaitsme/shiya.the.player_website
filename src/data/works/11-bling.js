@@ -28,6 +28,7 @@ export default {
       {
         heading: 'MUSE',
         text: 'MUSE is meant to be a private critic, not a general-purpose chatbot — someone who only talks about figure skating aesthetics, using a consistent vocabulary (“mono no aware,” “the poetics of gravity”) rather than encyclopedic answers. PS: in the current build, MUSE runs on pre-written question-and-answer pairs rather than a live LLM API, since inference cost wasn’t justified for a personal portfolio project. The actual design work here was defining who MUSE is — her tone, her opinions, the boundaries of what she’d talk about — which would serve as the system prompt / few-shot foundation if a real model were wired in later.',
+        image: '/assets/works/works_deep-dive_BLING_MUSE.png',
       },
       {
         heading: 'community',
