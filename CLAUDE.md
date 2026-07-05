@@ -3,7 +3,7 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-07-03)
+## Start here (2026-07-05)
 - **Work on `claude/mobile-responsive-design-j4zpzc`.** As of this date it is
   both the GitHub repo's default branch AND identical (same commit) to every
   other branch in the repo (`wonderful-shannon-9rdua0`, `world-archive-
@@ -18,6 +18,21 @@ first for the product/architecture; this file is the operational cheat-sheet.
   origin/claude/mobile-responsive-design-j4zpzc..origin/<other-branch>
   --oneline`), that means something branched off unexpectedly — fast-
   forward/merge it back rather than starting a second parallel-sync habit.
+- **This happened again on 2026-07-05**: a session was assigned a fresh
+  task branch (`claude/progressive-image-reveal-4uhcof`) by the harness
+  that spawned it, built the whole home-page scroll gallery feature there
+  (see "Home-page scroll gallery" below) across many rounds of user
+  feedback, and the user separately kept uploading raw assets straight to
+  `claude/mobile-responsive-design-j4zpzc` in the meantime (fonts, a
+  couple of title PNG/SVG iterations) — so the two branches drifted apart
+  exactly like the original five did. Fixed the same way: merged
+  `mobile-responsive-design-j4zpzc`'s asset-only commits into the feature
+  branch (clean, no conflicts — the feature branch already had the same
+  file content for anything it actually used, cherry-picked file-by-file
+  during the session) and pushed the merged result back to both branch
+  names. If a *task-scoped* branch gets assigned again in the future,
+  remember it WILL diverge from this shared branch unless someone merges
+  it back — that merge doesn't happen automatically.
 - The user cannot run `git pull`/`git clone` from her Mac (see the Git
   section) — always hand her the branch ZIP URL after pushing:
   `https://github.com/shiyaitsme/shiya.the.player_website/archive/refs/heads/claude/mobile-responsive-design-j4zpzc.zip`
@@ -446,6 +461,175 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   at 60fps, does the atmosphere read right) still has to happen on the
   user's real Mac GPU** — ask for feedback and expect to tune on it.
 
+## Home-page scroll gallery (3D, R3F — below the home map)
+Added 2026-07-05, referencing a "Lumen Artspace" site the user linked as the
+target feel: scroll past the map and a pinned, full-viewport 3D photo wall
+plays out as you scroll, 12 tiles flying from a scattered opening pose into a
+flat grid. This went through several full-redo rounds (2D CSS → real 3D, two
+rejected title-legibility hacks) — read the "why not X" notes before
+changing the approach again, they're each backed by a real rejected attempt.
+- **Structure**: `App.jsx` renders the existing fixed-viewport map inside its
+  own `h-dvh overflow-hidden` wrapper (this wrapper — not `<main>` — now owns
+  the clipping that used to belong to `<main>`, so the map's cover-crop
+  behavior is byte-for-byte unchanged), followed by `<ScrollGallery />` as a
+  sibling in normal document flow. `ScrollGallery.jsx` is a `h-[300vh]`
+  track with a `sticky top-0 h-dvh` inner viewport (the "pin" — standard
+  scroll-driven-video technique); the actual three.js content is
+  `ScrollGalleryScene.jsx`, **lazy-loaded** the same way as
+  `ButterflyEgg`/`WorldArchive` (three.js stays out of the main bundle),
+  wrapped in the same `SafeMount` error boundary, falling back to a plain
+  static CSS grid (`StaticGrid`, same component reused for both the
+  `Suspense` loading fallback AND `prefers-reduced-motion`).
+- **Camera-driven, not per-tile CSS animation**: `CameraRig` reads scroll
+  progress every `useFrame` tick directly off the track element's own
+  `getBoundingClientRect()` (no React state, no scroll event listener —
+  matches the project's existing "no React state in the render loop"
+  performance rule) and damped-lerps the camera's actual Z position toward
+  that target, which is what gives the "glides a little further after you
+  stop scrolling" inertia feel. Each tile also has its own local
+  [start, end] window within the overall 0→1 progress (derived from how far
+  back it starts), so the wall fills in asynchronously rather than all 12
+  tiles moving in lockstep.
+- **Grid shape is responsive, not fixed**: desktop is 4 cols × 3 rows,
+  mobile (via the existing `useIsMobile()` hook) is 3 cols × 4 rows — total
+  is always 12 either way. `ScrollGalleryScene.jsx`'s `COLS`/`ROWS` are
+  function parameters now (not module-level constants) threaded through
+  `useTileLayout`/`CameraRig`, specifically so this reshaping was possible
+  without duplicating the layout math.
+- **Desktop-only edge crop, deliberately not full-bleed on every axis**: the
+  final camera distance targets a visible height 20% of one tile shorter
+  than the actual grid height (`EDGE_CROP_FRACTION = 0.1`, applied to both
+  top and bottom), so the top row's top edge and bottom row's bottom edge
+  both dock slightly past the viewport edge at rest — asked for explicitly
+  ("the finished wall should bleed off top/bottom a little, not sit neatly
+  inside the frame"). Guarded by `Math.max(..., fitWidth)` so an unusually
+  narrow window falls back to fitting the width instead of over-cropping.
+  Mobile keeps the older comfortable-fit-with-margin behavior — not asked
+  to crop there too, don't add it speculatively.
+- **Opening pose went through a real redo, not just a tuning pass.** The
+  first version started tiles small and far (camera pulled back ~3.4x the
+  fit distance) with tight scatter — user feedback: "too small, too flat,
+  reads like a shrunk thumbnail array sliding in, not a 3D space." Fixed by
+  (a) pulling the camera in to only ~1.2x the fit distance at rest, and
+  (b) scattering tiles' X/Y at 1.5x their final grid radius (`SPREAD_XY`) —
+  together this makes the opening frame read as "already large, surrounded
+  by art peeking past the edges" instead of a distant cluster.
+- **Rotation is a non-monotonic envelope, not a straight decay to zero.**
+  First version linearly decayed each tile's initial random tilt to 0 —
+  user feedback: "too stiff/robotic, doesn't feel like real 3D depth." Fixed
+  with `rotationEnvelope()`: a tile's tilt actually *grows* past its resting
+  angle through the first 70% of its own local window (the "swooping past
+  at an angle" perspective effect), holds near that peak through 70–85%,
+  then smooths to exactly 0 by 100% — plus a per-tile sine "kite wobble"
+  (own amplitude/frequency/phase per axis, seeded, so no two tiles sway in
+  sync) riding on top of the envelope. If asked to make the motion feel
+  different again, tune this envelope function before reaching for a
+  different animation architecture.
+- **Title legibility — two rejected approaches, keep both "why not" reasons
+  handy since this will probably come up again if the title asset changes.**
+  The title graphic (`scroll_gallery_luminous-flight_white-fill_white-
+  stroke.svg`, centered, `max-h-[75vh] max-w-[75vw]`, frontmost layer —
+  `z-20`, above the tiles, sitting closer to the viewer per the user's
+  explicit ask) needs to stay legible over a busy mix of a bright pastel
+  background AND photos ranging from near-black to near-white. Two fixes
+  were tried and explicitly called "cheap/ugly" by the user before landing
+  on the current one:
+  1. A layered white `drop-shadow` glow around originally-dark text — read
+     as a kitschy halo effect.
+  2. Inverting the text to white + `mix-blend-mode: difference` — technically
+     removed the glow, but produced a patchy, inconsistent color as the text
+     crossed between the light background and differently-toned photos
+     (each letter effectively re-tinting per pixel underneath it).
+  3. **Current, accepted fix**: every gallery tile gets a flat **35% black
+     scrim**, and the title is a plain white asset with no filter/blend-mode
+     tricks at all. In the R3F scene this is a `color={[0.65,0.65,0.65]}`
+     tint on each tile's `meshBasicMaterial` (multiplying a texture's RGB by
+     0.65 is the same math as compositing black at 35% opacity over an
+     opaque photo — cheaper than a second overlay plane/draw call); the
+     `StaticGrid` fallback uses a real `bg-black/35` overlay div per tile
+     since it has no shader to lean on. This works precisely because the
+     backdrop is now uniformly darker everywhere, so one flat text color
+     reads consistently — don't reach for a per-pixel trick again unless the
+     scrim idea itself gets rejected.
+- **Photo assets**: `public/assets/scroll_gallery/scroll_gallery_01..12.jpg`,
+  center-square-cropped from the user's originals (re-cropped once already —
+  `01` was originally center-cropped and cut the subject out of frame; now
+  crops from the left edge instead) and downscaled to a 1024px cap, JPEG
+  q≈87. Cropping to a true square was a deliberate requirement (the 3×4/4×3
+  grid logic assumes square tiles) — if more photos are added later, run
+  them through the same center/left-crop + downscale step, don't skip it
+  and let `object-fit` paper over a non-square source.
+
+## Nav-word arrow icons + liquid-fill link pills
+Added 2026-07-05, same session as the scroll gallery. Two small but
+non-obvious pieces worth knowing before touching either again:
+- **`ArrowIcon.jsx`**: a stroke-only inline SVG (line + chevron head,
+  `stroke="currentColor"`) used everywhere a directional arrow is needed —
+  `Page.jsx`'s "← map" button, `WorldArchive.jsx`'s "← back" button, and the
+  work-links' "↗ watch on instagram/xiaohongshu". **Replaced literal Unicode
+  arrow glyphs (`↩`, `↗`) on purpose** — on some platforms those render as
+  colorful emoji-style icons instead of plain text, which the user flagged
+  as looking informal. Base orientation points right (`deg=0`); rotate via
+  the `deg` prop (`180` = left/back, `-45` = up-right/external-link). If a
+  new directional icon is needed anywhere else, reuse this component rather
+  than typing another arrow character.
+- **`LinkPill` (in `WorkBlock.jsx`)** — the outlined-capsule "watch on
+  instagram/xiaohongshu" buttons, with a fill that grows from wherever the
+  cursor/tap lands rather than a flat hover color-swap (styles in
+  `index.css` under "Liquid-fill hover pill"). **Deliberately its own font
+  size (`clamp(14px, 1.1vw, 18px)`), not `.nav-label`** — it briefly *did*
+  share `.nav-label` and broke the instant `.nav-label` was tripled for the
+  map's own words (see the NavLabel note above): "watch on xiaohongshu" no
+  longer fit on one line inside the work-copy column and wrapped mid-word.
+  If any future element wants pill styling, give it its own size rather
+  than reaching for `.nav-label` again.
+  - **Desktop and mobile use genuinely different mechanisms, not the same
+    CSS with a media query** — found through real, reproducible bugs, not
+    speculative mobile-proofing:
+    1. Desktop: `:hover` + `clip-path: circle(0% at var(--mx) var(--my))`
+       animating to `circle(140% at var(--mx) var(--my))`, `--mx`/`--my`
+       tracked on `onMouseMove` in percent-of-element units.
+    2. **Real bug, not just "mobile is different for style reasons"**:
+       `var(--mx)` referenced inside `circle()`'s position argument, when
+       `--mx` had never been set, did NOT reliably fall back to the
+       `var(--mx, 50%)` comma-fallback — it computed to broken values
+       (`0px 0px`, or literally `none` once a transition tried to
+       interpolate through it), and an invalid `clip-path` means "no
+       clipping" = the fill renders **permanently, fully visible** with the
+       text invisible on top of it. This reproduced in plain headless
+       Chromium, not just Safari — verified with
+       `getComputedStyle(fill).clipPath` before/after interaction. **Fix:
+       always pre-set `--mx`/`--my` to real values via inline
+       `style={{'--mx':'50%','--my':'50%'}}` on the element from first
+       render, and drop the `, 50%` fallback from the CSS entirely** — never
+       rely on a custom-property fallback inside a `circle()`/`inset()`
+       position argument again.
+    3. Touch has no reliable `:hover` and, worse, no `mouseleave` to clear a
+       hover state after a tap (a tapped link can visually get "stuck"
+       filled) — so mobile doesn't use `:hover` or `circle()` at all. A tap
+       sets a `tapped` React state that toggles a `.is-filled` class, which
+       switches a plain `inset(100% 0 0 0)` (collapsed, hidden at the
+       bottom edge) to `inset(0 0 0 0)` (fully open) — a bottom-up wipe,
+       with no `var()` inside the shape function so it can't hit the bug
+       above.
+    4. **The `<a target="_blank">` navigates near-instantly on a real tap**
+       — faster than the CSS transition has time to render a single visible
+       frame, so the wipe was invisible in practice even once it worked.
+       Fixed by having the mobile tap handler `preventDefault()`, trigger
+       the fill, and call `window.open(href, '_blank', 'noopener,noreferrer')`
+       itself after a `MOBILE_TAP_NAV_DELAY = 450`ms delay — verified with
+       direct click-to-open timestamp instrumentation (`performance.now()`
+       diffs), since Puppeteer's synthetic `touchscreen.tap()` → `click`
+       synthesis has its own unpredictable delay that makes naive
+       stopwatch-style timing checks noisy/misleading.
+    5. Both the fill's `clip-path` transition and the text's `color`
+       transition are the same duration/easing (`0.85s
+       cubic-bezier(0.16,1,0.3,1)`) **on purpose** — they were briefly
+       mismatched (0.4s color vs 0.55s fill) and a fast brush-past-and-leave
+       gesture could catch a frame where the fill was still mostly covering
+       the pill but the text had already reverted to lime-on-lime
+       (invisible). If either transition's timing changes, change both.
+
 ## Status / next ideas
 - **The works list is now 10 real pieces the user wrote copy for** (replacing
   the earlier `andromeda-freckles` + `carousel` placeholder pair — note
@@ -576,6 +760,21 @@ and Framer; avoid heavy per-frame React state. Honor `prefers-reduced-motion`.
   - The label PNG is reused via a shared `NavLabel.jsx` (extracted out of
     `ShardGrid.jsx` so desktop + mobile can't drift apart). Accepts a `style`
     prop — `MobileMap` passes `maxWidth:'none'` (see the squish bug below).
+    **SUPERSEDED 2026-07-05 — `NavLabel` no longer renders an `<img>` at
+    all.** The `*_lime_green.png` label artwork is deleted; `NavLabel.jsx`
+    is now just `<span className="nav-label lowercase">{section.nav}</span>`
+    (props trimmed to just `section` — the old `className`/`style`
+    passthrough for image sizing is gone too, along with the squish-bug
+    workaround below, since there's no `<img>` left to squish). `.nav-label`
+    itself also switched fonts (Gravitas One → the self-hosted **Butler
+    Free Med St** webfont, `@font-face` in `index.css`, files under
+    `public/assets/fonts/`) and its `font-size` clamp has been retuned
+    live in front of the user twice already (15–22px → tripled to 45–66px
+    → dialed back to 30–44px, current) — if asked to resize again, edit
+    that one `clamp()` rather than re-deriving from scratch. Keeping the
+    squish-bug paragraph below for the historical "why maxWidth:none"
+    reasoning in case image-based labels ever come back, but nothing in
+    the current code path hits it.
   - **Framer Motion gotcha hit repeatedly building this**: `motion.*`
     components write their own inline `transform` (and appear to silently
     drop `margin*` too) for whatever's in `animate`/`style`, which clobbers a
