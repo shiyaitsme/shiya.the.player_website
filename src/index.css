@@ -105,6 +105,58 @@ body {
   transform: translateY(-1px) scale(1.04);
 }
 
+/* ------------------------------------------------------------------ *
+ * Liquid-fill hover pill — an outlined capsule button whose fill grows
+ * as a circle from wherever the cursor enters/moves, tracked via
+ * --mx/--my (set from JS on mousemove), rather than a flat hover swap.
+ * Deliberately its own small size (NOT .nav-label) — these sit inline in
+ * body copy, not as big map navigation words.
+ * ------------------------------------------------------------------ */
+.link-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1.5px solid #b6ff00;
+  padding: 0.55em 1.3em;
+  font-family: 'Butler Free Med St', Georgia, serif;
+  font-size: clamp(14px, 1.1vw, 18px);
+  color: #b6ff00;
+  text-decoration: none;
+  /* same duration/easing as .link-pill-fill's clip-path below — they must
+     move in lockstep, or there's a window where the fill is still mostly
+     covering the pill but the text has already reverted to lime-on-lime
+     (invisible) because color finished transitioning first */
+  transition: color 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-pill-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #b6ff00;
+  clip-path: circle(0% at var(--mx, 50%) var(--my, 50%));
+  transition: clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-pill:hover .link-pill-fill {
+  clip-path: circle(140% at var(--mx, 50%) var(--my, 50%));
+}
+.link-pill:hover {
+  color: #14101f;
+}
+.link-pill-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.link-pill-icon {
+  width: 0.8em;
+  height: 0.8em;
+  flex-shrink: 0;
+}
+
 /* hide scrollbars but keep scrolling (used in the deep-dive modal + code) */
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */

@@ -1,6 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import NumberBadge from './NumberBadge'
+import ArrowIcon from './ArrowIcon'
+
+/** Outlined pill whose fill grows as a circle from wherever the cursor
+ *  enters/moves (tracked via --mx/--my), instead of a flat hover swap. */
+function LinkPill({ href, label }) {
+  const ref = useRef(null)
+  const trackMouse = (e) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`)
+    el.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`)
+  }
+  return (
+    <a
+      ref={ref}
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      onMouseEnter={trackMouse}
+      onMouseMove={trackMouse}
+      className="link-pill lowercase"
+    >
+      <span className="link-pill-fill" aria-hidden="true" />
+      <span className="link-pill-label">
+        <ArrowIcon deg={-45} className="link-pill-icon" />
+        {label}
+      </span>
+    </a>
+  )
+}
 
 /**
  * One portfolio piece: bottle-cap number + media (image or video) + editorial
@@ -151,15 +182,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
         ))}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              target="_blank"
-              rel="noreferrer"
-              className="nav-label inline-block lowercase"
-            >
-              -&gt; {l.label}
-            </a>
+            <LinkPill key={l.href} href={l.href} label={l.label} />
           ))}
           {work.caseStudy && onOpenCase && (
             <button

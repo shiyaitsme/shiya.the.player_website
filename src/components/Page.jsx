@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
 import NumberBadge from './NumberBadge'
 import ProjectModal from './ProjectModal'
+import ArrowIcon from './ArrowIcon'
 import SafeMount from './butterfly/SafeMount'
 import { works, categories } from '../data/projects'
 
@@ -70,9 +71,10 @@ export default function Page({ view, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="nav-label lowercase"
+          className="nav-label inline-flex items-center gap-2 lowercase"
         >
-          ← map
+          <ArrowIcon deg={180} style={{ width: '0.7em', height: '0.7em' }} />
+          map
         </button>
         <span className="font-display text-sm uppercase tracking-[0.3em] text-ink/70">
           {section ? section.title : 'works'}

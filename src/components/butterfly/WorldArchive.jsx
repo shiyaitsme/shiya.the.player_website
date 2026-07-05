@@ -5,6 +5,7 @@ import { EffectComposer, Bloom, Vignette, Noise, ChromaticAberration } from '@re
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import { works } from '../../data/projects'
+import ArrowIcon from '../ArrowIcon'
 
 /**
  * WorldArchive — a "museum-grade" black/deep-blue retro-futurist scene the
@@ -516,9 +517,10 @@ export default function WorldArchive({ onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="pointer-events-auto font-body text-xs uppercase tracking-[0.35em] text-white/70 transition-colors hover:text-white"
+          className="pointer-events-auto inline-flex items-center gap-1.5 font-body text-xs uppercase tracking-[0.35em] text-white/70 transition-colors hover:text-white"
         >
-          ← back
+          <ArrowIcon deg={180} style={{ width: '0.9em', height: '0.9em' }} />
+          back
         </button>
       </div>
     </motion.div>
