@@ -121,12 +121,12 @@ export const sections = {
 // different spots than the padded canvas corners) touches its nearest
 // lines.svg line endpoint instead of floating a gap away from it.
 export const shards = [
-  { id: 1, section: 'contact', piece: { left: 103.03, top: 120.59, w: 141.56, rot: -3.19 }, label: { left: 124.41, top: 265.18 } },
-  { id: 2, section: 'works', piece: { left: 1119.84, top: 109.22, w: 128.73, rot: 7.35 }, label: { left: 1140.41, top: 223.18 } },
-  { id: 3, section: 'about', piece: { left: 859.19, top: 334.96, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
+  { id: 1, section: 'contact', piece: { left: 113.03, top: 130.59, w: 141.56, rot: -3.19 }, label: { left: 124.41, top: 265.18 } },
+  { id: 2, section: 'works', piece: { left: 1131.84, top: 109.22, w: 128.73, rot: 7.35 }, label: { left: 1140.41, top: 223.18 } },
+  { id: 3, section: 'about', piece: { left: 904.19, top: 334.96, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
   // manifesto: shard nestled into the bottom-right lime-line convergence (its
   // upper-left corner meets the star + converging lines), label below it.
-  { id: 4, section: 'manifesto', piece: { left: 1180.79, top: 667.92, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
+  { id: 4, section: 'manifesto', piece: { left: 1180.79, top: 645.92, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
 ]
 
 export const stars = [
