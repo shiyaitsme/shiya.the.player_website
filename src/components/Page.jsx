@@ -72,7 +72,7 @@ export default function Page({ view, onClose }) {
           onClick={onClose}
           className="nav-label lowercase"
         >
-          ↩ map
+          ← map
         </button>
         <span className="font-display text-sm uppercase tracking-[0.3em] text-ink/70">
           {section ? section.title : 'works'}

@@ -518,7 +518,7 @@ export default function WorldArchive({ onClose }) {
           onClick={onClose}
           className="pointer-events-auto font-body text-xs uppercase tracking-[0.35em] text-white/70 transition-colors hover:text-white"
         >
-          ↩ back
+          ← back
         </button>
       </div>
     </motion.div>
