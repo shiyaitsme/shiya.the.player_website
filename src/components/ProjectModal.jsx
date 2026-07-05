@@ -130,14 +130,28 @@ export default function ProjectModal({ project, onClose }) {
                 ))}
 
               {/* [Section] short writeup — a body entry is either a plain
-                  paragraph string, or {heading, text, image} for a longer,
-                  labeled deep-dive with its own inline screenshot. */}
+                  paragraph string, {heading, text, image} for a labeled
+                  section with its own inline screenshot, or {images: [a, b]}
+                  for a standalone side-by-side pair with no text of its own. */}
               {cs.body?.length > 0 && (
                 <div className="mt-6 flex flex-col gap-5 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
-                  {cs.body.map((para, i) =>
-                    typeof para === 'string' ? (
-                      <p key={i}>{para}</p>
-                    ) : (
+                  {cs.body.map((para, i) => {
+                    if (typeof para === 'string') return <p key={i}>{para}</p>
+                    if (para.images) {
+                      return (
+                        <div key={i} className="grid grid-cols-2 gap-4">
+                          {para.images.map((src, j) => (
+                            <DeepDiveImage
+                              key={src}
+                              src={src}
+                              alt={`${project.title} process ${i + 1}.${j + 1}`}
+                              className=""
+                            />
+                          ))}
+                        </div>
+                      )
+                    }
+                    return (
                       <div key={i} className="flex flex-col gap-3">
                         {para.heading && (
                           <p className="font-body text-[11px] uppercase tracking-[0.3em] text-lime-grass">
@@ -150,7 +164,7 @@ export default function ProjectModal({ project, onClose }) {
                         )}
                       </div>
                     )
-                  )}
+                  })}
                 </div>
               )}
             </>
@@ -205,12 +219,12 @@ function Section({ label, children }) {
 /** A deep-dive process screenshot (e.g. a node graph or an effects
  *  breakdown) — quietly disappears on load failure instead of showing a
  *  broken-image icon, since these assets may not be uploaded yet. */
-function DeepDiveImage({ src, alt }) {
+function DeepDiveImage({ src, alt, className = 'mt-6' }) {
   const [ok, setOk] = useState(true)
   if (!ok) return null
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-white/15">
-      <img src={src} alt={alt} className="w-full object-cover" onError={() => setOk(false)} />
+    <div className={`overflow-hidden rounded-2xl border border-white/15 ${className}`}>
+      <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setOk(false)} />
     </div>
   )
 }
