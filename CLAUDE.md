@@ -3,36 +3,44 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-07-05)
-- **Work on `claude/mobile-responsive-design-j4zpzc`.** As of this date it is
-  both the GitHub repo's default branch AND identical (same commit) to every
-  other branch in the repo (`wonderful-shannon-9rdua0`, `world-archive-
-  redesign-vdf9o6`, `pensive-goodall-749qae`, `busy-maxwell-kzpt97`) — see
-  the "Branch history" bullet under Git below for how/why they were unified.
-  There is currently no reason to touch any other branch name; don't create
-  a new one unless the user asks you to.
-- **After pushing meaningful work, that branch alone is enough** — the old
-  practice of manually re-pushing to 2-3 other branches to "keep them in
-  sync" is retired now that there's only one branch that matters. If you
-  ever find the branches have drifted apart again (check with `git log
-  origin/claude/mobile-responsive-design-j4zpzc..origin/<other-branch>
-  --oneline`), that means something branched off unexpectedly — fast-
-  forward/merge it back rather than starting a second parallel-sync habit.
-- **This happened again on 2026-07-05**: a session was assigned a fresh
-  task branch (`claude/progressive-image-reveal-4uhcof`) by the harness
-  that spawned it, built the whole home-page scroll gallery feature there
-  (see "Home-page scroll gallery" below) across many rounds of user
-  feedback, and the user separately kept uploading raw assets straight to
-  `claude/mobile-responsive-design-j4zpzc` in the meantime (fonts, a
-  couple of title PNG/SVG iterations) — so the two branches drifted apart
-  exactly like the original five did. Fixed the same way: merged
-  `mobile-responsive-design-j4zpzc`'s asset-only commits into the feature
-  branch (clean, no conflicts — the feature branch already had the same
-  file content for anything it actually used, cherry-picked file-by-file
-  during the session) and pushed the merged result back to both branch
-  names. If a *task-scoped* branch gets assigned again in the future,
-  remember it WILL diverge from this shared branch unless someone merges
-  it back — that merge doesn't happen automatically.
+## Start here (2026-07-05, updated end of day)
+- **Work on `claude/mobile-responsive-design-j4zpzc`.** It's the GitHub
+  repo's default branch, and as of this writing it's identical (same commit)
+  to `claude/website-multilingual-support-7frqtp` — the harness assigned that
+  as a fresh task branch mid-session, real work piled up on it (see "This
+  session's work" below), and it was fast-forwarded into
+  `mobile-responsive-design-j4zpzc` with the user's explicit go-ahead once
+  the session wrapped, since it was a clean fast-forward (zero unique
+  commits on the default branch's side, so nothing to lose or conflict).
+  **The four branch names previously listed here (`wonderful-shannon-9rdua0`,
+  `world-archive-redesign-vdf9o6`, `pensive-goodall-749qae`,
+  `busy-maxwell-kzpt97`) no longer exist on the remote at all** — don't
+  reference them, they've been deleted. `claude/progressive-image-reveal-4uhcof`
+  still exists but is now STALE (behind the default branch by several
+  commits, from before its own scroll-gallery work got folded forward) —
+  don't build on it without first checking whether it's ahead or behind.
+- **This session's work (2026-07-05)**: added the `coral dream` work (first
+  in display order, `3d-animation`), renamed the `illustration` filter chip
+  to "graphic design & illustration" and added a new `product-ux` chip with
+  the `BLING` work under it, deleted the bottle-cap number-badge system
+  site-wide (it was silently broken for any work past #9 — see "Number
+  badges" in Status below), and repositioned all 4 home-map shards to
+  actually touch their nearest `lines.svg` endpoint (see "Shard-to-line
+  alignment" in Status below — the non-obvious part is that the shard PNGs
+  are irregular alpha-masked cutouts, not plain rectangles, so a naive
+  bounding-box corner calculation silently points at empty space). Also
+  discussed (but did **not** implement) adding Chinese/Korean language
+  switching — see "Multilingual (i18n)" in Status below before assuming
+  that's done or picking it back up.
+- **Branch-sync policy going forward, unchanged**: after pushing meaningful
+  work, pushing to your OWN assigned branch is enough. Do **not** push to
+  `mobile-responsive-design-j4zpzc` (or any other branch) yourself without
+  asking the user first — even when it's a safe fast-forward, that decision
+  belongs to the user, not the session. If you're on a fresh task-scoped
+  branch and it turns out to be a pure fast-forward ahead of
+  `mobile-responsive-design-j4zpzc` (check with `git merge-base --is-ancestor
+  origin/claude/mobile-responsive-design-j4zpzc HEAD`), that's this same
+  recurring split — flag it and ask, don't resolve it silently either way.
 - The user cannot run `git pull`/`git clone` from her Mac (see the Git
   section) — always hand her the branch ZIP URL after pushing:
   `https://github.com/shiyaitsme/shiya.the.player_website/archive/refs/heads/claude/mobile-responsive-design-j4zpzc.zip`
@@ -54,10 +62,12 @@ source of truth is the user's Figma file; we match it **1:1**.
   so it's the zero-padded `NN-` prefix (not array position in a hand-edited
   list) that controls order now. Want a piece to appear earlier? Rename its
   file's prefix (neighbors don't need to stay contiguous — they just sort in
-  whatever order you leave the prefixes in). The bottle-cap `number` badge is
+  whatever order you leave the prefixes in). The display-order `number` is
   still never stored on a work; it's always derived from the resulting
   `works` array position via `workNumber(id)` (exported from `projects.js`,
-  used by `WorkBlock.jsx` via its `index` prop and by `ProjectModal.jsx`) —
+  used by `ProjectModal.jsx`'s plain-text "case study · NN" label — the
+  image-based bottle-cap badge that used to render this on `WorkBlock.jsx`
+  was removed site-wide 2026-07-05, see "Number badges" under Status) —
   inserting/reordering a work never requires renumbering any other entry. A
   work's optional `date` field (if you add one later) is purely
   informational/shown-to-the-reader — it must never drive sort order; the
@@ -631,18 +641,23 @@ non-obvious pieces worth knowing before touching either again:
        (invisible). If either transition's timing changes, change both.
 
 ## Status / next ideas
-- **The works list is now 10 real pieces the user wrote copy for** (replacing
-  the earlier `andromeda-freckles` + `carousel` placeholder pair — note
-  `andromeda-freckles` was **removed entirely**, not kept alongside the new
-  ones; ask before re-adding it if that ever seems wrong). Display order (=
+- **The works list is now 12 real pieces.** Display order (=
   `src/data/works/` filename prefix order, see "Works data scaling" below) is:
-  `heart-of-empire`, `carousel` ("between two infinites"), `limited-night`,
-  `the-world-is-my-playground`, `blue-lava`, `the-vanishing-tree`, `vocalize`,
-  `star-girl`, `see-you-in-spring`, `fake-touch`. Most of their images
-  (`public/assets/works/works_p0N_*.png`) are **not uploaded yet** — this is
-  expected, not a bug; `WorkBlock`'s `onError` fallback shows the title as
-  text instead of a broken image. Nudge the user for them when it's relevant,
-  don't fabricate placeholders.
+  `coral dream` (`00-`, added 2026-07-05, Blender water shader + bubble
+  particle system), `heart-of-empire`, `carousel` ("between two infinites"),
+  `limited-night`, `the-world-is-my-playground`, `blue-lava`,
+  `the-vanishing-tree`, `vocalize`, `star-girl`, `see-you-in-spring`,
+  `fake-touch`, `BLING` (`11-`, added 2026-07-05, a figure-skating aesthetics
+  app — `category: 'product-ux'`, single "view live demo" link instead of
+  the usual instagram/xiaohongshu pair, deep-dive body mixes plain strings,
+  `{heading,text,image}`, and `{images:[a,b]}` side-by-side-pair entries —
+  see `ProjectModal.jsx`). Earlier placeholder pieces
+  (`andromeda-freckles`) were **removed entirely**, not kept alongside the
+  real ones; ask before re-adding anything if that ever seems wrong. Most
+  of the original 10 pieces' images (`public/assets/works/works_p0N_*.png`)
+  are **still not uploaded** — expected, not a bug; `WorkBlock`'s `onError`
+  fallback shows the title as text instead of a broken image. Nudge the
+  user for them when it's relevant, don't fabricate placeholders.
 - **Works data scaling — the user said she has 60+ real pieces in the
   pipeline with no upper bound (this is a long-term-maintained portfolio for
   grad-school applications), so three changes landed together ahead of that
@@ -655,17 +670,23 @@ non-obvious pieces worth knowing before touching either again:
   2. **Category filter chips** on the Works page (`categories` array in
      `projects.js`, rendered in `Page.jsx` above the works list). Each work
      gets a `category` field — one of `'ai-art' | '3d-animation' |
-     'motion-vfx' | 'realtime-generative' | 'illustration'` — assigned by
-     **creation medium/tool** (matches `caseStudy.tools`), not mood/theme;
-     the user picked this dimension explicitly over a theme-based taxonomy
-     because it's stable (a new work's medium is obvious immediately,
-     doesn't require re-judging as the collection grows). Filtering preserves
-     each work's ORIGINAL array index (and thus its bottle-cap number) via
-     `Page.jsx`'s `filteredWorks = works.map((w,i)=>({w,i})).filter(...)` —
-     a piece's number must never change depending on which chip is active.
-     If you add a new category, add it to the `categories` array too (chip
-     order = array order) and to the JSDoc comment above `workModules` in
-     `projects.js` documenting the valid values.
+     'motion-vfx' | 'realtime-generative' | 'illustration' | 'product-ux'`
+     (the last one added 2026-07-05 for `BLING`; the `illustration` chip's
+     **label** was reworded to "graphic design & illustration" the same day
+     — the `key` itself is unchanged, so existing works still resolve under
+     it) — assigned by **creation medium/tool** (matches `caseStudy.tools`),
+     not mood/theme; the user picked this dimension explicitly over a
+     theme-based taxonomy because it's stable (a new work's medium is
+     obvious immediately, doesn't require re-judging as the collection
+     grows). Filtering preserves each work's ORIGINAL array index (and thus
+     its display-order number, shown as plain text in `ProjectModal`'s
+     "case study · NN" header — there is no image-based badge any more, see
+     "Number badges" below) via `Page.jsx`'s `filteredWorks =
+     works.map((w,i)=>({w,i})).filter(...)` — a piece's number must never
+     change depending on which chip is active. If you add a new category,
+     add it to the `categories` array too (chip order = array order) and to
+     the JSDoc comment above `workModules` in `projects.js` documenting the
+     valid values.
   3. **Lazy-loaded media in `WorkBlock.jsx`** — images get native
      `loading="lazy" decoding="async"`; videos (the `work.video` field, not
      currently used by any real work but supported) have no native lazy
@@ -698,6 +719,76 @@ non-obvious pieces worth knowing before touching either again:
     tools can do via API) to `claude/mobile-responsive-design-j4zpzc`.
     `git remote show origin` → "HEAD branch" now correctly reports that, not
     `wonderful-shannon-9rdua0`. See "Start here" at the top of this file.
+  - **Update 2026-07-05**: the four now-unified branch names above
+    (`wonderful-shannon-9rdua0` / `world-archive-redesign-vdf9o6` /
+    `pensive-goodall-749qae` / `busy-maxwell-kzpt97`) were deleted from the
+    remote at some point after that and no longer exist — `git ls-remote
+    --heads origin` only shows `mobile-responsive-design-j4zpzc`,
+    `website-multilingual-support-7frqtp` (synced to the same commit as of
+    today), and the stale `progressive-image-reveal-4uhcof`. Don't go
+    looking for the deleted four.
+- **Number badges — REMOVED site-wide 2026-07-05, don't re-add without
+  asking.** The bottle-cap `NumberBadge` component (`/assets/number_N.png`
+  art, one file per digit 0–9) only ever had single-digit art. Once the
+  works list passed 9 pieces (first with `fake-touch` at #10, then worse
+  with `coral dream`/`BLING` pushing further pieces to #11/#12), those
+  badges silently requested a nonexistent `number_1X.png` and rendered as
+  broken images — reported by the user as "the numbers don't load," who
+  then asked to just remove numbering entirely since work order was never
+  load-bearing. Removed: the corner badge in `WorkBlock.jsx`'s work list,
+  the large badge above about/contact/manifesto body text in `Page.jsx`,
+  the `NumberBadge.jsx` component itself, all ten `number_N.png` assets, and
+  the now-dead `badge:` fields on those three sections in `projects.js`.
+  **`ProjectModal`'s plain-text "case study · NN" header label is
+  untouched** — it's CSS-rendered text, not an image, so it never broke;
+  don't conflate the two if asked about "the numbers" again.
+- **Shard-to-line alignment (home map) — method, and a real gap between
+  headless verification and the user's actual browser.** Asked to move the
+  `contact`/`works`/`about`/`manifesto` shard PNGs so each touches its
+  nearest `lines.svg` line endpoint instead of floating a visible gap away
+  from it. The naive approach (rotate the shard's unrotated rectangle
+  corner by `piece.rot` around its center, in code) is **wrong** for these
+  assets: the four `green_piece_N.png` files are irregular, alpha-masked
+  cutout shapes with real transparent padding in their corners (verified
+  with a Python/Pillow/`scipy.spatial.ConvexHull` pass over each PNG's alpha
+  channel > 128) — a shard's true nearest-to-a-line tip is usually nowhere
+  near its canvas's geometric corner. The fix: find each PNG's real convex
+  hull vertices in local pixel space, transform every candidate through the
+  *live* CSS rotation matrix read via Puppeteer (`getComputedStyle(img)
+  .transform`, not a hand-derived one — hand math had sign/corner-labeling
+  mistakes that only surfaced once compared against actual rendered pixels)
+  brute-force-matched against every `lines.svg` endpoint (scaled by
+  `1440/1443, 900/901` for the `object-fill` stretch), and translate
+  (`piece.left/top`) by the resulting delta. Verified by injecting a marker
+  div at the computed screen position in the *same* `page.evaluate` call
+  that reads the transform (a separate call risks the shard's continuous
+  floating-bob `y` animation moving between reads and silently invalidating
+  the comparison). **Even after all that, the first-pass positions didn't
+  hold up on the user's real Mac browser** — `about` visibly overlapped the
+  carousel, `contact` still had a gap and needed the opposite direction of
+  nudge from what the math gave, `works` needed a touch more, and
+  `manifesto`'s label got clipped near the viewport bottom. Likely cause:
+  her window isn't a plain fullscreen 1440×900 (dock visible in her
+  screenshots), and/or font/rendering differences between headless
+  Chromium and her real browser. **When this happens, trust the user's
+  real-device screenshot over another round of sandbox math** — the second
+  pass just applied her literal directional feedback (nudge specific pieces
+  down/right/up by eyeballed amounts) and re-verified in headless only for
+  gross issues (carousel overlap, label clipping), not for pixel-exact
+  touching. If asked to refine this further, expect another round of
+  real-screenshot feedback rather than assuming the current numbers in
+  `projects.js` are final.
+- **Multilingual (Chinese/Korean) support — discussed, NOT implemented.**
+  The user asked how hard it would be to add a language switcher (site is
+  currently English-only, deliberately, per the golden rule above). Answer
+  given: a React Context + per-language string dictionary is the easy part;
+  the real blockers are (a) the 4 home-map nav words render as baked
+  lime-green PNG art (`NavLabel.jsx`'s primary path, though it has a
+  plain-text CSS fallback if the PNG 404s) — translating them needs either
+  new matching-style art per language or accepting the plainer text
+  fallback look, and (b) translating all ~12 works' `body`/`caseStudy`
+  copy is a real content-writing job, not a code job. **No code was
+  written for this** — if picked up later, it's a from-scratch feature.
 - **Home-map nav clusters (`ShardGrid.jsx`) are now ONE container each.** The
   shard image + its lime nav label are packed in a single absolutely-positioned
   `flex flex-col items-center` div anchored at the Figma image coords
@@ -797,6 +888,9 @@ non-obvious pieces worth knowing before touching either again:
     class as the nav-label `text-shadow` fixed earlier (`7bae901`): a small
     offset shadow on a small alpha-edged PNG reads as a dirty/un-transparent
     box on some engines (user-reported on iOS Safari), not a subtle shadow.
+    (`NumberBadge.jsx` itself no longer exists — removed site-wide
+    2026-07-05, see "Number badges" under Status — keeping this bullet only
+    for the general "small shadow on small alpha PNG" defect-class lesson.)
   - **Butterfly on mobile** (`ButterflyEgg.jsx`): `.bfly-glow` (the lime
     "breathing halo" under the docked butterfly) was **removed entirely** —
     user called it ugly, don't reintroduce it. The 3D model itself is 1/3 size
