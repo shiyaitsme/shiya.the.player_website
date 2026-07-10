@@ -16,5 +16,9 @@ export default {
       label: 'watch on instagram',
       href: 'https://www.instagram.com/reel/DalM36Oqwtv/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
     },
+    {
+      label: 'watch on xiaohongshu',
+      href: 'https://www.xiaohongshu.com/discovery/item/6a50d06a0000000020038b47?source=webshare&xhsshare=pc_web&xsec_token=ABS8y1mCQ4WOvhYpYgNSlqUTZDCu_CZ6BvEM90JSdLvfA=&xsec_source=pc_share',
+    },
   ],
 }
