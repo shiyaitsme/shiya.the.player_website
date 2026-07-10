@@ -5,14 +5,14 @@ first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-07-10, updated end of day)
 - **Work on `claude/mobile-responsive-design-j4zpzc`.** It's the GitHub
-  repo's default branch. As of this writing it's identical (same commit,
-  `ddaeca5`) to `claude/add-1992-manga-shards-2ip0rm` — the harness assigned
-  that as a fresh task branch for adding one work entry (see "This session's
-  work" below), and it was fast-forwarded into `mobile-responsive-design-j4zpzc`
-  with the user's explicit go-ahead, since it was a clean fast-forward (zero
-  unique commits on the default branch's side, so nothing to lose or
-  conflict). This is the same recurring pattern described in "Branch-sync
-  policy" below — expect it again next time a fresh task branch is assigned.
+  repo's default branch, and this session (the `black funeral` one, see
+  below) was explicitly told by the user to work directly on it rather than
+  on a separate fresh task branch — no fast-forward/merge step needed this
+  time. A prior session was assigned `claude/markdown-review-qq3tsd` as a
+  fresh task branch mid-session; it was never pushed and was abandoned in
+  favor of switching straight to this branch, per the user's explicit
+  choice — if that branch name is ever seen again, it's stale, not a
+  parallel line of real work.
   **The four branch names previously listed here (`wonderful-shannon-9rdua0`,
   `world-archive-redesign-vdf9o6`, `pensive-goodall-749qae`,
   `busy-maxwell-kzpt97`) no longer exist on the remote at all** — don't
@@ -20,14 +20,24 @@ first for the product/architecture; this file is the operational cheat-sheet.
   still exists but is now STALE (behind the default branch by several
   commits, from before its own scroll-gallery work got folded forward) —
   don't build on it without first checking whether it's ahead or behind.
-- **This session's work (2026-07-10)**: added the `1992 manga shards` work
-  (`src/data/works/12-1992-manga-shards.js`, `category: 'ai-art'`, image
-  `works_1992_manga_shards.jpg` — already uploaded, no fallback needed),
-  copy + one Instagram link as given by the user. No `projects.js` changes
-  needed — `ai-art` already existed as a category and display order comes
-  from the `NN-` filename prefix, so this landed as work #13 (index 12)
-  purely by adding the one file. Fast-forwarded straight to the default
-  branch per the user's explicit request the same session.
+- **This session's work (2026-07-10, `black funeral`)**: added the
+  `black funeral` work — `category: '3d-animation'`, positioned FIRST in
+  overall display order (ahead of `coral dream`), image
+  `works_black-funeral.png` (already uploaded by the user before this
+  session started), body copy + a single Instagram link, no `caseStudy`
+  (no process/tool details were given). Putting it first meant renumbering
+  every existing `src/data/works/NN-*.js` prefix up by one (plain `git mv`,
+  no content changes — see "The works list" under Status below for the full
+  before/after). Committed directly to this branch per the user's explicit
+  instruction to work here rather than on a separate task branch.
+- **Previous session's work (2026-07-10, `1992 manga shards`)**: added the
+  `1992 manga shards` work (originally `src/data/works/12-1992-manga-shards.js`,
+  since renumbered to `13-` by the session above — `category: 'ai-art'`,
+  image `works_1992_manga_shards.jpg` — already uploaded, no fallback
+  needed), copy + one Instagram link as given by the user. No `projects.js`
+  changes needed — `ai-art` already existed as a category. Fast-forwarded
+  straight to the default branch per the user's explicit request the same
+  session.
 - **Previous session's work (2026-07-05)**: added the `coral dream` work (first
   in display order, `3d-animation`), renamed the `illustration` filter chip
   to "graphic design & illustration" and added a new `product-ux` chip with
@@ -650,17 +660,25 @@ non-obvious pieces worth knowing before touching either again:
        (invisible). If either transition's timing changes, change both.
 
 ## Status / next ideas
-- **The works list is now 12 real pieces.** Display order (=
+- **The works list is now 14 real pieces.** Display order (=
   `src/data/works/` filename prefix order, see "Works data scaling" below) is:
-  `coral dream` (`00-`, added 2026-07-05, Blender water shader + bubble
+  `black funeral` (`00-`, added 2026-07-10, no caseStudy yet — no process/
+  tool details given by the user, just body copy + a single Instagram link),
+  `coral dream` (`01-`, added 2026-07-05, Blender water shader + bubble
   particle system), `heart-of-empire`, `carousel` ("between two infinites"),
   `limited-night`, `the-world-is-my-playground`, `blue-lava`,
   `the-vanishing-tree`, `vocalize`, `star-girl`, `see-you-in-spring`,
-  `fake-touch`, `BLING` (`11-`, added 2026-07-05, a figure-skating aesthetics
+  `fake-touch`, `BLING` (`12-`, added 2026-07-05, a figure-skating aesthetics
   app — `category: 'product-ux'`, single "view live demo" link instead of
   the usual instagram/xiaohongshu pair, deep-dive body mixes plain strings,
   `{heading,text,image}`, and `{images:[a,b]}` side-by-side-pair entries —
-  see `ProjectModal.jsx`). Earlier placeholder pieces
+  see `ProjectModal.jsx`), `1992 manga shards` (`13-`, added 2026-07-10,
+  `category: 'ai-art'`). **Adding `black funeral` at the front meant
+  renumbering every other file's `NN-` prefix up by one** (`00-coral-dream`
+  → `01-coral-dream`, … `11-bling` → `12-bling`, `12-1992-manga-shards` →
+  `13-1992-manga-shards`) — plain `git mv` renames, no content/id/category
+  changes, since the display-order number is derived from the prefix, not
+  stored in the file. Earlier placeholder pieces
   (`andromeda-freckles`) were **removed entirely**, not kept alongside the
   real ones; ask before re-adding anything if that ever seems wrong. Most
   of the original 10 pieces' images (`public/assets/works/works_p0N_*.png`)
