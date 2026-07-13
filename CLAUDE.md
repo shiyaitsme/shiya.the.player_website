@@ -3,7 +3,14 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-07-10, updated end of day)
+## Start here (2026-07-14, updated end of day)
+- **This session's work is on `claude/photography-works-architecture-2slxi8`
+  (its own task branch, NOT the default branch) — it has not been pushed to
+  `claude/mobile-responsive-design-j4zpzc` and shouldn't be without asking
+  the user first**, per the standing branch-sync policy below. It contains
+  everything from the "Photography category" bullet just below, plus a
+  merge-forward of the default branch's photo uploads (see that bullet for
+  why the merge was needed).
 - **Work on `claude/mobile-responsive-design-j4zpzc`.** It's the GitHub
   repo's default branch, and this session (the `black funeral` one, see
   below) was explicitly told by the user to work directly on it rather than
@@ -20,6 +27,22 @@ first for the product/architecture; this file is the operational cheat-sheet.
   still exists but is now STALE (behind the default branch by several
   commits, from before its own scroll-gallery work got folded forward) —
   don't build on it without first checking whether it's ahead or behind.
+- **This session's work (2026-07-14, `photography category`)**: added a new
+  `photography` work category — see "Photography category" under Status
+  below for the full architecture (masonry `PhotoGrid` + `Lightbox`, why it
+  bypasses `WorkBlock`, and why photography works are excluded from both the
+  "all" filter and the Gachapon random pool). Also had to clean up how the
+  user's 43 photo uploads landed: they arrived split between the repo root
+  and `public/assets/` (GitHub web-uploader artifact — see the "Consolidate
+  photography uploads" commit) and several were still full camera resolution
+  (up to 5712×4284, 6–11MB, 103MB total) despite an attempted client-side
+  compression pass; all 43 were moved into one `public/assets/photography/`
+  folder and re-encoded to a 2400px-longest-edge / quality-85 JPEG (28.8MB
+  total, every file under 2MB). If more photography gets uploaded later,
+  apply the same resize pass — Pillow (`pip install Pillow`) is available in
+  this environment even though no other image tool is; see the compression
+  commit for the exact script (resize + `ImageOps.exif_transpose` + strip
+  metadata, not just a quality knob).
 - **This session's work (2026-07-10, `black funeral`)**: added the
   `black funeral` work — `category: '3d-animation'`, positioned FIRST in
   overall display order (ahead of `coral dream`), image
@@ -660,7 +683,37 @@ non-obvious pieces worth knowing before touching either again:
        (invisible). If either transition's timing changes, change both.
 
 ## Status / next ideas
-- **The works list is now 14 real pieces.** Display order (=
+- **Photography category (added 2026-07-14, `photography-works-architecture-2slxi8`
+  branch) — architecturally separate from every other category, don't treat
+  it like a normal work type.** The user's photography has no title/
+  statement per piece and shouldn't be forced through `WorkBlock`'s
+  "big image + copy" narrative layout (that layout only fits ~2 photos per
+  screen, and there's no copy to fill the other half anyway). Instead:
+  - Each photo is still its own minimal `src/data/works/NN-photograph-NN.js`
+    file (`{ id, category: 'photography', image }` — no `title`/`body`/
+    `caseStudy`), sitting AFTER all narrative works (`14-` through `56-`) so
+    it doesn't disturb their existing numbering.
+  - New `photography` filter chip (end of the `categories` array in
+    `projects.js`). Selecting it swaps the works list for `PhotoGrid.jsx` —
+    a CSS `columns` masonry wall (2/3/4 cols by breakpoint), not a `grid`,
+    specifically so each photo keeps its own native aspect ratio instead of
+    being cropped into uniform cells (photo sizes are all over the place).
+    Clicking a photo opens `Lightbox.jsx` (full image, prev/next, Esc/
+    backdrop-click to close) — deliberately its own component, not
+    `ProjectModal`, since there's no case-study content to show.
+  - **Photography works are excluded from the "all" filter's `WorkBlock`
+    list** (`Page.jsx`'s `filteredWorks` always drops `category ===
+    'photography'` first, regardless of which chip is active — they only
+    ever render via `PhotoGrid`, only while their own chip is selected) —
+    the user was clear the two shouldn't mix in the same scroll. **Also
+    excluded from `pickRandomWork` (the Gachapon star pool)** in
+    `projects.js` — `WorkBlock`'s single-work view assumes `body` exists and
+    would throw on a photography entry.
+  - If more photos are added later, follow the same minimal-file pattern —
+    don't add a `title`/`body` "just in case"; the whole point is these
+    pieces are deliberately anonymous.
+- **The works list is now 14 real (narrative) pieces + 43 photography
+  pieces.** Display order (=
   `src/data/works/` filename prefix order, see "Works data scaling" below) is:
   `black funeral` (`00-`, added 2026-07-10, no caseStudy yet — no process/
   tool details given by the user, just body copy + a single Instagram link),
