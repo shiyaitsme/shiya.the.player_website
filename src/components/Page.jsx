@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import WorkBlock from './WorkBlock'
+import PhotoGrid from './PhotoGrid'
 import ProjectModal from './ProjectModal'
 import ArrowIcon from './ArrowIcon'
 import SafeMount from './butterfly/SafeMount'
@@ -28,14 +29,20 @@ export default function Page({ view, onClose }) {
 
   // keep each work's ORIGINAL array index (drives its bottle-cap number via
   // workNumber-equivalent positioning) even after filtering, so a piece's
-  // number never changes depending on which chip is active
+  // number never changes depending on which chip is active.
+  // 'photography' works never appear in this narrative list (not even under
+  // "all") — they have no title/body to show via WorkBlock and render
+  // through PhotoGrid instead, only while that chip is active (see below).
   const filteredWorks = useMemo(
     () =>
       works
         .map((w, i) => ({ w, i }))
+        .filter(({ w }) => w.category !== 'photography')
         .filter(({ w }) => worksFilter === 'all' || w.category === worksFilter),
     [worksFilter],
   )
+
+  const photographyWorks = useMemo(() => works.filter((w) => w.category === 'photography'), [])
 
   // butterfly clicked → flash white, then drop into the 3D archive world
   const enterArchiveWorld = () => {
@@ -118,11 +125,15 @@ export default function Page({ view, onClose }) {
               ))}
             </div>
 
-            <div className="flex flex-col gap-24 md:gap-36">
-              {filteredWorks.map(({ w, i }) => (
-                <WorkBlock key={w.id} work={w} index={i} onOpenCase={setCaseProject} />
-              ))}
-            </div>
+            {worksFilter === 'photography' ? (
+              <PhotoGrid works={photographyWorks} />
+            ) : (
+              <div className="flex flex-col gap-24 md:gap-36">
+                {filteredWorks.map(({ w, i }) => (
+                  <WorkBlock key={w.id} work={w} index={i} onOpenCase={setCaseProject} />
+                ))}
+              </div>
+            )}
           </>
         )}
 

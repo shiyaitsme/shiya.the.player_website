@@ -19,10 +19,18 @@
 //
 // `category` picks which filter chip (see `categories` below) a work shows
 // under on the Works page — one of: 'ai-art' | '3d-animation' |
-// 'realtime-generative' | 'motion-vfx' | 'illustration' | 'product-ux'. It's
-// assigned by creation medium/tool (what caseStudy.tools already says), not
-// mood/theme — keep new work entries consistent with that or add a new
-// category below.
+// 'realtime-generative' | 'motion-vfx' | 'illustration' | 'product-ux' |
+// 'photography'. It's assigned by creation medium/tool (what caseStudy.tools
+// already says), not mood/theme — keep new work entries consistent with that
+// or add a new category below.
+//
+// 'photography' works are a special case: they have no title/body/caseStudy
+// (single photos, no name or writeup by design) and never render through
+// WorkBlock's narrative layout — Page.jsx renders them via PhotoGrid (a
+// masonry wall + lightbox) only when that chip is active, and they're
+// excluded from both the "all" filter's WorkBlock list and the Gachapon
+// random-work pool (see pickRandomWork below), since both of those assume a
+// work has a title + body to show.
 const workModules = import.meta.glob('./works/*.js', { eager: true })
 export const works = Object.keys(workModules)
   .sort() // filenames sort numerically because of the zero-padded "NN-" prefix
@@ -39,6 +47,7 @@ export const categories = [
   { key: 'realtime-generative', label: 'real-time & generative' },
   { key: 'illustration', label: 'graphic design & illustration' },
   { key: 'product-ux', label: 'product & UX' },
+  { key: 'photography', label: 'photography' },
 ]
 
 // The bottle-cap badge number is always derived from array position — never
@@ -140,7 +149,11 @@ export const stars = [
 ]
 
 export const workById = (id) => works.find((w) => w.id === id)
-export const pickRandomWork = () => works[Math.floor(Math.random() * works.length)]
+
+// Photography pieces have no title/body — WorkBlock's single-work (Gachapon)
+// view would break rendering one, so they're excluded from this pool.
+const gachaponPool = works.filter((w) => w.category !== 'photography')
+export const pickRandomWork = () => gachaponPool[Math.floor(Math.random() * gachaponPool.length)]
 
 // ---------------------------------------------------------------------------
 // MOBILE MAP — a separate, proportional (%-of-viewport) layout for phones.
