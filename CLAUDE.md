@@ -4,13 +4,22 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-07-14, updated end of day)
-- **This session's work is on `claude/photography-works-architecture-2slxi8`
-  (its own task branch, NOT the default branch) — it has not been pushed to
-  `claude/mobile-responsive-design-j4zpzc` and shouldn't be without asking
-  the user first**, per the standing branch-sync policy below. It contains
-  everything from the "Photography category" bullet just below, plus a
-  merge-forward of the default branch's photo uploads (see that bullet for
-  why the merge was needed).
+- **This session's photography work is now ON the default branch
+  `claude/mobile-responsive-design-j4zpzc`.** It was built on its own task
+  branch (`claude/photography-works-architecture-2slxi8`) per the standing
+  policy below, then fast-forwarded into the default branch once the user
+  explicitly asked for that merge (a clean fast-forward — verified with
+  `git merge-base --is-ancestor` first, no conflicts).
+  **`claude/photography-works-architecture-2slxi8` is now STALE** — it
+  points at the exact same commit as the default branch, no unique content
+  left. The user asked for it to be deleted; `git push origin --delete
+  <branch>` (and the `:branch` form) both failed with an HTTP 403 from this
+  environment's git proxy — branch deletion appears to be outside this
+  session's GitHub write scope, not something to retry or route around.
+  **It has to be deleted manually from the GitHub web UI** (repo →
+  branches list → trash icon next to the branch name) — don't keep trying
+  the git command if this comes up again, and don't reference this branch
+  as a place to keep working once she's deleted it.
 - **Work on `claude/mobile-responsive-design-j4zpzc`.** It's the GitHub
   repo's default branch, and this session (the `black funeral` one, see
   below) was explicitly told by the user to work directly on it rather than
@@ -701,6 +710,24 @@ non-obvious pieces worth knowing before touching either again:
     Clicking a photo opens `Lightbox.jsx` (full image, prev/next, Esc/
     backdrop-click to close) — deliberately its own component, not
     `ProjectModal`, since there's no case-study content to show.
+  - **Two follow-up attempts at letting landscape photos span 2 columns
+    were both tried and explicitly rejected by the user ("好丑" / ugly) —
+    don't redo either without being asked again.** (1) CSS Grid with
+    `grid-auto-flow: dense` + per-item `gridRowEnd: span N` (row height
+    measured via `ResizeObserver`, quantized to an 8px `grid-auto-rows`
+    unit) let a landscape photo's 2-column span start at ANY column (e.g.
+    2-3 on a 4-column row), which read as visually chaotic, and the 8px
+    quantization left a visible seam under photos whose true height wasn't
+    an exact multiple of it. (2) A hand-rolled bin-packing masonry (every
+    photo's exact box computed in one synchronous pass from its known
+    `width`/`height`, landscape pinned to a fixed column pair — 1-2 or 3-4
+    — instead of an arbitrary span) fixed both of those specific
+    complaints but was still rejected as uglier overall than the plain
+    version. **Current code is back to the original CSS `columns` version
+    with no spanning logic at all** — every photo is exactly one column
+    wide regardless of orientation, per the description above. The
+    `width`/`height` fields added to the work files for attempt (2) were
+    removed again since nothing reads them any more.
   - **Photography works are excluded from the "all" filter's `WorkBlock`
     list** (`Page.jsx`'s `filteredWorks` always drops `category ===
     'photography'` first, regardless of which chip is active — they only
