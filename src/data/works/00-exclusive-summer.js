@@ -9,5 +9,10 @@ export default {
     'To romanticize a memory is where forgetting begins. And yet I still want to set it on the table, freshly made, like a dessert — and before it melts, greedily lick up the very last drop of sugar.',
     'We live through countless summers we can never return to.',
   ],
-  links: [],
+  links: [
+    {
+      label: 'watch on instagram',
+      href: 'https://www.instagram.com/reel/Da0f_bkpSWj/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+    },
+  ],
 }

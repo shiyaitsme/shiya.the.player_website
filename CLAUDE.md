@@ -8,10 +8,10 @@ first for the product/architecture; this file is the operational cheat-sheet.
   `exclusive summer` work — `category: '3d-animation'`, positioned FIRST in
   overall display order (ahead of `roses of transcendent love`), image
   `works_exclusive-summer.png` (already uploaded), body copy is the user's
-  own reflection on nostalgia/summer, no `caseStudy`, no links given so
-  `links: []` (empty — the image isn't wrapped in a click target, and no
-  "watch on instagram/xiaohongshu" buttons render; ask the user for a link
-  later if she wants one added). Same renumbering pattern as the two prior
+  own reflection on nostalgia/summer, no `caseStudy`. Initially shipped with
+  no link (`links: []`); the user then sent a single Instagram link in a
+  follow-up message the same session, added afterward. Same renumbering
+  pattern as the two prior
   insert-at-front sessions: every other `src/data/works/NN-*.js` prefix
   bumped up by one via plain `git mv`, no content changes. Worked directly
   on this branch (the default branch) per the user's explicit instruction
@@ -782,8 +782,8 @@ non-obvious pieces worth knowing before touching either again:
   pieces.** Display order (=
   `src/data/works/` filename prefix order, see "Works data scaling" below) is:
   `exclusive summer` (`00-`, added 2026-07-15, `category: '3d-animation'`,
-  no caseStudy — body copy is the user's own reflection, no link given so
-  `links: []`), `roses of transcendent love` (`01-`, added 2026-07-15,
+  no caseStudy — body copy is the user's own reflection, single Instagram
+  link), `roses of transcendent love` (`01-`, added 2026-07-15,
   `category: '3d-animation'`, no caseStudy — body copy is the full René Char
   epigraph + the user's own reflection, single Instagram link), `black
   funeral` (`02-`, added 2026-07-10, no caseStudy yet — no process/tool
