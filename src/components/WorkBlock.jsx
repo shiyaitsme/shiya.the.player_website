@@ -187,7 +187,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             {/* play affordance over a linked poster (reads as "watch the reel") */}
             {!work.video && links.length > 0 && imgOk && (
               <span className="pointer-events-none absolute inset-0 grid place-items-center">
-                <span className="grid h-14 w-14 place-items-center rounded-full bg-white/70 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 md:h-16 md:w-16">
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-black/10 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 md:h-16 md:w-16">
                   <span className="ml-1 border-y-[10px] border-l-[16px] border-y-transparent border-l-white md:border-y-[12px] md:border-l-[19px]" />
                 </span>
               </span>
