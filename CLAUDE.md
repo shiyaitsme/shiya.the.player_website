@@ -3,7 +3,34 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-07-14, updated end of day)
+## Start here (2026-07-15, updated end of day)
+- **This session's work (2026-07-15, `roses of transcendent love` +
+  play-button opacity tuning)**: added the `roses of transcendent love`
+  work — `category: '3d-animation'`, positioned FIRST in overall display
+  order (ahead of `black funeral`), image
+  `works_roses-of-transcendent-love.png` (already uploaded), body copy is
+  the full René Char epigraph plus the user's own reflection, single
+  Instagram link, no `caseStudy`. Same renumbering pattern as the `black
+  funeral` session: every other `src/data/works/NN-*.js` prefix bumped up
+  by one via plain `git mv`, no content changes — see "The works list"
+  under Status below for the full before/after. Committed directly to this
+  branch per the user's explicit instruction to work here, not a fresh task
+  branch.
+  Also tuned the "watch the reel" play-button circle in `WorkBlock.jsx`
+  (the dark circle + white triangle overlay shown on a linked poster when
+  `!work.video && links.length > 0` — see around line 190) through several
+  rounds of real user feedback: `bg-black/45` (original) → `bg-black/70`
+  (**wrong direction** — the user actually wanted it more transparent, not
+  more opaque; a Chinese-language ambiguity around "透明度" tripped this up,
+  worth rereading if a similar request comes in) → `bg-black/25` → tried
+  `bg-white/70` on explicit request (**confirmed low-contrast**: the
+  triangle icon itself is solid white, so a white circle behind it nearly
+  swallows it — screenshotted and shown to the user, not just asserted) →
+  landed on **`bg-black/10`**, the current value, after the user said "就这样
+  吧" (leave it as-is). If asked to revisit this again, a darker triangle
+  color is the natural next lever if a white-background variant is wanted
+  with real contrast — don't just re-try white circle values, the triangle
+  itself needs to change too.
 - **This session's photography work is now ON the default branch
   `claude/mobile-responsive-design-j4zpzc`.** It was built on its own task
   branch (`claude/photography-works-architecture-2slxi8`) per the standing
@@ -739,26 +766,31 @@ non-obvious pieces worth knowing before touching either again:
   - If more photos are added later, follow the same minimal-file pattern —
     don't add a `title`/`body` "just in case"; the whole point is these
     pieces are deliberately anonymous.
-- **The works list is now 14 real (narrative) pieces + 43 photography
+- **The works list is now 15 real (narrative) pieces + 43 photography
   pieces.** Display order (=
   `src/data/works/` filename prefix order, see "Works data scaling" below) is:
-  `black funeral` (`00-`, added 2026-07-10, no caseStudy yet — no process/
-  tool details given by the user, just body copy + a single Instagram link),
-  `coral dream` (`01-`, added 2026-07-05, Blender water shader + bubble
+  `roses of transcendent love` (`00-`, added 2026-07-15, `category:
+  '3d-animation'`, no caseStudy — body copy is the full René Char epigraph +
+  the user's own reflection, single Instagram link), `black funeral` (`01-`,
+  added 2026-07-10, no caseStudy yet — no process/tool details given by the
+  user, just body copy + a single Instagram link),
+  `coral dream` (`02-`, added 2026-07-05, Blender water shader + bubble
   particle system), `heart-of-empire`, `carousel` ("between two infinites"),
   `limited-night`, `the-world-is-my-playground`, `blue-lava`,
   `the-vanishing-tree`, `vocalize`, `star-girl`, `see-you-in-spring`,
-  `fake-touch`, `BLING` (`12-`, added 2026-07-05, a figure-skating aesthetics
+  `fake-touch`, `BLING` (`13-`, added 2026-07-05, a figure-skating aesthetics
   app — `category: 'product-ux'`, single "view live demo" link instead of
   the usual instagram/xiaohongshu pair, deep-dive body mixes plain strings,
   `{heading,text,image}`, and `{images:[a,b]}` side-by-side-pair entries —
-  see `ProjectModal.jsx`), `1992 manga shards` (`13-`, added 2026-07-10,
-  `category: 'ai-art'`). **Adding `black funeral` at the front meant
-  renumbering every other file's `NN-` prefix up by one** (`00-coral-dream`
-  → `01-coral-dream`, … `11-bling` → `12-bling`, `12-1992-manga-shards` →
-  `13-1992-manga-shards`) — plain `git mv` renames, no content/id/category
-  changes, since the display-order number is derived from the prefix, not
-  stored in the file. Earlier placeholder pieces
+  see `ProjectModal.jsx`), `1992 manga shards` (`14-`, added 2026-07-10,
+  `category: 'ai-art'`). **Adding `roses of transcendent love` at the front
+  (2026-07-15) meant renumbering every other file's `NN-` prefix up by one
+  again** (`00-black-funeral` → `01-black-funeral`, … `13-bling` →
+  `14-bling`, `14-1992-manga-shards` → `15-1992-manga-shards`, and all 43
+  `photograph-NN` files shifted too, `15-` → `16-` through `56-` → `57-`) —
+  plain `git mv` renames, no content/id/category changes, since the
+  display-order number is derived from the prefix, not stored in the file.
+  Earlier placeholder pieces
   (`andromeda-freckles`) were **removed entirely**, not kept alongside the
   real ones; ask before re-adding anything if that ever seems wrong. Most
   of the original 10 pieces' images (`public/assets/works/works_p0N_*.png`)
