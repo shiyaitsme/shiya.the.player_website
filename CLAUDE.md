@@ -4,6 +4,12 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-08-17, updated end of day)
+- **This session's `artwork images missing` fix is now ON the default
+  branch `claude/mobile-responsive-design-j4zpzc`** — pushed there directly
+  (clean fast-forward, `git merge-base --is-ancestor` verified first) at
+  the user's explicit request the same session, from its own task branch
+  `claude/artwork-images-missing-dg673h` (now stale — same commit as
+  default, no unique content left, don't build on it).
 - **This session's work (2026-08-17, `artwork images missing` fix, branch
   `claude/artwork-images-missing-dg673h`)**: diagnosed and fixed why work
   images (e.g. `exclusive summer`, viewed via the single-work Gachapon
