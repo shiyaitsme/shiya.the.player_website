@@ -3,7 +3,7 @@ export default {
   title: 'coral dream',
   emoji: '',
   category: '3d-animation',
-  image: '/assets/works/works_coral-dream.png',
+  image: '/assets/works/works_coral-dream.jpg',
   body: [
     'The dream begins with falling — deep into the sea. Sharks, shipwrecks. Or jellyfish, treasure.',
     'Fighting the water’s pull, dragging myself toward the surface —',
@@ -22,8 +22,8 @@ export default {
   caseStudy: {
     tools: ['Blender shading', 'Blender particle system'],
     image: [
-      '/assets/works/works_deep-dive_coral-dream_01.png',
-      '/assets/works/works_deep-dive_coral-dream_02.png',
+      '/assets/works/works_deep-dive_coral-dream_01.jpg',
+      '/assets/works/works_deep-dive_coral-dream_02.jpg',
     ],
     body: [
       'The water is really two shaders stacked on top of each other: a surface shader for what breaks the light at the top, and a volume shader underneath for the murky feeling of actually being underwater.',

@@ -3,7 +3,56 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-07-15, updated end of day)
+## Start here (2026-08-17, updated end of day)
+- **This session's work (2026-08-17, `artwork images missing` fix, branch
+  `claude/artwork-images-missing-dg673h`)**: diagnosed and fixed why work
+  images (e.g. `exclusive summer`, viewed via the single-work Gachapon
+  route) could appear completely absent — not broken-image, not the
+  gradient placeholder, just blank space — on the user's real machine even
+  though the same page rendered correctly in this environment's headless
+  Chromium every time it was tested. Root cause, confirmed by reproducing
+  it under artificial network throttling (CDP `Network.emulateNetworkConditions`,
+  50kbps): `WorkBlock.jsx`'s media box had **no reserved space while a real
+  image was still loading** — the fallback `aspectRatio:'16/10'` gradient
+  box only applied once `imgOk` had flipped to `false` (a load *error*), not
+  while a load was simply in progress, and the `<img>` itself is `h-auto
+  w-full` with no `width`/`height` attributes, so before the browser has
+  enough bytes to know its intrinsic size the container has zero height.
+  Compounding this: 23 of the ~24 narrative-work images under
+  `public/assets/works/` were **uncompressed, opaque-but-RGBA PNGs**, several
+  multiple megabytes each (worst: `works_deep-dive_coral-dream_02.png` at
+  ~6.8MB, `works_black-funeral.png` at ~6.5MB, `works_exclusive-summer.png`
+  at ~4.8MB — 51MB total across the folder), unlike the photography folder
+  which already went through a resize/compress pass in an earlier session.
+  A multi-megabyte image on a slow/real-world connection can take many
+  seconds to arrive — during all of which, given the zero-reserved-space bug
+  above, nothing at all is visible where the artwork should be. Fixed both
+  halves:
+  1. **`WorkBlock.jsx`**: added an `imgLoaded` state (set via the `<img>`'s
+     `onLoad`); the gradient placeholder box now also applies whenever a
+     real image exists but hasn't finished loading yet
+     (`!work.video && imgOk && !imgLoaded`), and the `<img>` fades in
+     (`opacity-0` → `opacity-100`, 300ms) once loaded rather than popping in
+     mid-download. This does **not** change the Golden Rule that a loaded
+     image keeps its own native aspect ratio — the 16/10 box is only a
+     transient loading skeleton, exactly like the existing broken-image
+     fallback already was.
+  2. **Recompressed all 23 oversized work PNGs** the same way the
+     photography folder was handled before (Pillow, longest-edge cap 2400px,
+     `ImageOps.exif_transpose`, converted to JPEG quality 85 — every one of
+     these 23 files was confirmed fully opaque first, `alpha` channel min
+     ≥250 checked per file, so PNG's lossless alpha wasn't actually buying
+     anything and JPEG is the right format). Result: 51MB → ~4.3MB total.
+     Every `src/data/works/*.js` `image`/`caseStudy` reference was updated
+     from `.png` to `.jpg` to match (plain filename-extension swap, same
+     basenames, no other content changes). If more work art gets uploaded as
+     PNG going forward, run it through this same pass — don't let
+     multi-megabyte opaque PNGs land in `public/assets/works/` again.
+  Verified with headless Puppeteer + CDP network throttling: before the fix,
+  a throttled load showed nothing in the media slot for the whole download;
+  after, the dark gradient "loading" box (with the existing play-button
+  affordance) shows immediately and the real image fades in once it
+  arrives — matching the user's real-world report exactly.
 - **This session's work (2026-07-15, `exclusive summer`)**: added the
   `exclusive summer` work — `category: '3d-animation'`, positioned FIRST in
   overall display order (ahead of `roses of transcendent love`), image

@@ -3,7 +3,7 @@ export default {
   title: 'fake touch',
   emoji: '',
   category: 'ai-art',
-  image: '/assets/works/works_p10_fake-touch.png',
+  image: '/assets/works/works_p10_fake-touch.jpg',
   body: [
     'The touch may not be real.',
     'But the warmth between them, the wind over the grass, the light — all of it is.',

@@ -3,7 +3,7 @@ export default {
   title: 'vocalize',
   emoji: '',
   category: 'ai-art',
-  image: '/assets/works/works_p07_vocalize.png',
+  image: '/assets/works/works_p07_vocalize.jpg',
   body: [
     'I suddenly thought of The Taste of Tea while brainstorming—tracks extending from the neck, a train like the words she speaks, like the precious thoughts she leaves behind.',
     'She could be Beauvoir, Woolf… or you, or me.',

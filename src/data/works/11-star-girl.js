@@ -3,7 +3,7 @@ export default {
   title: 'star girl',
   emoji: '',
   category: 'ai-art',
-  image: '/assets/works/works_p08_star-girl.png',
+  image: '/assets/works/works_p08_star-girl.jpg',
   body: [
     'Stars blooming across monotone black hair, carrying the Milky Way inside the body — a quiet rebellion against the dullness of living.',
     'Made with Midjourney, AIGC art.',

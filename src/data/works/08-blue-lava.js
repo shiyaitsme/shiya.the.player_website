@@ -3,7 +3,7 @@ export default {
   title: 'blue lava',
   emoji: '',
   category: 'motion-vfx',
-  image: '/assets/works/works_p05_blue-lava.png',
+  image: '/assets/works/works_p05_blue-lava.jpg',
   body: [
     'Somewhere between memory and malfunction, the screen starts to bleed blue. Old signals don’t fade quietly — they melt, glow, and leave color scars across the dark.',
     'Call it static as lava: slow, hot, and hard to look away from.',
@@ -20,7 +20,7 @@ export default {
   ],
   caseStudy: {
     tools: ['After Effects'],
-    image: '/assets/works/works_p05_deep-dive_blue-lava.png',
+    image: '/assets/works/works_p05_deep-dive_blue-lava.jpg',
     body: [
       'A CRT-glitch look built entirely from After Effects\' own built-in tools, no third-party plugins.',
       'Card Wipe slices the type into thin vertical strips to mimic an old CRT\'s phosphor grille. Separating and offsetting the RGB channels gives that classic red/blue fringing at the edges. A displacement map driven by noise pushes those strips apart for the glitchy break-up moments, and Glow blends the separated colors back into a warm, overloaded halo.',

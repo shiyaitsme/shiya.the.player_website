@@ -3,7 +3,7 @@ export default {
   title: 'limited night',
   emoji: '',
   category: 'realtime-generative',
-  image: '/assets/works/works_p03_limited-night.png',
+  image: '/assets/works/works_p03_limited-night.jpg',
   body: [
     'That she wrote, "Speech to the Young: Speech to the Progress Toward"',
     'Say to them, say to the down-keepers, the sun-slappers, the self-soilers, the harmony-hushers',
@@ -23,7 +23,7 @@ export default {
   ],
   caseStudy: {
     tools: ['TouchDesigner'],
-    image: '/assets/works/works_p03_deep-dive_limited-night.png',
+    image: '/assets/works/works_p03_deep-dive_limited-night.jpg',
     body: [
       'A real-time TouchDesigner network that turns 2D video into a field of 3D particles — each pixel\'s brightness pushed into height, so the image slowly rebuilds itself as geometry.',
       'The pipeline reads a video\'s color into a flat array, merges it with a grid of positions, and uses that to drive instanced geometry: brightness becomes depth and scale. A feedback loop adds a bit of trailing, ghost-like motion, and bloom in the render pass gives the particles a soft, overloaded glow.',

@@ -3,7 +3,7 @@ export default {
   title: 'the world is my playground',
   emoji: '',
   category: 'illustration',
-  image: '/assets/works/works_p04_the-world-is-my-playground.png',
+  image: '/assets/works/works_p04_the-world-is-my-playground.jpg',
   body: [
     'I imagine an oyster that holds not a pearl, but an entire Earth.',
     '"The world is my oyster" feels less like conquest, and more like a playground.',

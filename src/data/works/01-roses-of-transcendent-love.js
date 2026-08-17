@@ -3,7 +3,7 @@ export default {
   title: 'roses of transcendent love',
   emoji: '',
   category: '3d-animation',
-  image: '/assets/works/works_roses-of-transcendent-love.png',
+  image: '/assets/works/works_roses-of-transcendent-love.jpg',
   body: [
     'Inspired by',
     'THE VIOLENT ROSE - René Char',

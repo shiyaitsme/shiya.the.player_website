@@ -3,7 +3,7 @@ export default {
   title: 'heart of empire',
   emoji: '',
   category: '3d-animation',
-  image: '/assets/works/works_p01_heart-of-empire.png',
+  image: '/assets/works/works_p01_heart-of-empire.jpg',
   body: [
     'Footprints across the plains, the snow mountains at her back—she stands at the summit of the world, her colors unchanged.',
     'Her blade can cleave through snowstorms, or become the corner where a butterfly rests.',

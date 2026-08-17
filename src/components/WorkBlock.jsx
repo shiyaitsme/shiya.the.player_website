@@ -97,6 +97,7 @@ function MediaWrap({ link, children }) {
 export default function WorkBlock({ work, index = 0, single = false, onOpenCase }) {
   const mediaRef = useRef(null)
   const [imgOk, setImgOk] = useState(true)
+  const [imgLoaded, setImgLoaded] = useState(false)
   const flip = index % 2 === 1 // alternate sides for rhythm
   const links = work.links || []
 
@@ -157,9 +158,15 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             // Only forced to a fixed box when there's no real media to show its
             // own aspect ratio — every other work keeps its native proportions
             // (a portrait piece stays portrait, a wide one stays wide) instead
-            // of being center-cropped into a uniform frame.
+            // of being center-cropped into a uniform frame. Also forced while
+            // a real image is still in flight (imgOk but !imgLoaded): without
+            // this, the box has zero height until the browser has enough of
+            // the file to know its intrinsic size, so a large/slow-loading
+            // image reads as "the artwork is missing" rather than "loading."
             style={
-              (!imgOk && !work.video) || (work.video && !videoInView)
+              (!imgOk && !work.video) ||
+              (work.video && !videoInView) ||
+              (!work.video && imgOk && !imgLoaded)
                 ? { aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }
                 : undefined
             }
@@ -172,9 +179,10 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
               <img
                 src={work.image}
                 alt={work.title}
-                className="block h-auto w-full"
+                className={`block h-auto w-full transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"
                 decoding="async"
+                onLoad={() => setImgLoaded(true)}
                 onError={() => setImgOk(false)}
                 draggable={false}
               />

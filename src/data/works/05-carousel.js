@@ -5,7 +5,7 @@ export default {
   category: '3d-animation',
   // This piece is a video; embedding/autoplaying it on the page is heavy, so
   // we show its Instagram cover and link out to the reel instead.
-  image: '/assets/works/works_p02_between-two-infinites.png',
+  image: '/assets/works/works_p02_between-two-infinites.jpg',
   body: [
     'Where the desert ends, the sea begins. Between two infinities, a carousel stands — pointing the lost toward a way forward, though we both know every road is long. So walk it as a pilgrimage.',
     'Don’t linger here. This is just one stop in the vast playground of the world. Ahead, the sands and the waves are waiting.',

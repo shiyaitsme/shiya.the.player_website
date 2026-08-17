@@ -3,7 +3,7 @@ export default {
   title: 'BLING',
   emoji: '',
   category: 'product-ux',
-  image: '/assets/works/works_BLING_v2.png',
+  image: '/assets/works/works_BLING_v2.jpg',
   body: [
     'Figure skating content usually splits in two: technical forums that are dry, aesthetic appreciation that’s scattered. BLING holds both at once.',
     'MUSE is the core — not a general chatbot, but a private critic who only talks aesthetics, in her own vocabulary, not encyclopedia answers.',
@@ -27,8 +27,8 @@ export default {
       },
       {
         images: [
-          '/assets/works/works_deep-dive_BLING_MUSE_v2.png',
-          '/assets/works/works_deep-dive_BLING_community_v2.png',
+          '/assets/works/works_deep-dive_BLING_MUSE_v2.jpg',
+          '/assets/works/works_deep-dive_BLING_community_v2.jpg',
         ],
       },
       {
@@ -41,8 +41,8 @@ export default {
       },
       {
         images: [
-          '/assets/works/works_deep-dive_BLING_find_v2.png',
-          '/assets/works/works_deep-dive_BLING_merchandise_v2.png',
+          '/assets/works/works_deep-dive_BLING_find_v2.jpg',
+          '/assets/works/works_deep-dive_BLING_merchandise_v2.jpg',
         ],
       },
       {

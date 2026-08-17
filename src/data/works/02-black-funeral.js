@@ -3,7 +3,7 @@ export default {
   title: 'black funeral',
   emoji: '',
   category: '3d-animation',
-  image: '/assets/works/works_black-funeral.png',
+  image: '/assets/works/works_black-funeral.jpg',
   body: [
     'Silence fills the church, making each footstep louder. Bells toll in the distance, and light through stained glass scatters across the floor in fractured color.',
     'Step by step toward the altar. Flowers in hand. Burying the past.',
