@@ -26,17 +26,15 @@ first for the product/architecture; this file is the operational cheat-sheet.
      `works_fragile.jpg`, body is the packaging-label-style prose copy
      as given, single instagram link only (no xiaohongshu for this one).
   3. `사랑의 맛 love's taste` (`02-loves-taste.js`) — `category:
-     '3d-animation'`, image `works_loves-taste.jpg`, **`body: []`
-     deliberately** — the user gave title + both links but no statement
-     text for this piece (unlike the other two, where she explicitly wrote
-     one), so left empty rather than inventing copy; `WorkBlock.jsx`'s
-     `body.map(...)` handles an empty array fine (renders no paragraphs,
-     doesn't crash). If she sends a statement for this one later, just add
-     it to the array. Two links (instagram + xiaohongshu). Title keeps the
-     Korean + English mix exactly as given — the "no Chinese anywhere"
-     copy rule (CJK-Unified-Ideographs regex `/[一-鿿]/`) doesn't catch
-     Hangul, and a title is the work's own name, not translatable body
-     copy, so this isn't a golden-rule violation.
+     '3d-animation'`, image `works_loves-taste.jpg`. Body was initially left
+     `[]` (the user forgot to send the statement in the same message as the
+     other two); she followed up with it a message later same session —
+     `['Self-immolation, once the lighter is lit.', 'Swallowing love,
+     endless and blind.']` — now filled in. Two links (instagram +
+     xiaohongshu). Title keeps the Korean + English mix exactly as given —
+     the "no Chinese anywhere" copy rule (CJK-Unified-Ideographs regex
+     `/[一-鿿]/`) doesn't catch Hangul, and a title is the work's own name,
+     not translatable body copy, so this isn't a golden-rule violation.
   Mechanics: inserting 3 works at the front meant renumbering every one of
   the existing 59 `src/data/works/NN-*.js` files (`00-58`) up by 3
   (`00→03` … `58→61`), plain `git mv`, no content changes — same pattern as

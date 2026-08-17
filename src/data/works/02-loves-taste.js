@@ -4,7 +4,10 @@ export default {
   emoji: '',
   category: '3d-animation',
   image: '/assets/works/works_loves-taste.jpg',
-  body: [],
+  body: [
+    'Self-immolation, once the lighter is lit.',
+    'Swallowing love, endless and blind.',
+  ],
   links: [
     {
       label: 'watch on instagram',
