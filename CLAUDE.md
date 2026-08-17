@@ -4,6 +4,50 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-08-17, updated end of day)
+- **This session's work (2026-08-17, three new works added directly to the
+  default branch `claude/mobile-responsive-design-j4zpzc`)**: added, in this
+  order, all positioned FIRST (ahead of `exclusive summer`) per the
+  established "newest proudest work leads" pattern since the user didn't
+  specify placement this time:
+  1. `Akarsz-e játszani?` (`00-akarsz-e-jatszani.js`) — `category:
+     '3d-animation'`, image `works_Akarsz-e-játszani.jpg` (uploaded as PNG,
+     recompressed — see below), body is the Hungarian quatrain + full
+     English translation + attribution (Kosztolányi Dezső, 1912) as
+     separate line-per-paragraph entries (matches the `roses of
+     transcendent love` epigraph-formatting pattern), two links
+     (instagram + xiaohongshu). **The filename has a real accented í** —
+     the file as uploaded via GitHub web was NFD-normalized (`j` +
+     combining acute, not precomposed `í`), which silently mismatches a
+     hand-typed NFC `í` even though they render identically — re-normalized
+     to NFC with Python `unicodedata.normalize('NFC', ...)` before writing
+     the `image:` path, so don't retype this filename by hand without
+     checking it's still NFC (`unicodedata.is_normalized('NFC', path)`).
+  2. `FRAGILE` (`01-fragile.js`) — `category: '3d-animation'`, image
+     `works_fragile.jpg`, body is the packaging-label-style prose copy
+     as given, single instagram link only (no xiaohongshu for this one).
+  3. `사랑의 맛 love's taste` (`02-loves-taste.js`) — `category:
+     '3d-animation'`, image `works_loves-taste.jpg`, **`body: []`
+     deliberately** — the user gave title + both links but no statement
+     text for this piece (unlike the other two, where she explicitly wrote
+     one), so left empty rather than inventing copy; `WorkBlock.jsx`'s
+     `body.map(...)` handles an empty array fine (renders no paragraphs,
+     doesn't crash). If she sends a statement for this one later, just add
+     it to the array. Two links (instagram + xiaohongshu). Title keeps the
+     Korean + English mix exactly as given — the "no Chinese anywhere"
+     copy rule (CJK-Unified-Ideographs regex `/[一-鿿]/`) doesn't catch
+     Hangul, and a title is the work's own name, not translatable body
+     copy, so this isn't a golden-rule violation.
+  Mechanics: inserting 3 works at the front meant renumbering every one of
+  the existing 59 `src/data/works/NN-*.js` files (`00-58`) up by 3
+  (`00→03` … `58→61`), plain `git mv`, no content changes — same pattern as
+  every prior front-insert. **All three uploaded images were recompressed**
+  the same way as the `artwork images missing` session just before this one
+  (Pillow, longest-edge cap 2400px, JPEG q85, confirmed opaque first) since
+  they arrived as 1–2.6MB PNGs — 5.5MB → ~600KB total across the three.
+  Pushed straight to the default branch per the user's explicit instruction
+  this session ("直接在默认分支里面修改，推送到默认分支，不用问我需要不需要推送") — no
+  separate task branch was used, and no confirmation was asked before
+  pushing.
 - **This session's `artwork images missing` fix is now ON the default
   branch `claude/mobile-responsive-design-j4zpzc`** — pushed there directly
   (clean fast-forward, `git merge-base --is-ancestor` verified first) at

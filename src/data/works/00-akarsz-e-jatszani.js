@@ -1,0 +1,35 @@
+export default {
+  id: 'akarsz-e-jatszani',
+  title: 'Akarsz-e játszani?',
+  emoji: '',
+  category: '3d-animation',
+  image: '/assets/works/works_Akarsz-e-játszani.jpg',
+  body: [
+    'Akarsz-e élni, élni mindörökkön,',
+    'játékban élni, mely valóra vált?',
+    'Virágok közt feküdni lenn a földön,',
+    's akarsz, akarsz-e játszani halált?',
+    '⸻',
+    'Will you play at snakes, at birds,',
+    'at long journeys, at trains and ships,',
+    'at Christmas, at dreams, at every good thing?',
+    'Will you play the happy lover,',
+    'feign weeping, play at a gaudy funeral?',
+    'Will you live, live forever and ever,',
+    'live inside a game that has finally come true?',
+    'Lie down among the flowers, close against the earth below?',
+    'And will you, will you —',
+    'play at death with me?',
+    '— Kosztolányi Dezső, Akarsz-e játszani? (1912)',
+  ],
+  links: [
+    {
+      label: 'watch on instagram',
+      href: 'https://www.instagram.com/reel/Dbp1jB7q7z7/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
+    },
+    {
+      label: 'watch on xiaohongshu',
+      href: 'https://www.xiaohongshu.com/discovery/item/6a732b2100000000280022f2?source=webshare&xhsshare=pc_web&xsec_token=ABeXJB6qAxap0Z4cUsu_gnPp-Cg-UyzMGXc1ZYKzflmP8=&xsec_source=pc_share',
+    },
+  ],
+}
