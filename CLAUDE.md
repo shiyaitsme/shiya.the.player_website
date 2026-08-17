@@ -4,6 +4,40 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-08-17, updated end of day)
+- **This session's work (2026-08-17, `world archive butterfly click did
+  nothing` fix)**: the user reported that clicking the green glass
+  butterfly on the Works page produced zero reaction — no "falling into
+  the archive…" flash, nothing — even though the butterfly itself was
+  visibly flying in and docking normally. Diagnosed via `AskUserQuestion`
+  (narrowed "world archive disappeared" down to specifically "click does
+  nothing, still shows the works page") plus code/git-history review
+  (`ButterflyEgg.jsx` hasn't changed since it was first added — this was
+  never a regression from any later session, including this one's earlier
+  work) and a targeted headless test that dispatched `pointerdown`+
+  `pointerup` directly on the hotspot to isolate the click-handling JS from
+  this sandbox's known-unreliable software-WebGL frame loop (see "Hard
+  environment constraints"/"Verifying visually" below — R3F's `useFrame`
+  essentially never ticks here even though the WebGL2 context, FBX, and
+  texture all load fine, so the animation itself can't be trusted
+  headless). Root cause: the hotspot `<button>` relied on native `onClick`,
+  but its own `style.transform` is rewritten every frame by the docked
+  "breathing" bob (`Math.sin(t*1.1)*0.12` on Y) — at this camera's
+  ~100+ screen-px-per-world-unit scale that's a continuous ~10px drift,
+  enough that a real mousedown→mouseup pair (which takes real humans tens
+  to hundreds of ms) can end with the release landing outside the element,
+  which makes the browser skip synthesizing `click` entirely even though
+  the cursor itself never moved. **Exact same failure class already
+  documented below for `WorldArchive`'s click-to-select** (an animating hit
+  target vs. native `click`'s same-element requirement) — same fix applied
+  here: `onPointerDown` captures `{x,y}` on the hotspot, a **global**
+  `window` `pointerup` listener (not the element's own, in case the target
+  drifted out from under the cursor before release) confirms and fires
+  `onEnter` only if total movement stayed under 8px. Verified with a
+  headless pointerdown/pointerup dispatch test: the "falling into the
+  archive…" flash and the World Archive scene itself both now mount
+  correctly. If another "the butterfly does nothing" report comes in after
+  this, it's a genuinely new bug — this specific mechanism is fixed and
+  should not need re-diagnosing from scratch.
 - **This session's work (2026-08-17, three new works added directly to the
   default branch `claude/mobile-responsive-design-j4zpzc`)**: added, in this
   order, all positioned FIRST (ahead of `exclusive summer`) per the

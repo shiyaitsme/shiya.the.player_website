@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
@@ -20,7 +20,9 @@ import useIsMobile from '../../hooks/useIsMobile'
  *                "-> enter archive" hint fades in below it (CSS ::after on
  *                .bfly-hotspot, driven by hoverRef — see index.css; no
  *                native title tooltip).
- *   5. CLICK   — fires onEnter (fall into the World Archive).
+ *   5. CLICK   — fires onEnter (fall into the World Archive). Uses
+ *                pointerdown + a global pointerup (not native onClick) —
+ *                see the note above the hotspot's pointerdown handler below.
  *
  * The <Canvas> is pointer-events:none so it never blocks the page; clicking is
  * handled by a DOM hotspot that tracks the butterfly's projected position
@@ -236,6 +238,27 @@ export default function ButterflyEgg({ onEnter }) {
   const isMobile = useIsMobile()
   const targetSize = isMobile ? 0.8 : 2.4 // 1/3 size on phones; desktop untouched
 
+  // Click via pointerdown + a global pointerup, not native onClick. The
+  // hotspot's own transform is rewritten every frame (idle "breathing" bob,
+  // see useFrame above) — at 1 world unit ≈ 100+ screen px at this camera
+  // distance, that bob alone can drift the docked hotspot ~10px between a
+  // real mousedown and mouseup, enough to land the release outside the
+  // element and make the browser skip firing `click` entirely, even though
+  // the cursor never moved. Same failure class (and same fix) as
+  // WorldArchive's click-to-select — see CLAUDE.md.
+  const downRef = useRef(null) // {x,y} at pointerdown, or null
+  useEffect(() => {
+    const onPointerUp = (e) => {
+      const down = downRef.current
+      downRef.current = null
+      if (!down) return
+      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
+      if (moved < 8) onEnter()
+    }
+    window.addEventListener('pointerup', onPointerUp)
+    return () => window.removeEventListener('pointerup', onPointerUp)
+  }, [onEnter])
+
   return (
     <div className="pointer-events-none fixed inset-0 z-[70]">
       <Canvas
@@ -261,7 +284,8 @@ export default function ButterflyEgg({ onEnter }) {
       <button
         ref={hotspotRef}
         type="button"
-        onClick={onEnter}
+        onPointerDown={(e) => (downRef.current = { x: e.clientX, y: e.clientY })}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onEnter()}
         onMouseEnter={() => (hoverRef.current = true)}
         onMouseLeave={() => (hoverRef.current = false)}
         onFocus={() => (hoverRef.current = true)}
