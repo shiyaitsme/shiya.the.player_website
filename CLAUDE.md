@@ -3,7 +3,28 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-08-17, updated end of day)
+## Start here (2026-09-03, updated end of day)
+- **This session's work (2026-09-03, two new works added directly to the
+  default branch `claude/mobile-responsive-design-j4zpzc`)**: added, both
+  positioned FIRST (ahead of `Akarsz-e játszani`) per the established
+  "newest proudest work leads" pattern since the user didn't specify
+  placement:
+  1. `Psyche and Cupid` (`00-psyche-and-cupid.js`) — `category:
+     '3d-animation'`, image `works_psyche-and-cupid.jpg`, single-paragraph
+     body as given, single instagram link.
+  2. `black sand rite` (`01-black-sand-rite.js`) — `category:
+     '3d-animation'`, image `works_black-sand-rite.jpg`, single-line body
+     as given, single instagram link.
+  Mechanics: inserting 2 works at the front meant renumbering every one of
+  the existing 62 `src/data/works/NN-*.js` files (`00-61`) up by 2
+  (`00→02` … `61→63`), plain `git mv`, no content changes — same pattern as
+  every prior front-insert. **Both uploaded images were recompressed** the
+  same way as prior "artwork images missing"-style passes (Pillow, longest-
+  edge cap 2400px, JPEG q85, confirmed opaque first) since they arrived as
+  ~1.8–2MB PNGs — ~3.9MB → ~345KB total across the two. Pushed straight to
+  the default branch per the user's explicit instruction this session
+  ("直接默认分支里面添加就行，不需要另外开新的branch") — no separate task
+  branch was used, and no confirmation was asked before pushing.
 - **This session's work (2026-08-17, `world archive butterfly click did
   nothing` fix)**: the user reported that clicking the green glass
   butterfly on the Works page produced zero reaction — no "falling into
