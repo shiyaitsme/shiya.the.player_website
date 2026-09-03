@@ -9,8 +9,10 @@ first for the product/architecture; this file is the operational cheat-sheet.
   positioned FIRST (ahead of `Akarsz-e játszani`) per the established
   "newest proudest work leads" pattern since the user didn't specify
   placement:
-  1. `Psyche and Cupid` (`00-psyche-and-cupid.js`) — `category:
-     '3d-animation'`, image `works_psyche-and-cupid.jpg`, single-paragraph
+  1. `Psyche and Cupid` (`00-psyche-and-cupid.js`) — `category: 'ai-art'`
+     (initially shipped as `'3d-animation'`, corrected same session per the
+     user's explicit follow-up — this piece is AI-generated, not a 3D/
+     animation piece), image `works_psyche-and-cupid.jpg`, single-paragraph
      body as given, single instagram link.
   2. `black sand rite` (`01-black-sand-rite.js`) — `category:
      '3d-animation'`, image `works_black-sand-rite.jpg`, single-line body
