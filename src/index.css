@@ -2,23 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Butler Free Med St';
-  src:
-    url('/assets/fonts/Butler-Free-Med-St.woff2') format('woff2'),
-    url('/assets/fonts/Butler-Free-Med-St.woff') format('woff');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   /* parallax offsets driven by GSAP (mouse) — unitless, px via calc() */
   --mx: 0;
   --my: 0;
   --mx2: 0;
   --my2: 0;
-  --halftone: 7px;
 }
 
 html,
@@ -31,77 +20,89 @@ body,
 body {
   @apply font-body text-ink antialiased;
   overflow-x: hidden;
-  background: #efe9f2;
+  background: #060606;
   cursor: default;
 }
 
 /* ------------------------------------------------------------------ *
- * 1. SOFT IRIDESCENT MACARON GRADIENT  (pure code, matches Figma)
- *    Dreamy low-saturation blend: periwinkle · pink · peach · sky.
+ * 1. NIGHT GROUND  ("Afterglow": near-black with a soft grey bloom up top)
  * ------------------------------------------------------------------ */
-.macaron-base {
+.night-base {
   position: fixed;
   inset: -14%;
   z-index: 0;
-  background:
-    radial-gradient(50% 55% at 20% 22%, rgba(174, 185, 236, 0.95) 0%, rgba(174, 185, 236, 0) 60%),
-    radial-gradient(48% 50% at 82% 30%, rgba(246, 211, 178, 0.85) 0%, rgba(246, 211, 178, 0) 62%),
-    radial-gradient(55% 55% at 60% 78%, rgba(242, 182, 212, 0.9) 0%, rgba(242, 182, 212, 0) 62%),
-    radial-gradient(50% 55% at 18% 82%, rgba(188, 210, 239, 0.85) 0%, rgba(188, 210, 239, 0) 60%),
-    radial-gradient(60% 60% at 88% 86%, rgba(247, 207, 224, 0.7) 0%, rgba(247, 207, 224, 0) 60%),
-    linear-gradient(125deg, #cfd6f0 0%, #f0d8e6 42%, #f7e6d6 72%, #cdddf1 100%);
-  background-size: 150% 150%;
-  filter: saturate(1.02);
+  background: radial-gradient(ellipse at 50% 38%, #2e2e2e 0%, #121212 48%, #060606 100%);
   transform: translate3d(calc(var(--mx) * 1px), calc(var(--my) * 1px), 0) scale(1.08);
   transition: transform 0.25s ease-out;
   will-change: transform;
 }
+/* page-level ground for the full-screen content pages (no parallax) */
+.night-page {
+  background: radial-gradient(ellipse at 50% 30%, #262626 0%, #101010 50%, #060606 100%);
+}
 
 /* ------------------------------------------------------------------ *
- * 2. HALFTONE  (very faint retro print dots, like the Figma overlay)
+ * 2. RINGS  (faint concentric engraving lines, drifts opposite the base)
  * ------------------------------------------------------------------ */
-.halftone {
+.rings {
   position: fixed;
   inset: -14%;
   z-index: 1;
   pointer-events: none;
-  background-image: radial-gradient(rgba(40, 30, 60, 0.16) 0.9px, transparent 1px);
-  background-size: var(--halftone) var(--halftone);
-  mix-blend-mode: multiply;
-  opacity: 0.28;
+  background: repeating-radial-gradient(
+    circle at 50% 42%,
+    rgba(255, 255, 255, 0.07) 0 1px,
+    transparent 1px 8px
+  );
   transform: translate3d(calc(var(--mx2) * 1px), calc(var(--my2) * 1px), 0);
   transition: transform 0.18s ease-out;
   will-change: transform;
 }
 
 /* ------------------------------------------------------------------ *
- * 3. GRAIN  (subtle tactile paper noise)
+ * 3. GRAIN  (sparse white film specks — same feTurbulence recipe as the
+ *    Afterglow reference: alpha pushed through a steep threshold matrix)
  * ------------------------------------------------------------------ */
 .grain {
   position: fixed;
   inset: -50%;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.12;
-  mix-blend-mode: soft-light;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 9 0 0 0 -4.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   @apply animate-grain;
   will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. PLATE  (outlined card ground: engraved rings over a grey bloom)
+ *    used by the map nav plates and anywhere a "plate" surface is needed
+ * ------------------------------------------------------------------ */
+.plate-ground {
+  background:
+    repeating-radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px 9px),
+    radial-gradient(circle at 50% 38%, #555 0%, #070707 72%);
+}
+.plate-inner {
+  transition: filter 0.35s ease;
+}
+.plate-hover:hover .plate-inner {
+  filter: invert(1) contrast(1.1);
 }
 
 /* ------------------------------------------------------------------ *
  * Typography — retro display nav + editorial serif
  * ------------------------------------------------------------------ */
 .nav-label {
-  font-family: 'Butler Free Med St', Georgia, serif;
-  color: #b6ff00;
-  font-size: clamp(30px, 2.8vw, 44px);
-  letter-spacing: 0.02em;
-  /* NO text-shadow / drop-shadow — 100% clean, no doubled ghost layer */
-  transition: transform 0.25s ease, filter 0.25s ease;
+  font-family: 'Pinyon Script', cursive;
+  color: #ffffff;
+  font-size: clamp(36px, 3.4vw, 54px);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  /* NO text-shadow / drop-shadow — clean white script on black */
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 .nav-label:hover {
-  filter: brightness(1.08);
   transform: translateY(-1px) scale(1.04);
 }
 
@@ -118,12 +119,14 @@ body {
   align-items: center;
   gap: 0.5em;
   overflow: hidden;
-  border-radius: 9999px;
-  border: 1.5px solid #b6ff00;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.85);
   padding: 0.55em 1.3em;
-  font-family: 'Butler Free Med St', Georgia, serif;
-  font-size: clamp(14px, 1.1vw, 18px);
-  color: #b6ff00;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
   text-decoration: none;
   /* same duration/easing as .link-pill-fill's clip-path below — they must
      move in lockstep, or there's a window where the fill is still mostly
@@ -135,7 +138,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: #b6ff00;
+  background: #ffffff;
   /* --mx/--my always come pre-set (inline style="--mx:50%;--my:50%" plus
      JS updates) — no var(..., fallback) here. That fallback form inside
      circle()'s position turned out unreliable in testing (computed to
@@ -152,7 +155,7 @@ body {
   clip-path: circle(140% at var(--mx) var(--my));
 }
 .link-pill:not(.link-pill-mobile):hover {
-  color: #14101f;
+  color: #060606;
 }
 /* mobile: tap toggles a plain bottom-up wipe — no var() inside the shape
    function, so it can't hit the WebKit parsing issue above. */
@@ -163,7 +166,7 @@ body {
   clip-path: inset(0 0 0 0);
 }
 .link-pill-mobile.is-filled {
-  color: #14101f;
+  color: #060606;
 }
 .link-pill-label {
   position: relative;
@@ -216,8 +219,8 @@ body {
   font-weight: 300;
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: #b6ff00;
-  text-shadow: 0 0 6px rgba(182, 255, 0, 0.35);
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.35);
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -227,10 +230,13 @@ body {
   transform: translate(-50%, 9px);
 }
 
-/* scattered black asterisk star */
+/* scattered asterisk star (the art itself is black — inverted to white) */
+.star-asterisk img {
+  filter: invert(1);
+}
 .star-asterisk {
-  font-family: 'Gravitas One', Georgia, serif;
-  color: #14101f;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  color: #ffffff;
   line-height: 0;
   user-select: none;
 }
@@ -250,8 +256,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .macaron-base,
-  .halftone,
+  .night-base,
+  .rings,
   .grain {
     animation: none !important;
     transition: none !important;

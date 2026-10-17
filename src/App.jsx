@@ -12,11 +12,13 @@ import ShardZoom from './components/ShardZoom'
 import MobileMap from './components/MobileMap'
 import Page from './components/Page'
 import ScrollGallery from './components/ScrollGallery'
+import Frame from './components/Frame'
+import HomeFooter from './components/HomeFooter'
 import { sections } from './data/projects'
 
 /**
  * Shiya the Player — Digital Playground / 桃花源.
- * Map stage (carousel hub, green shards, lime nav, black-asterisk Gachapon)
+ * Map stage (carousel hub, outlined nav plates, white script nav, asterisk Gachapon)
  * → cinematic shard zoom → editorial content pages.
  *
  * Desktop keeps the pixel-1:1 1440x900 Figma stage untouched. Phone-width
@@ -46,6 +48,8 @@ export default function App() {
       <Background />
 
       <div className="relative h-dvh w-screen overflow-hidden">
+        {/* engraved double-rule frame + corner flourishes over the whole first screen */}
+        <Frame className="z-[25]" corner={isMobile ? 'clamp(56px, 18vw, 96px)' : undefined} />
         {isMobile ? (
           <div
             className="absolute inset-0 z-10"
@@ -64,7 +68,7 @@ export default function App() {
             <motion.img
               src="/assets/logo_s.svg"
               alt="Shiya the Player"
-              className="absolute z-30 animate-floaty"
+              className="absolute z-30 animate-floaty invert"
               style={{ left: 705, top: 115, width: 40, height: 55 }}
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -81,6 +85,7 @@ export default function App() {
       </div>
 
       <ScrollGallery />
+      <HomeFooter />
 
       {/* content page (section or single work) */}
       <AnimatePresence>

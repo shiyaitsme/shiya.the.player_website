@@ -35,7 +35,7 @@ export default function ArchDiagram({ nodes = [] }) {
           <stop offset="100%" stopColor="rgba(255,255,255,0.06)" />
         </linearGradient>
         <marker id="archArrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#b6ff00" />
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ffffff" />
         </marker>
       </defs>
 
@@ -53,7 +53,7 @@ export default function ArchDiagram({ nodes = [] }) {
                 y1={cy}
                 x2={edgeEnd - 8}
                 y2={cy}
-                stroke="#b6ff00"
+                stroke="#ffffff"
                 strokeWidth="2"
                 strokeOpacity="0.7"
                 markerEnd="url(#archArrow)"

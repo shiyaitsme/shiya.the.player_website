@@ -5,7 +5,7 @@ import { stars, pickRandomWork } from '../data/projects'
 /**
  * Feature A — scattered black star "Gachapon" nodes at the Figma coordinates.
  * Prefers the user's exported star art (/assets/star.svg). If it isn't there
- * yet, falls back to a Gravitas asterisk. Click → random work + soft bloom.
+ * yet, falls back to a plain asterisk. Click → random work + soft bloom.
  */
 export default function StarField({ onSelect }) {
   const [bloom, setBloom] = useState(null)
@@ -69,7 +69,7 @@ export default function StarField({ onSelect }) {
               marginTop: -30,
               zIndex: 70,
               background:
-                'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(242,182,212,0.6) 45%, rgba(255,255,255,0) 72%)',
+                'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(200,200,210,0.55) 45%, rgba(255,255,255,0) 72%)',
             }}
             initial={{ scale: 0, opacity: 0.95 }}
             animate={{ scale: 60, opacity: 1 }}

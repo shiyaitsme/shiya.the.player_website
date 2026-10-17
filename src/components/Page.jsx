@@ -5,6 +5,7 @@ import PhotoGrid from './PhotoGrid'
 import ProjectModal from './ProjectModal'
 import ArrowIcon from './ArrowIcon'
 import SafeMount from './butterfly/SafeMount'
+import Frame from './Frame'
 import { works, categories } from '../data/projects'
 
 // 3D scenes — lazy so three.js stays out of the main bundle
@@ -12,8 +13,9 @@ const ButterflyEgg = lazy(() => import('./butterfly/ButterflyEgg'))
 const WorldArchive = lazy(() => import('./butterfly/WorldArchive'))
 
 /**
- * The content page a shard / star opens into. Soft section background image
- * (consistent per section), editorial Playfair copy, scrollable + responsive.
+ * The content page a nav plate / star opens into. Black "Afterglow" ground
+ * with an engraved double-rule frame, script titles over light grotesk copy,
+ * scrollable + responsive.
  *
  * view:
  *   { type:'section', section }  → works list | about | contact | manifesto
@@ -21,7 +23,6 @@ const WorldArchive = lazy(() => import('./butterfly/WorldArchive'))
  */
 export default function Page({ view, onClose }) {
   const section = view.type === 'section' ? view.section : null
-  const bg = section ? section.bg : '/assets/bg_1.png'
   const [caseProject, setCaseProject] = useState(null) // open project deep-dive
   const [entering, setEntering] = useState(false) // brief white "fall" flash
   const [archiveOpen, setArchiveOpen] = useState(false) // 3D world archive
@@ -61,17 +62,18 @@ export default function Page({ view, onClose }) {
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* fixed soft background (parallaxes against the scroll) */}
-      <div
-        className="pointer-events-none fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${bg})` }}
-      />
+      {/* fixed night ground + frame */}
+      <div className="night-page pointer-events-none fixed inset-0" />
+      <div className="rings" />
       <div className="grain" />
+      <div className="pointer-events-none fixed inset-0 z-[5]">
+        <Frame corner="clamp(56px, 8vw, 110px)" />
+      </div>
 
       {/* sticky top bar */}
       <div
         id="page-header"
-        className="sticky top-0 z-10 flex items-center justify-between px-6 py-5 md:px-12"
+        className="sticky top-0 z-10 flex items-center justify-between px-8 py-5 md:px-16"
         style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}
       >
         <button
@@ -82,20 +84,20 @@ export default function Page({ view, onClose }) {
           <ArrowIcon deg={180} style={{ width: '0.7em', height: '0.7em' }} />
           map
         </button>
-        <span className="font-display text-sm uppercase tracking-[0.3em] text-ink/70">
+        <span className="font-body text-[11px] uppercase tracking-[0.3em] text-ink/70">
           {section ? section.title : 'works'}
         </span>
       </div>
 
       <div
         id="page-content-col"
-        className="relative mx-auto max-w-5xl px-6 pt-[4vh] md:px-12"
+        className="relative z-[6] mx-auto max-w-5xl px-8 pt-[4vh] md:px-16"
         style={{ paddingBottom: 'max(18vh, calc(4vh + env(safe-area-inset-bottom)))' }}
       >
         {/* big title */}
         <motion.h1
           id="page-title"
-          className="mb-12 font-serif text-4xl lowercase text-ink sm:text-5xl md:mb-20 md:text-7xl"
+          className="mb-12 font-script text-6xl font-normal lowercase leading-[1.05] text-ink sm:text-7xl md:mb-20 md:text-[112px]"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.7 }}
@@ -114,10 +116,10 @@ export default function Page({ view, onClose }) {
                   key={c.key}
                   type="button"
                   onClick={() => setWorksFilter(c.key)}
-                  className={`rounded-full border px-4 py-1.5 font-body text-xs uppercase tracking-[0.15em] transition ${
+                  className={`border px-4 py-2 font-body text-[11px] uppercase tracking-[0.22em] transition ${
                     worksFilter === c.key
-                      ? 'border-lime-grass bg-lime-grass/15 text-ink'
-                      : 'border-ink/20 text-ink/60 hover:border-ink/40 hover:text-ink/80'
+                      ? 'border-white bg-white text-night'
+                      : 'border-white/30 text-ink/70 hover:border-white hover:text-white'
                   }`}
                 >
                   {c.label}
@@ -149,11 +151,11 @@ export default function Page({ view, onClose }) {
 
         {/* ---- TEXT SECTIONS: about / contact / manifesto ---- */}
         {section?.kind === 'text' && (
-          <div className="max-w-2xl font-serif text-ink">
+          <div className="max-w-2xl font-body font-light text-ink">
             {section.body.map((para, i) => (
               <motion.p
                 key={i}
-                className="mb-6 text-[18px] leading-relaxed md:text-[22px]"
+                className="mb-6 text-[17px] leading-relaxed md:text-[21px]"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -168,7 +170,7 @@ export default function Page({ view, onClose }) {
               <ul className="mt-10 grid grid-cols-1 gap-2 font-body text-sm uppercase tracking-[0.2em] text-ink/75 sm:grid-cols-2">
                 {section.skills.map((s) => (
                   <li key={s} className="flex items-center gap-2">
-                    <span aria-hidden className="text-lime-grass">✦</span>
+                    <span aria-hidden className="text-white">✦</span>
                     {s}
                   </li>
                 ))}
@@ -228,9 +230,9 @@ export default function Page({ view, onClose }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="absolute inset-0 bg-white/70 backdrop-blur-xl" />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
             <motion.span
-              className="relative font-serif text-2xl lowercase text-ink/80 md:text-4xl"
+              className="relative font-script text-4xl lowercase text-ink md:text-6xl"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}

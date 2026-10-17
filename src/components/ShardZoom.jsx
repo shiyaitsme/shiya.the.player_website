@@ -42,12 +42,12 @@ export default function ShardZoom({ coverSrc, label, originRect, onReveal, onCom
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[90]">
-      {/* soft pastel backdrop that blooms in as we push through */}
+      {/* black backdrop that blooms in as we push through */}
       <motion.div
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(60% 60% at 50% 45%, rgba(247,230,214,0.96) 0%, rgba(206,214,240,0.9) 70%)',
+            'radial-gradient(60% 60% at 50% 45%, rgba(46,46,46,0.98) 0%, rgba(6,6,6,0.98) 75%)',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: phase === 'out' ? 0 : 0.92 }}
@@ -79,7 +79,7 @@ export default function ShardZoom({ coverSrc, label, originRect, onReveal, onCom
       >
         {/* section cover photo — the only thing that zooms */}
         <img
-          className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_20px_50px_rgba(40,30,60,0.3)]"
+          className="absolute inset-[6%] h-[88%] w-[88%] object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.12)]"
           src={coverSrc}
           alt={label}
           draggable={false}

@@ -16,7 +16,7 @@ export default function PhotoGrid({ works }) {
             key={w.id}
             type="button"
             onClick={() => setOpenIndex(i)}
-            className="mb-3 block w-full break-inside-avoid overflow-hidden rounded-[2px] transition-opacity duration-200 hover:opacity-85 md:mb-4"
+            className="mb-3 block w-full break-inside-avoid overflow-hidden transition duration-300 hover:-translate-y-1 hover:invert md:mb-4"
           >
             <img
               src={w.image}

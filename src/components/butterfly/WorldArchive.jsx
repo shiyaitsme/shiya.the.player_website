@@ -502,7 +502,7 @@ export default function WorldArchive({ onClose }) {
             </span>
             <div className="h-[2px] w-48 overflow-hidden bg-white/15">
               <div
-                className="h-full bg-lime-acid transition-[width] duration-200"
+                className="h-full bg-white transition-[width] duration-200"
                 style={{ width: `${total ? (loaded / total) * 100 : 0}%` }}
               />
             </div>

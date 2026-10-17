@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion'
 import { shards, sections } from '../data/projects'
 import NavLabel from './NavLabel'
+import NavPlate from './NavPlate'
+
+const NUMERALS = ['I', 'II', 'III', 'IV']
 
 /**
  * The 4 nav clusters (contact / works / about / manifesto). Each cluster is a
- * SINGLE absolutely-positioned container that holds its green shard image with
- * the lime nav label centered directly beneath it.
+ * SINGLE absolutely-positioned container that holds its "Afterglow" plate
+ * (see NavPlate) with the white script nav label centered directly beneath it.
  *
  * Why one container: the image and its label used to be positioned separately
  * with their own absolute coords, so they drifted apart (and the floating
@@ -40,17 +43,11 @@ export default function ShardGrid({ onOpen }) {
               scale: { delay: 0.5 + i * 0.12, type: 'spring', stiffness: 140, damping: 14 },
               y: { duration: 7 + i, repeat: Infinity, ease: 'easeInOut' },
             }}
-            whileHover={{ scale: 1.07 }}
+            whileHover={{ y: -8 }}
             whileTap={{ scale: 0.94 }}
           >
-            {/* shard image — keeps its Figma tilt; label below stays horizontal */}
-            <img
-              src={`/assets/green_piece_${shard.id}.png`}
-              alt=""
-              className="w-full select-none drop-shadow-[0_8px_18px_rgba(60,50,80,0.22)]"
-              style={{ transform: `rotate(${piece.rot}deg)` }}
-              draggable={false}
-            />
+            {/* plate — keeps its Figma tilt; label below stays horizontal */}
+            <NavPlate numeral={NUMERALS[i]} rot={piece.rot * 0.6} variant={i} />
             {/* label is pinned 12px under the image, centered — never drifts */}
             <span className="mt-3 block">
               <NavLabel section={section} />

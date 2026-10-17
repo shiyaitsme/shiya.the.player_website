@@ -4,29 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // soft iridescent macaron palette (from the Figma demo)
-        macaron: {
-          lavender: '#bcb4e6',
-          periwinkle: '#aeb9ec',
-          pink: '#f2b6d4',
-          blush: '#f7cfe0',
-          peach: '#f6d3b2',
-          cream: '#f7efe2',
-          sky: '#bcd2ef',
-        },
-        // acid lime used for the nav + connector lines
-        lime: {
-          acid: '#b6ff00',
-          grass: '#7ed957',
-        },
-        ink: '#1a1726',
+        // "Afterglow" night palette: near-black ground, cool-white ink
+        night: '#060606',
+        ink: '#f4f3ff',
       },
       fontFamily: {
-        // Gravitas One = heavy retro Americana display / nav
-        display: ['"Gravitas One"', 'Georgia', 'serif'],
-        // Playfair Display = elegant editorial body serif
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        body: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        // Pinyon Script = formal calligraphic display (titles, nav words)
+        script: ['"Pinyon Script"', 'cursive'],
+        // Cormorant Garamond italic = small numerals / index marks
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        // Hanken Grotesk = light, quiet body copy (serif kept as an alias so
+        // existing `font-serif` paragraph classes pick up the same face)
+        serif: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        body: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         floaty: {

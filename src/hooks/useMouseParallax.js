@@ -3,7 +3,7 @@ import gsap from 'gsap'
 
 /**
  * Ties the global mouse coordinates (X, Y) to CSS custom properties via GSAP,
- * driving the macaron base + halftone layers at slightly different speeds for
+ * driving the night ground + ring layers at slightly different speeds for
  * a layered depth effect. Also exposes a quickTo for the hero carousel tilt.
  *
  * Returns a ref-free API: the heavy lifting is done on :root CSS vars so any

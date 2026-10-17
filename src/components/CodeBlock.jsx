@@ -20,7 +20,7 @@ const TOKENIZER =
 
 const COLOR = {
   comment: 'text-white/35 italic',
-  string: 'text-[#b6ff00]',
+  string: 'text-[#ffffff]',
   number: 'text-[#f6d3b2]',
   keyword: 'text-[#caa6ff]',
   type: 'text-[#aeb9ec]',
@@ -56,7 +56,7 @@ export default function CodeBlock({ code = '', language = '' }) {
       <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2">
         <span className="h-2.5 w-2.5 rounded-full bg-[#f2b6d4]/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#f6d3b2]/80" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#b6ff00]/70" />
+        <span className="h-2.5 w-2.5 rounded-full bg-white/70" />
         {language && (
           <span className="ml-auto font-body text-[11px] uppercase tracking-[0.3em] text-white/40">
             {language}

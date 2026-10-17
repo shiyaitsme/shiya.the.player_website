@@ -28,7 +28,7 @@ const NEEDS_POSTER_FALLBACK = (() => {
  * Transparent central carousel (carousel_hero_v2.webm, VP9 + alpha; falls back
  * to the original hero-carousel.webm if v2 isn't present). Sits in the Figma
  * carousel slot on the 1440x900 stage; minor GSAP 3D tilt follows the cursor
- * for a soft spatial drift. Soft + desaturated to match the dreamy palette.
+ * for a soft spatial drift. Sits on the black Afterglow ground with a faint white glow.
  *
  * `mobile` swaps the outer box from the fixed 1440-space absolute position to
  * a plain relative box that fills whatever percentage-sized wrapper MobileMap
@@ -91,7 +91,7 @@ export default function HeroCarousel({ mobile = false }) {
             carousel's silhouette. Applying it here instead shadows the
             already-scaled result, so the blur/offset stay at their intended
             on-screen size. */}
-        <div className="h-full w-full drop-shadow-[0_24px_44px_rgba(60,50,80,0.22)]">
+        <div className="h-full w-full drop-shadow-[0_0_46px_rgba(255,255,255,0.16)]">
           {NEEDS_POSTER_FALLBACK ? (
             <img
               className="h-full w-full object-contain"

@@ -1,57 +1,28 @@
-import { useEffect, useState } from 'react'
-
 /**
- * Pure-code soft background that prefers the user's exported Figma assets
- * when present, falling back to the CSS gradient/halftone otherwise.
- *   - /assets/bg.png        → gradient field (node "gradient" 14:21)
- *   - /assets/halftone.png  → halftone overlay (node "half_tone" 17:123)
- * Both layers keep the subtle GSAP mouse parallax (via the CSS classes).
+ * Global "Afterglow" night backdrop: near-black ground, faint concentric
+ * rings and film grain. The ground and rings keep the subtle GSAP mouse
+ * parallax (driven by the --mx/--my CSS vars from useMouseParallax).
+ *
+ * Also hosts the one shared SVG <filter id="grain"> that plates elsewhere
+ * reference (`filter="url(#grain)"`) so the same speckle texture can sit
+ * inside individual cards without duplicating the filter definition.
  */
-function useImageReady(src) {
-  const [ok, setOk] = useState(false)
-  useEffect(() => {
-    let live = true
-    const img = new Image()
-    img.onload = () => live && setOk(true)
-    img.onerror = () => live && setOk(false)
-    img.src = src
-    return () => {
-      live = false
-    }
-  }, [src])
-  return ok
-}
-
 export default function Background() {
-  const bgOk = useImageReady('/assets/bg.png')
-  const halftoneOk = useImageReady('/assets/halftone.png')
-
   return (
     <>
-      {/* gradient field — keeps the .macaron-base parallax transform */}
-      <div className="macaron-base" aria-hidden="true">
-        {bgOk && (
-          <img
-            src="/assets/bg.png"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        )}
-      </div>
-
-      {/* halftone — image overlay if exported, else the CSS dot grid */}
-      {halftoneOk ? (
-        <div className="halftone" aria-hidden="true" style={{ backgroundImage: 'none' }}>
-          <img
-            src="/assets/halftone.png"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="halftone" aria-hidden="true" />
-      )}
-
+      <svg width="0" height="0" className="pointer-events-none absolute" aria-hidden="true">
+        <defs>
+          <filter id="grain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="11" />
+            <feColorMatrix
+              type="matrix"
+              values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  9 0 0 0 -4.7"
+            />
+          </filter>
+        </defs>
+      </svg>
+      <div className="night-base" aria-hidden="true" />
+      <div className="rings" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
     </>
   )

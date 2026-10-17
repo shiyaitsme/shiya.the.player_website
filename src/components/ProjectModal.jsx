@@ -50,9 +50,9 @@ export default function ProjectModal({ project, onClose }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      {/* tinted, blurred scrim that melts into the gradient (click to close) */}
+      {/* dark blurred scrim (click to close) */}
       <div
-        className="fixed inset-0 bg-[#1a1726]/30 backdrop-blur-md"
+        className="fixed inset-0 bg-[#060606]/80 backdrop-blur-md"
         onClick={onClose}
         aria-hidden
       />
@@ -62,28 +62,21 @@ export default function ProjectModal({ project, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={`${project.title} case study`}
-        className="relative w-full max-w-3xl overflow-hidden rounded-[26px] border border-white/30 bg-white/15 shadow-[0_30px_80px_rgba(26,23,38,0.4)] backdrop-blur-2xl"
+        className="relative w-full max-w-3xl overflow-hidden border border-white/85 bg-[#090909]"
         initial={{ opacity: 0, scale: 0.965, y: 26 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.985, y: 16 }}
         transition={{ duration: 0.62, ease: EASE }}
         style={{ willChange: 'transform, opacity' }}
       >
-        {/* faint iridescent sheen across the glass */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-60"
-          style={{
-            background:
-              'radial-gradient(120% 90% at 12% 0%, rgba(174,185,236,0.35) 0%, rgba(174,185,236,0) 45%), radial-gradient(120% 90% at 100% 10%, rgba(242,182,212,0.32) 0%, rgba(242,182,212,0) 50%)',
-          }}
-          aria-hidden
-        />
+        {/* inner hairline of the double rule */}
+        <div className="pointer-events-none absolute inset-[6px] border border-white/35" aria-hidden />
 
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/40 bg-white/20 text-ink/80 transition hover:bg-white/40"
+          className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center border border-white/60 text-ink/80 transition hover:bg-white hover:text-night"
         >
           <span className="text-lg leading-none">×</span>
         </button>
@@ -94,12 +87,12 @@ export default function ProjectModal({ project, onClose }) {
             <span className="font-body text-[11px] uppercase tracking-[0.4em] text-ink/55">
               case study · {String(workNumber(project.id)).padStart(2, '0')}
             </span>
-            <h2 className="mt-2 font-serif text-3xl lowercase text-ink md:text-5xl">
+            <h2 className="mt-2 font-script text-5xl font-normal lowercase leading-[1.05] text-ink md:text-7xl">
               {project.title} <span aria-hidden>{project.emoji}</span>
             </h2>
             {cs.goal && (
-              <p className="mt-4 max-w-2xl font-serif text-[17px] leading-relaxed text-ink/80 md:text-[19px]">
-                <span className="font-body text-[11px] uppercase tracking-[0.3em] text-lime-grass">
+              <p className="mt-4 max-w-2xl font-body font-light text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                <span className="font-body text-[11px] uppercase tracking-[0.3em] text-white">
                   research goal —{' '}
                 </span>
                 {cs.goal}
@@ -115,7 +108,7 @@ export default function ProjectModal({ project, onClose }) {
                   {cs.tools.map((tool) => (
                     <span
                       key={tool}
-                      className="rounded-full border border-ink/20 bg-white/20 px-3 py-1 font-body text-xs uppercase tracking-[0.15em] text-ink/70"
+                      className="border border-white/40 px-3 py-1 font-body text-xs uppercase tracking-[0.15em] text-ink/70"
                     >
                       {tool}
                     </span>
@@ -134,7 +127,7 @@ export default function ProjectModal({ project, onClose }) {
                   section with its own inline screenshot, or {images: [a, b]}
                   for a standalone side-by-side pair with no text of its own. */}
               {cs.body?.length > 0 && (
-                <div className="mt-6 flex flex-col gap-5 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                <div className="mt-6 flex flex-col gap-5 font-body font-light text-[15px] leading-relaxed text-ink/80 md:text-[17px]">
                   {cs.body.map((para, i) => {
                     if (typeof para === 'string') return <p key={i}>{para}</p>
                     if (para.images) {
@@ -154,7 +147,7 @@ export default function ProjectModal({ project, onClose }) {
                     return (
                       <div key={i} className="flex flex-col gap-3">
                         {para.heading && (
-                          <p className="font-body text-[11px] uppercase tracking-[0.3em] text-lime-grass">
+                          <p className="font-body text-[11px] uppercase tracking-[0.3em] text-white">
                             {para.heading}
                           </p>
                         )}
@@ -172,7 +165,7 @@ export default function ProjectModal({ project, onClose }) {
             <>
               {/* [Section 1] technical architecture */}
               <Section label="01 · technical architecture">
-                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 md:p-6">
+                <div className="border border-white/25 bg-white/5 p-4 md:p-6">
                   <ArchDiagram nodes={cs.architecture?.nodes} />
                 </div>
                 {cs.architecture?.caption && (
@@ -190,7 +183,7 @@ export default function ProjectModal({ project, onClose }) {
               {/* [Section 3] critical analysis */}
               {cs.analysis?.length > 0 && (
                 <Section label="03 · critical analysis">
-                  <div className="flex flex-col gap-4 font-serif text-[16px] leading-relaxed text-ink/80 md:text-[18px]">
+                  <div className="flex flex-col gap-4 font-body font-light text-[15px] leading-relaxed text-ink/80 md:text-[17px]">
                     {cs.analysis.map((para, i) => (
                       <p key={i}>{para}</p>
                     ))}
@@ -223,7 +216,7 @@ function DeepDiveImage({ src, alt, className = 'mt-6' }) {
   const [ok, setOk] = useState(true)
   if (!ok) return null
   return (
-    <div className={`overflow-hidden rounded-2xl border border-white/15 ${className}`}>
+    <div className={`overflow-hidden border border-white/25 ${className}`}>
       <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setOk(false)} />
     </div>
   )

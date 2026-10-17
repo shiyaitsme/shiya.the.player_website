@@ -3,7 +3,29 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
-## Start here (2026-09-03, updated end of day)
+## Start here (2026-10-17)
+- **This session's work (2026-10-17, full-site "Afterglow" reskin, branch
+  `claude/vibrant-sagan-sp9zqm`, NOT merged to the default branch)**: the user
+  supplied a design artifact ("Afterglow": black ground, film grain, double
+  hairline frame with scrolled corner flourishes, Pinyon Script titles over
+  Hanken Grotesk light body, white cloud + black script title, outlined
+  boxes with a dot) and explicitly chose to apply it to the WHOLE site,
+  accepting that this replaces the pastel/iridescent direction and the
+  green shards. What changed: `ink` is now `#f4f3ff` (light) so every
+  `text-ink` flips automatically; fonts are `font-script` (Pinyon, titles/
+  nav words), `font-body`/`font-serif` (both Hanken Grotesk — `font-serif`
+  kept as an alias so old paragraph classes still work), `font-display`
+  (Cormorant italic); `Background.jsx` is now `.night-base` + `.rings` +
+  `.grain` and hosts the shared SVG `<filter id="grain">`; new `Frame.jsx`
+  (double rule + corners), `NavPlate.jsx` (replaces the 4 green shard PNGs
+  on desktop AND mobile — opaque so the white connector lines disappear
+  under them; the ref lands on the rotated card so `useMobileLines` still
+  snaps to it), `HomeFooter.jsx` (cloud + "Shiya the Player"). `lines.svg`
+  and star art were recolored white (stars via CSS `invert`). The old
+  `green_piece_N.png`, `bg*.png`, `halftone.png` and Butler font files are
+  now unused (left on disk). The Figma 1:1 coordinates, cover-scale stage,
+  and all 3D scenes are untouched. Verified with headless screenshots only
+  (home, works, mobile, footer) — the user must eyeball it on her Mac.
 - **This session's work (2026-09-03, two new works added directly to the
   default branch `claude/mobile-responsive-design-j4zpzc`)**: added, both
   positioned FIRST (ahead of `Akarsz-e játszani`) per the established

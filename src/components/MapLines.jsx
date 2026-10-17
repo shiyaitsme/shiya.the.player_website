@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 /**
  * Map connector lines. Prefers the user's exported Figma lines
- * (/assets/lines.svg — the exact lime-green hand-drawn paths). If that's not
+ * (/assets/lines.svg — the exact hand-drawn paths, recolored white). If that's not
  * present yet, falls back to static lime curves. No streaming animation —
  * the lines are still, as requested.
  */
@@ -50,7 +50,7 @@ export default function MapLines() {
         <path
           key={i}
           d={d}
-          stroke="#b6ff00"
+          stroke="#ffffff"
           strokeWidth="2"
           strokeLinecap="round"
           opacity="0.95"

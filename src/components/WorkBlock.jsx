@@ -72,7 +72,7 @@ function LinkPill({ href, label }) {
 
 /**
  * One portfolio piece: bottle-cap number + media (image or video) + editorial
- * Playfair copy + optional link. Reveals on scroll; the media gets a soft
+ * grotesk copy + optional link. Reveals on scroll; the media gets a soft
  * cursor-tilt (a small, performant touch of craft). Fully responsive.
  */
 /** Wraps the media in a link (new tab) when there's exactly one place to send
@@ -154,7 +154,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
             ref={mediaRef}
             onMouseMove={onTilt}
             onMouseLeave={resetTilt}
-            className="relative overflow-hidden rounded-[3px] shadow-[0_22px_50px_rgba(40,30,60,0.32)] transition-transform duration-200 ease-out will-change-transform"
+            className="relative overflow-hidden shadow-[0_0_0_6px_#060606,0_0_0_7px_rgba(255,255,255,0.85),0_0_0_12px_#060606,0_0_0_13px_rgba(255,255,255,0.35)] transition-transform duration-200 ease-out will-change-transform"
             // Only forced to a fixed box when there's no real media to show its
             // own aspect ratio — every other work keeps its native proportions
             // (a portrait piece stays portrait, a wide one stays wide) instead
@@ -167,7 +167,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
               (!imgOk && !work.video) ||
               (work.video && !videoInView) ||
               (!work.video && imgOk && !imgLoaded)
-                ? { aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #2b2545, #0e0b1c 72%)' }
+                ? { aspectRatio: '16 / 10', background: 'radial-gradient(120% 120% at 30% 20%, #3a3a3a, #090909 72%)' }
                 : undefined
             }
           >
@@ -205,17 +205,17 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
       </div>
 
       {/* copy */}
-      <div className="w-full font-serif text-ink md:w-[48%]">
+      <div className="w-full font-body font-light text-ink md:w-[48%]">
         {/* Single-work (Gachapon star) view already shows the title as the
             page's big <h1> in Page.jsx — repeating it here as a small <h3>
             read as a duplicated heading, so it's only shown in the works list. */}
         {!single && (
-          <h3 className="text-3xl leading-tight md:text-[34px]">
+          <h3 className="font-script text-5xl font-normal leading-[1.05] md:text-[56px]">
             {work.title} <span aria-hidden>{work.emoji}</span>
           </h3>
         )}
         {work.body.map((para, i) => (
-          <p key={i} className={i === 0 && single ? 'text-[16px] leading-relaxed md:text-[18px]' : 'mt-4 text-[16px] leading-relaxed md:text-[18px]'}>
+          <p key={i} className={i === 0 && single ? 'text-[15px] leading-relaxed md:text-[17px]' : 'mt-4 text-[15px] leading-relaxed md:text-[17px]'}>
             {para}
           </p>
         ))}
@@ -229,7 +229,7 @@ export default function WorkBlock({ work, index = 0, single = false, onOpenCase 
               onClick={() => onOpenCase(work)}
               className="group inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-ink/70 transition hover:text-ink"
             >
-              <span className="grid h-6 w-6 place-items-center rounded-full border border-ink/40 text-ink/70 transition group-hover:border-ink group-hover:bg-ink/5">
+              <span className="grid h-6 w-6 place-items-center border border-ink/50 text-ink/70 transition group-hover:bg-white group-hover:text-night">
                 ⌖
               </span>
               project deep-dive

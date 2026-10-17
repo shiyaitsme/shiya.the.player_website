@@ -2,6 +2,9 @@ import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { mobileHub, mobileShards, mobileStars, sections, pickRandomWork } from '../data/projects'
 import NavLabel from './NavLabel'
+import NavPlate from './NavPlate'
+
+const NUMERALS = ['I', 'II', 'III', 'IV']
 import HeroCarousel from './HeroCarousel'
 import { useMobileLines } from '../hooks/useMobileLines'
 
@@ -12,7 +15,7 @@ import { useMobileLines } from '../hooks/useMobileLines'
 function MobileLines({ refs, containerRef }) {
   const { through, arc, triCM, triMW, triWC, size } = useMobileLines(refs, containerRef)
   if (!size.w || !size.h) return null
-  const line = (d) => d && <path d={d} stroke="#b6ff00" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+  const line = (d) => d && <path d={d} stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.85" />
   return (
     <svg
       className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
@@ -70,14 +73,7 @@ function MobileShards({ onOpen, setNodeRef }) {
               whileTap={{ scale: 0.92 }}
             >
               {/* ref'd — this is the node the connector line snaps to */}
-              <img
-                ref={(el) => setNodeRef(i, el)}
-                src={`/assets/green_piece_${shard.id}.png`}
-                alt=""
-                className="w-full select-none"
-                style={{ transform: `rotate(${shard.rot}deg)` }}
-                draggable={false}
-              />
+              <NavPlate ref={(el) => setNodeRef(i, el)} numeral={NUMERALS[i]} rot={shard.rot * 0.6} variant={i} />
               <span className="mt-2 block">
                 <NavLabel section={section} />
               </span>
@@ -161,7 +157,7 @@ function MobileStars({ onSelect }) {
               height: 60,
               zIndex: 70,
               background:
-                'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(242,182,212,0.6) 45%, rgba(255,255,255,0) 72%)',
+                'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(200,200,210,0.55) 45%, rgba(255,255,255,0) 72%)',
             }}
             initial={{ scale: 0, opacity: 0.95 }}
             animate={{ scale: 60, opacity: 1 }}
@@ -210,7 +206,7 @@ export default function MobileMap({ onOpen, onSelectWork }) {
         <motion.img
           src="/assets/logo_s.svg"
           alt="Shiya the Player"
-          className="h-full w-full animate-floaty"
+          className="h-full w-full animate-floaty invert"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
