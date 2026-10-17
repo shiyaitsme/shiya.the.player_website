@@ -97,7 +97,7 @@ body {
  * Typography — retro display nav + editorial serif
  * ------------------------------------------------------------------ */
 .nav-label {
-  font-family: 'Pinyon Script', cursive;
+  font-family: 'Pinyon Script', 'Nanum Brush Script', cursive;
   color: #ffffff;
   font-size: clamp(36px, 3.4vw, 54px);
   line-height: 1.1;
@@ -125,7 +125,7 @@ body {
   border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.85);
   padding: 0.55em 1.3em;
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', 'Nanum Myeongjo', Georgia, serif;
   font-size: clamp(11px, 0.85vw, 13px);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -141,7 +141,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: #ffffff;
+  background: #c9ffbf;
   /* --mx/--my always come pre-set (inline style="--mx:50%;--my:50%" plus
      JS updates) — no var(..., fallback) here. That fallback form inside
      circle()'s position turned out unreliable in testing (computed to
@@ -158,6 +158,7 @@ body {
   clip-path: circle(140% at var(--mx) var(--my));
 }
 .link-pill:not(.link-pill-mobile):hover {
+  border-color: #c9ffbf;
   color: #060606;
 }
 /* mobile: tap toggles a plain bottom-up wipe — no var() inside the shape
@@ -169,6 +170,7 @@ body {
   clip-path: inset(0 0 0 0);
 }
 .link-pill-mobile.is-filled {
+  border-color: #c9ffbf;
   color: #060606;
 }
 .link-pill-label {
@@ -238,7 +240,7 @@ body {
   filter: invert(1);
 }
 .star-asterisk {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', 'Nanum Myeongjo', Georgia, serif;
   color: #ffffff;
   line-height: 0;
   user-select: none;

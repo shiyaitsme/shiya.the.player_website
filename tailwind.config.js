@@ -10,13 +10,13 @@ export default {
       },
       fontFamily: {
         // Pinyon Script = formal calligraphic display (titles, nav words)
-        script: ['"Pinyon Script"', 'cursive'],
+        script: ['"Pinyon Script"', '"Nanum Brush Script"', 'cursive'],
         // Cormorant Garamond italic = small numerals / index marks
-        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        display: ['"Cormorant Garamond"', '"Nanum Myeongjo"', 'Georgia', 'serif'],
         // Cormorant Garamond = characterful serif body copy (serif kept as an alias so
         // existing `font-serif` paragraph classes pick up the same face)
-        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        body: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        serif: ['"Cormorant Garamond"', '"Nanum Myeongjo"', 'Georgia', 'serif'],
+        body: ['"Cormorant Garamond"', '"Nanum Myeongjo"', 'Georgia', 'serif'],
       },
       keyframes: {
         floaty: {

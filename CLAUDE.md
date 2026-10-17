@@ -4,6 +4,17 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-10-17)
+- **Type + accent pass (2026-10-17, pushed to the default branch at the user's
+  request)**: body/UI font is now Cormorant Garamond (was Hanken Grotesk;
+  `font-size-adjust: .46` on body offsets its small x-height); Hangul
+  falls back to Nanum Myeongjo in body text and Nanum Brush Script in the
+  Pinyon `font-script` titles (neither Latin face has Hangul; the user
+  picked the brush face "F" from a side-by-side). Accent: only the SELECTED
+  works filter chip fills pale green `#c9ffbf` and the `.link-pill` hover/tap
+  fill + border is `#c9ffbf`; everything else stays black/white — she
+  previewed a full green recolor and explicitly did NOT want it. Butterfly
+  basecolor texture recompressed to 2048px (~1MB). Halftone blurred-type
+  poster look was previewed and dropped (she'd do that in Photoshop).
 - **This session's work (2026-10-17, full-site "Afterglow" reskin, branch
   `claude/vibrant-sagan-sp9zqm`, since fast-forwarded into the default branch; butterfly basecolor texture recompressed 4096px/6MB -> 2048px/1MB)**: the user
   supplied a design artifact ("Afterglow": black ground, film grain, double

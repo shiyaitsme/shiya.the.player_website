@@ -118,7 +118,7 @@ export default function Page({ view, onClose }) {
                   onClick={() => setWorksFilter(c.key)}
                   className={`border px-4 py-2 font-body text-[11px] uppercase tracking-[0.22em] transition ${
                     worksFilter === c.key
-                      ? 'border-white bg-white text-night'
+                      ? 'border-[#c9ffbf] bg-[#c9ffbf] text-night'
                       : 'border-white/30 text-ink/70 hover:border-white hover:text-white'
                   }`}
                 >
