@@ -22,8 +22,8 @@ first for the product/architecture; this file is the operational cheat-sheet.
   under them; the ref lands on the rotated card so `useMobileLines` still
   snaps to it), `HomeFooter.jsx` (originally a white cloud + script name, which the user called
   "too childish"; a contact-form-style footer was then tried and dropped because
-  the Contact page already has the details — it is now only a hairline rule with
-  the box+dot ornament and a one-line colophon: © / "3D · AI art · Motion" / back
+  the Contact page already has the details — it is now only a plain solid full-width
+  hairline (no ornament — user asked) and a one-line colophon: © / "3D · AI art · Motion" / back
   to top. Don't put contact info back here). `lines.svg`
   and star art were recolored white (stars via CSS `invert`). The old
   `green_piece_N.png`, `bg*.png`, `halftone.png` and Butler font files are
