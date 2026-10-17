@@ -13,10 +13,10 @@ export default {
         script: ['"Pinyon Script"', 'cursive'],
         // Cormorant Garamond italic = small numerals / index marks
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        // Hanken Grotesk = light, quiet body copy (serif kept as an alias so
+        // Cormorant Garamond = characterful serif body copy (serif kept as an alias so
         // existing `font-serif` paragraph classes pick up the same face)
-        serif: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
-        body: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        body: ['"Cormorant Garamond"', 'Georgia', 'serif'],
       },
       keyframes: {
         floaty: {
