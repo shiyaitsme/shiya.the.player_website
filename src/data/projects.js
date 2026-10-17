@@ -61,7 +61,6 @@ export const sections = {
     nav: 'works',
     kind: 'works',
     bg: '/assets/bg_1.png',
-    cover: '/assets/works_tea_pot.png',
     title: 'works',
     blurb: 'A small playground of immersive pieces — read them slowly.',
   },
@@ -70,7 +69,6 @@ export const sections = {
     nav: 'about',
     kind: 'text',
     bg: '/assets/bg_2.png',
-    cover: '/assets/about_cover.png',
     title: 'about',
     body: [
       'Shiya the Player — a visual creator working across 3D, motion, and AI-assisted image-making, turning short pieces into small worlds you can step into.',
@@ -89,7 +87,6 @@ export const sections = {
     nav: 'contact',
     kind: 'text',
     bg: '/assets/bg_3.png',
-    cover: '/assets/contact_roller_coaster.png',
     title: 'contact',
     body: [
       'Let’s build something impossible together — installations, rides, and playgrounds for strangers to leave light for one another.',
@@ -113,7 +110,6 @@ export const sections = {
     nav: 'manifesto',
     kind: 'text',
     bg: '/assets/bg_4.png',
-    cover: '/assets/tools_manifesto_cover.png',
     title: 'manifesto',
     body: [
       'The purest emotion, the most forward-looking image — that’s the whole ambition. Let’s have fun together: explore every form art can take, and the strange, infinite shapes a life can take too. Just make some interesting stuff.',

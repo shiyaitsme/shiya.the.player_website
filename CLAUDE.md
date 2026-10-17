@@ -390,7 +390,10 @@ source of truth is the user's Figma file; we match it **1:1**.
 - **Assets load by exact filename with graceful fallback.** New art is added by
   the user via GitHub upload; reference the intended filename and fall back
   (image `onerror` / `new Image()` preload) so the site never breaks. Wired-but-
-  -not-yet-uploaded: `*_cover.png` zoom covers, `work_carousel.png`.
+  -not-yet-uploaded: `work_carousel.png`. (The `ShardZoom` cover-photo
+  transition and the sections' `cover:` fields were removed 2026-10-17 at the
+  user's request — clicking a map plate now opens the section page directly;
+  the old `*_cover.png` files are unused.)
 - Match the user's design; **don't invent a different visual direction.** Early
   in the project a "neon/rebellious" detour was built and rejected — the real
   target is soft, iridescent, editorial.

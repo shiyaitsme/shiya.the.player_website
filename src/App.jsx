@@ -8,7 +8,6 @@ import MapLines from './components/MapLines'
 import HeroCarousel from './components/HeroCarousel'
 import StarField from './components/StarField'
 import ShardGrid from './components/ShardGrid'
-import ShardZoom from './components/ShardZoom'
 import MobileMap from './components/MobileMap'
 import Page from './components/Page'
 import ScrollGallery from './components/ScrollGallery'
@@ -19,7 +18,7 @@ import { sections } from './data/projects'
 /**
  * Shiya the Player — Digital Playground / 桃花源.
  * Map stage (carousel hub, outlined nav plates, white script nav, asterisk Gachapon)
- * → cinematic shard zoom → editorial content pages.
+ * → editorial content pages.
  *
  * Desktop keeps the pixel-1:1 1440x900 Figma stage untouched. Phone-width
  * viewports render MobileMap instead — a proportional, generative layout
@@ -35,12 +34,9 @@ export default function App() {
   const isMobile = useIsMobile()
 
   const [view, setView] = useState(null)
-  const [zoom, setZoom] = useState(null) // active shard clip-transition
 
-  // shard click → zoom transition → section page
-  const openSection = (key, shardId, rect) => {
-    setZoom({ section: sections[key], shardId, rect })
-  }
+  // plate click → straight to the section page
+  const openSection = (key) => setView({ type: 'section', section: sections[key] })
   const openWork = (work) => setView({ type: 'work', work })
 
   return (
@@ -92,23 +88,7 @@ export default function App() {
         {view && (
           <Page
             view={view}
-            onClose={() => {
-              setView(null)
-              setZoom(null)
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* shard clip transition (zoom in → hold → zoom out into the page) */}
-      <AnimatePresence>
-        {zoom && (
-          <ShardZoom
-            coverSrc={zoom.section.cover}
-            label={zoom.section.nav}
-            originRect={zoom.rect}
-            onReveal={() => setView({ type: 'section', section: zoom.section })}
-            onComplete={() => setZoom(null)}
+            onClose={() => setView(null)}
           />
         )}
       </AnimatePresence>
