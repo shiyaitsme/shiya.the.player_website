@@ -5,11 +5,11 @@ const email = links.find((l) => l.label === 'email')
 const socials = links.filter((l) => l.label !== 'email')
 
 /**
- * Page footer, laid out after the Afterglow reference (script title, one
- * line of copy, an outlined field beside a solid white button, then a
- * hairline-ruled colophon bar) but with portfolio content: the email address
- * sits in the outlined field and the white button opens a mail to it; the
- * social accounts follow as plain links. Contact data comes from
+ * Page footer, after the Afterglow reference (script title, one line of
+ * copy, hairline-ruled colophon bar) but with portfolio content and NO form
+ * or input — the user didn't want to ask visitors for their email. The
+ * contact email is shown as a plain mailto link, with the social accounts
+ * below it. Contact data comes from
  * `sections.contact.links` so it only ever has to be edited in one place.
  */
 export default function HomeFooter() {
@@ -21,36 +21,25 @@ export default function HomeFooter() {
           Open to collaborations, commissions and new projects.
         </p>
 
-        <div className="mt-[clamp(40px,5vw,72px)]">
-          <div className="font-body text-[13px] uppercase tracking-[0.28em]">Email</div>
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:gap-7">
-            <a
-              href={email.href}
-              className="min-w-0 flex-1 break-all rounded-none border border-white/85 px-6 py-5 font-body text-[18px] font-light text-white transition-colors hover:border-white hover:bg-white/5"
-            >
-              {email.value}
-            </a>
-            <a
-              href={email.href}
-              className="rounded-none border border-white bg-white px-14 py-5 text-center font-body text-[13px] uppercase tracking-[0.32em] text-[#0b0b0b] transition-colors hover:bg-transparent hover:text-white"
-            >
-              Say hello
-            </a>
-          </div>
+        <a
+          href={email.href}
+          className="mt-[clamp(32px,4vw,56px)] inline-block break-all border-b border-white/50 pb-2 font-body text-[clamp(20px,2.6vw,36px)] font-light text-white transition-colors hover:border-white"
+        >
+          {email.value}
+        </a>
 
-          <div className="mt-8 flex flex-wrap gap-x-10 gap-y-3 font-body text-[13px] uppercase tracking-[0.28em]">
-            {socials.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border-b border-transparent pb-1 text-white/80 transition-colors hover:border-white hover:text-white"
-              >
-                {l.label} <span className="text-white/45">{l.value}</span>
-              </a>
-            ))}
-          </div>
+        <div className="mt-10 flex flex-wrap gap-x-10 gap-y-3 font-body text-[13px] uppercase tracking-[0.28em]">
+          {socials.map((l) => (
+            <a
+              key={l.label}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-b border-transparent pb-1 text-white/80 transition-colors hover:border-white hover:text-white"
+            >
+              {l.label} <span className="text-white/45">{l.value}</span>
+            </a>
+          ))}
         </div>
       </div>
 
