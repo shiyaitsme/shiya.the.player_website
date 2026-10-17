@@ -23,7 +23,7 @@ first for the product/architecture; this file is the operational cheat-sheet.
   snaps to it), `HomeFooter.jsx` (originally a white cloud + script name; the user called
   that "too childish" and supplied a reference, so it is now a "Write to me"
   script title, one copy line, outlined email field + solid white SEND that
-  opens a prefilled `mailto:` to the contact email (no backend), and a
+  (replaced the same day by contact links: the email address in the outlined box + a "Say hello" mailto button + instagram/xiaohongshu links, no form, no backend), and a
   hairline-ruled colophon bar: © / "made in grain and light" / back to top). `lines.svg`
   and star art were recolored white (stars via CSS `invert`). The old
   `green_piece_N.png`, `bg*.png`, `halftone.png` and Butler font files are
