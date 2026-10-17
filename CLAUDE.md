@@ -5,7 +5,7 @@ first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-10-17)
 - **This session's work (2026-10-17, full-site "Afterglow" reskin, branch
-  `claude/vibrant-sagan-sp9zqm`, NOT merged to the default branch)**: the user
+  `claude/vibrant-sagan-sp9zqm`, since fast-forwarded into the default branch; butterfly basecolor texture recompressed 4096px/6MB -> 2048px/1MB)**: the user
   supplied a design artifact ("Afterglow": black ground, film grain, double
   hairline frame with scrolled corner flourishes, Pinyon Script titles over
   Hanken Grotesk light body, white cloud + black script title, outlined
