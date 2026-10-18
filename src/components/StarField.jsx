@@ -10,6 +10,12 @@ import { stars, pickRandomWork } from '../data/projects'
 export default function StarField({ onSelect }) {
   const [bloom, setBloom] = useState(null)
   const [starOk, setStarOk] = useState(false)
+  // entrance stagger is only for the first appearance; afterwards hover/leave must not inherit its delay
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setEntered(true), 500 + stars.length * 70 + 900)
+    return () => window.clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     let live = true
@@ -43,10 +49,10 @@ export default function StarField({ onSelect }) {
           className="star-asterisk pointer-events-auto absolute z-30 grid place-items-center"
           style={{ left: s.left, top: s.top, width: s.size, height: s.size, fontSize: s.size }}
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 + i * 0.07, type: 'spring', stiffness: 220, damping: 14 }}
-          whileHover={{ scale: 1.35, rotate: 90 }}
-          whileTap={{ scale: 1.9 }}
+          animate={{ opacity: 1, scale: 1, filter: 'drop-shadow(0 0 0px rgba(255,255,255,0)) drop-shadow(0 0 0px rgba(255,255,255,0))' }}
+          transition={entered ? { type: 'spring', stiffness: 400, damping: 24 } : { delay: 0.5 + i * 0.07, type: 'spring', stiffness: 220, damping: 14 }}
+          whileHover={{ scale: 1.35, rotate: 90, filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.55)) drop-shadow(0 0 14px rgba(255,255,255,0.25))' }}
+          whileTap={{ scale: 1.9, filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.55)) drop-shadow(0 0 14px rgba(255,255,255,0.25))' }}
         >
           {starOk ? (
             <img src="/assets/star.svg" alt="" className="h-full w-full object-contain" draggable={false} />

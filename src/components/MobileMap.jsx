@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { mobileHub, mobileShards, mobileStars, sections, pickRandomWork } from '../data/projects'
 import NavLabel from './NavLabel'
@@ -88,6 +88,11 @@ function MobileShards({ onOpen, setNodeRef }) {
 function MobileStars({ onSelect }) {
   const [bloom, setBloom] = useState(null)
   const [starOk, setStarOk] = useState(true)
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setEntered(true), 500 + mobileStars.length * 70 + 900)
+    return () => window.clearTimeout(t)
+  }, [])
 
   const fire = (e) => {
     const work = pickRandomWork()
@@ -125,9 +130,9 @@ function MobileStars({ onSelect }) {
               onClick={fire}
               className="star-asterisk pointer-events-auto grid h-full w-full place-items-center"
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 + i * 0.07, type: 'spring', stiffness: 220, damping: 14 }}
-              whileTap={{ scale: 1.8 }}
+              animate={{ opacity: 1, scale: 1, filter: 'drop-shadow(0 0 0px rgba(255,255,255,0)) drop-shadow(0 0 0px rgba(255,255,255,0))' }}
+              transition={entered ? { type: 'spring', stiffness: 400, damping: 24 } : { delay: 0.5 + i * 0.07, type: 'spring', stiffness: 220, damping: 14 }}
+              whileTap={{ scale: 1.8, filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.55)) drop-shadow(0 0 14px rgba(255,255,255,0.25))' }}
             >
               {starOk ? (
                 <img

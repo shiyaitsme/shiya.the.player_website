@@ -43,9 +43,13 @@ export default function App() {
     <main className="relative w-screen">
       <Background />
 
+      {/* engraved double-rule frame + corner flourishes: pinned to the viewport
+          so it stays put while the content (map, gallery, footer) scrolls under it */}
+      <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+        <Frame corner={isMobile ? 'clamp(56px, 18vw, 96px)' : undefined} />
+      </div>
+
       <div className="relative h-dvh w-screen overflow-hidden">
-        {/* engraved double-rule frame + corner flourishes over the whole first screen */}
-        <Frame className="z-[25]" corner={isMobile ? 'clamp(56px, 18vw, 96px)' : undefined} />
         {isMobile ? (
           <div
             className="absolute inset-0 z-10"
@@ -79,6 +83,9 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* same solid hairline as the footer, between the map and the photo wall; inset 17px so it ends on the frame's inner rule instead of crossing it */}
+      <div className="relative z-20 mx-[17px] h-px bg-white/35" aria-hidden="true" />
 
       <ScrollGallery />
       <HomeFooter />

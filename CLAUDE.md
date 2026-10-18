@@ -4,6 +4,18 @@ Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
 ## Start here (2026-10-17)
+- **Fixed frame + star glow (2026-10-18, pushed to the default branch at the
+  user's request after Artifact previews)**: `Frame` now lives in `App.jsx` as a
+  `fixed inset-0 z-40` overlay so the double rule + corner flourishes stay put
+  while content scrolls (desktop and mobile). A 1px `bg-white/35` hairline sits
+  between the map screen and `ScrollGallery`, inset `mx-[17px]` so it ends on the
+  frame's inner rule (a full-width line crossed the vertical rules and a gradient
+  fade was tried; she preferred the inset line). `HomeFooter` line is inset the
+  same way and its row uses `px-[clamp(24px,11vw,160px)]` to clear the corners.
+  Stars (`StarField`, `MobileMap`) glow white (`drop-shadow` filter) on
+  hover/tap. Gotchas: the filter needs an explicit "off" value in `animate` or it
+  never reverts, and the entrance stagger `delay` must be dropped once `entered`
+  or hover/leave inherit it and feel laggy.
 - **Type + accent pass (2026-10-17, pushed to the default branch at the user's
   request)**: body/UI font is now Cormorant Garamond (was Hanken Grotesk;
   `font-size-adjust: .46` on body offsets its small x-height); Hangul
