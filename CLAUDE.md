@@ -16,6 +16,9 @@ first for the product/architecture; this file is the operational cheat-sheet.
   hover/tap. Gotchas: the filter needs an explicit "off" value in `animate` or it
   never reverts, and the entrance stagger `delay` must be dropped once `entered`
   or hover/leave inherit it and feel laggy.
+  Also (2026-10-19): the `manifesto` plate moved up 40px (`top` 628 -> 588) because
+  its label was cut off by the viewport bottom on ~1440x780 windows; it now sits
+  ~40px off the line end it used to touch (user accepted that trade).
 - **Type + accent pass (2026-10-17, pushed to the default branch at the user's
   request)**: body/UI font is now Cormorant Garamond (was Hanken Grotesk;
   `font-size-adjust: .46` on body offsets its small x-height); Hangul

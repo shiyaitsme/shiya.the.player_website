@@ -131,7 +131,7 @@ export const shards = [
   { id: 3, section: 'about', piece: { left: 904.19, top: 334.96, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
   // manifesto: shard nestled into the bottom-right lime-line convergence (its
   // upper-left corner meets the star + converging lines), label below it.
-  { id: 4, section: 'manifesto', piece: { left: 1180.79, top: 628, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
+  { id: 4, section: 'manifesto', piece: { left: 1180.79, top: 588, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
 ]
 
 export const stars = [
