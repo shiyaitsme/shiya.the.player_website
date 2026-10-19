@@ -131,7 +131,7 @@ export const shards = [
   { id: 3, section: 'about', piece: { left: 904.19, top: 334.96, w: 132.89, rot: 18.79 }, label: { left: 906.41, top: 456.18 } },
   // manifesto: shard nestled into the bottom-right lime-line convergence (its
   // upper-left corner meets the star + converging lines), label below it.
-  { id: 4, section: 'manifesto', piece: { left: 1180.79, top: 588, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
+  { id: 4, section: 'manifesto', piece: { left: 1165.79, top: 553, w: 147.79, rot: 1.23 }, label: { left: 1140.41, top: 800.18 } },
 ]
 
 export const stars = [
@@ -141,7 +141,7 @@ export const stars = [
   { left: 419.41, top: 361.18, size: 33 },
   { left: 405.41, top: 640.18, size: 34 },
   { left: 1290.41, top: 322.18, size: 31 },
-  { left: 1116.41, top: 676.18, size: 30 },
+  { left: 1096.41, top: 711.18, size: 30 },
 ]
 
 export const workById = (id) => works.find((w) => w.id === id)
