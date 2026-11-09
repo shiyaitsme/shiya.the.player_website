@@ -1,0 +1,13 @@
+{
+  "name": "shiya-portfolio-tools",
+  "private": true,
+  "type": "module",
+  "description": "Build tooling for the /portfolio/ page (PDF render, asset capture). Not part of the site bundle.",
+  "scripts": {
+    "pdf": "node scripts/render-pdf.mjs",
+    "shots": "node scripts/render-shots.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}
