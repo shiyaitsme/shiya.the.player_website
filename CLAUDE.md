@@ -3,6 +3,16 @@
 Context for Claude Code (or any agent) working in this repo. Read `README.md`
 first for the product/architecture; this file is the operational cheat-sheet.
 
+## Application portfolio at /portfolio/ (2026-11-09, branch `cursor/hongik-portfolio-4381`)
+- Static, print-first portfolio for the Hongik graduate application, shipped from `public/portfolio/`
+ (so Vite/Cloudflare serve it at `/portfolio/`; the React app is untouched). Words live in
+ `public/portfolio/content/en.js`, layout in `app.js`/`diagrams.js`/`portfolio.css`; build tooling and
+ the PDF script live in `portfolio/` (see `portfolio/README.md`). Unknown facts are `[TO CONFIRM: …]`
+ placeholders by design - never fill them with guesses. Pages are 297x167mm sheets sized in `cqw`.
+ Restyled 2026-11-09 to her reference: photocopy-black and creased blue paper, torn white photo
+ frames, corner scrolls, Pinyon Script titles, Special Elite labels, Inter body. Textures from
+ `portfolio/scripts/make-textures.py`.
+
 ## Start here (2026-10-17)
 - **Fixed frame + star glow (2026-10-18, pushed to the default branch at the
   user's request after Artifact previews)**: `Frame` now lives in `App.jsx` as a
