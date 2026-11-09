@@ -5,7 +5,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const INK = '#121212'
 const INK3 = '#6e6a61'
 const HAIR = 'rgba(18,18,18,.35)'
-const ACC = '#c9ffbf'
+const ACC = '#f3e4dc'
 
 const arrow = (id) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1.5 L8 5 L1 8.5" fill="none" stroke="${INK}" stroke-width="1.3"/></marker>`
 
@@ -132,11 +132,25 @@ export function vennDiagram(c) {
   const v = c.problem.venn
   const wrap = (t, max) => { const w = t.split(' '); const l = []; let s = ''; w.forEach((x) => { if ((s + ' ' + x).trim().length > max) { l.push(s); s = x } else s = (s + ' ' + x).trim() }); l.push(s); return l }
   const lines = (x, y, t, max, anchor = 'middle', fs = 9.4, fill = INK3) => wrap(t, max).map((l, i) => `<text x="${x}" y="${y + i * (fs + 3.2)}" font-size="${fs}" text-anchor="${anchor}" fill="${fill}">${esc(l)}</text>`).join('')
-  let o = `<svg class="dia" viewBox="0 0 440 190" role="img" aria-label="Venn diagram">`
-  o += `<circle cx="150" cy="95" r="88" fill="none" stroke="${INK}"/><circle cx="290" cy="95" r="88" fill="none" stroke="${INK}"/>`
-  o += `<path d="M220 18.5 A88 88 0 0 1 220 171.5 A88 88 0 0 1 220 18.5 Z" fill="${ACC}" stroke="${INK}"/>`
-  o += `<text x="86" y="92" font-size="12.5" font-weight="600" text-anchor="middle" fill="${INK}">${esc(v.a)}</text>` + lines(86, 108, v.aSub, 17)
-  o += `<text x="354" y="92" font-size="12.5" font-weight="600" text-anchor="middle" fill="${INK}">${esc(v.b)}</text>` + lines(354, 108, v.bSub, 17)
-  o += `<text x="220" y="100" font-size="19" class="d-serif" text-anchor="middle" letter-spacing="1.5" fill="${INK}">BLING</text>`
+  // Labels sit in the outer crescent of each circle, clear of the stroke and of the lens.
+  const block = (cx, title, sub) => {
+    const titleLines = wrap(title, 12)
+    const subLines = wrap(sub, 16)
+    const fsT = 11, fsS = 8.2
+    const h = titleLines.length * (fsT + 2.4) + 6 + subLines.length * (fsS + 2.6)
+    let y = 112 - h / 2
+    let out = ''
+    titleLines.forEach((l) => { y += fsT; out += `<text x="${cx}" y="${y}" font-size="${fsT}" font-weight="600" text-anchor="middle" fill="${INK}">${esc(l)}</text>`; y += 2.4 })
+    y += 6
+    subLines.forEach((l) => { y += fsS; out += `<text x="${cx}" y="${y}" font-size="${fsS}" text-anchor="middle" fill="${INK3}">${esc(l)}</text>`; y += 2.6 })
+    return out
+  }
+  let o = `<svg class="dia" viewBox="0 0 470 230" role="img" aria-label="Venn diagram">`
+  o += `<defs><clipPath id="venn-left"><circle cx="145" cy="115" r="125"/></clipPath></defs>`
+  o += `<circle cx="315" cy="115" r="125" fill="${ACC}" clip-path="url(#venn-left)"/>`
+  o += `<circle cx="145" cy="115" r="125" fill="none" stroke="${INK}"/><circle cx="315" cy="115" r="125" fill="none" stroke="${INK}"/>`
+  o += block(88, v.a, v.aSub)
+  o += block(382, v.b, v.bSub)
+  o += `<text x="230" y="120" font-size="15" class="d-serif" text-anchor="middle" letter-spacing="1" fill="${INK}">BLING</text>`
   return o + '</svg>'
 }

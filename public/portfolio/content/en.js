@@ -440,7 +440,7 @@ export default {
     sub: 'Installations, rides, and playgrounds for strangers to leave light for one another.',
     labels: { email: 'Email', instagram: 'Instagram', xiaohongshu: 'Xiaohongshu', site: 'Live work', bling: 'BLING demo', pdf: 'This portfolio (PDF)' },
     closing: 'Shiya Li — Portfolio',
-    colophon: 'Set in Newsreader and Inter. Page size 297 × 167 mm (16:9).',
+    colophon: 'Set in Pinyon Script, Special Elite, Newsreader and Inter. Page size 297 × 167 mm (16:9).',
     image: W + 'works_roses-of-transcendent-love.jpg',
     imageCap: 'roses of transcendent love — 3D animation',
   },

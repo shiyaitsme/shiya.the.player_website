@@ -47,8 +47,8 @@ The script starts a tiny static server over `public/`, waits for fonts and image
 
 ## Visual system (defined in the header of `portfolio.css`)
 
-* **Type** — Newsreader (display, quotes, headings) + Inter (text, captions, labels), both variable and self-hosted (Latin + Latin-ext). Scale ratio 1.333 from 1.14 cqw ≈ 9.6 pt body. Fallbacks include system serif/sans and Korean system faces.
-* **Colour** — paper `#F3F0E9`, ink `#121212`, night `#0D0D10`, one accent `#C9FFBF` (the pale green already on the live site). Placeholders are a loud yellow on purpose.
+* **Type** — Pinyon Script for the large titles only; Special Elite (typewriter) for kickers and labels; Newsreader for sentence headlines, quotes and poems; Inter for body copy. All self-hosted (OFL). Body stays a clean text face so the application remains readable. System serif/sans and Korean system faces are the fallbacks.
+* **Colour and surface** — dusty blue creased paper and a black photocopy grain (generated textures), bone-white torn frames around photographs, corner scroll ornaments. Text is ink or bone. Placeholders stay a loud yellow.
 * **Grid** — 12 × 12 inside a 4.38 cqw (13 mm) margin, 1.35 cqw (4 mm) gutters.
 * **Spacing** — 4 mm base: 0.34 / 0.67 / 1.35 / 2.02 / 2.7 / 4.04 cqw.
 * **Responsive** — below 860 px wide the pages stop being fixed sheets and reflow to one column with fixed-px tokens.

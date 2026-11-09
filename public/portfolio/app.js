@@ -248,7 +248,7 @@ page('world-open', {
   build: () => `
     <div class="g">
       <div ${at('1 / 6', '1')}>${kicker(WO.kicker)}</div>
-      <div ${at('1 / 7', '3 / 8')} style="--col:1 / 7;--row:3 / 8;align-self:end"><h1 class="h1" style="font-size:var(--t6)">${t(WO.title)}</h1></div>
+      <div ${at('1 / 7', '3 / 8')} style="--col:1 / 7;--row:3 / 8;align-self:end"><h1 class="h1">${t(WO.title)}</h1></div>
       <div ${at('1 / 6', '8 / 10')} style="--col:1 / 6;--row:8 / 10"><p class="lead">${t(WO.subtitle)}</p></div>
       <div ${at('1 / 6', '10 / 13')} style="--col:1 / 6;--row:10 / 13;align-self:end">${facts(WO.facts)}</div>
       ${fig(WO.image, { col: '8 / 13', row: '1 / 13', alt: WO.imageAlt, cap: '', cls: 'right', fit: 'fill right' }).replace('loading="lazy"', 'loading="eager"')}
@@ -311,7 +311,7 @@ page('series-open', {
   build: () => `
     <div class="g">
       <div ${at('1 / 7', '1')}>${kicker(SE.kicker)}</div>
-      <div ${at('1 / 8', '2 / 7')} style="--col:1 / 8;--row:2 / 7;align-self:end"><h1 class="h1" style="font-size:var(--t6)">${t(SE.title)}</h1></div>
+      <div ${at('1 / 8', '2 / 7')} style="--col:1 / 8;--row:2 / 7;align-self:end"><h1 class="h1">${t(SE.title)}</h1></div>
       <div ${at('1 / 7', '7 / 9')} style="--col:1 / 7;--row:7 / 9"><p class="lead">${t(SE.subtitle)}</p></div>
       <div ${at('1 / 7', '9 / 13')} style="--col:1 / 7;--row:9 / 13;align-self:end">${facts(SE.facts)}</div>
       ${fig(C.cover.image, { col: '8 / 13', row: '1 / 13', alt: 'Psyche and Cupid', fit: 'fill right', cls: 'right' }).replace('loading="lazy"', 'loading="eager"')}
@@ -439,7 +439,7 @@ page('contact', {
     return `
     <div class="g">
       <div ${at('1 / 7', '1')}>${kicker(c.kicker)}</div>
-      <div ${at('1 / 8', '2 / 7')} style="--col:1 / 8;--row:2 / 7;align-self:end"><h1 class="h1" style="font-size:var(--t5)">${t(c.headline)}</h1></div>
+      <div ${at('1 / 8', '2 / 7')} style="--col:1 / 8;--row:2 / 7;align-self:end"><h1 class="h1">${t(c.headline)}</h1></div>
       <div ${at('1 / 7', '7 / 9')} style="--col:1 / 7;--row:7 / 9"><p class="lead">${t(c.sub)}</p></div>
       <dl ${at('1 / 8', '9 / 13')} class="facts" style="--col:1 / 8;--row:9 / 13;align-self:end;grid-template-columns:max-content 1fr">
         ${row('email', c.labels.email, P.email, 'mailto:' + P.email)}
@@ -471,7 +471,8 @@ deck.innerHTML = pages
   .map((p, i) => {
     const running = p.id === 'cover' ? '' : `<header class="run"><span>${t(C.ui.running)}</span><span>${t(p.section)}</span></header>`
     const folio = p.id === 'cover' ? '' : `<footer class="folio"><span>${t(C.person.name)}</span><span>${pad(i + 1)} / ${pad(pages.length)}</span></footer>`
-    return `<section class="sheet${p.night ? ' night' : ''}" id="${p.id}" aria-label="${esc(p.section || p.id)}"><div class="page">${running}${mergeStyles(p.build())}${folio}</div></section>`
+    const flourish = ['tl', 'tr', 'bl', 'br'].map((c) => `<i class="fl fl-${c}" aria-hidden="true"></i>`).join('')
+    return `<section class="sheet${p.night ? ' night' : ''}" id="${p.id}" aria-label="${esc(p.section || p.id)}">${flourish}<div class="page">${running}${mergeStyles(p.build())}${folio}</div></section>`
   })
   .join('')
 
